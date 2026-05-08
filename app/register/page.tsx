@@ -73,4 +73,92 @@ export default function RegisterPage() {
   }
 
   return (
-    <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5',display:'flex',flexDirec
+    <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem'}}>
+
+      <a href="/" style={{fontSize:'22px',fontWeight:'500',marginBottom:'1.5rem',textDecoration:'none',color:'#1a1a1a'}}>
+        Fund<span style={{color:'#0F6E56'}}>MyPO</span>
+      </a>
+
+      <div style={{background:'#085041',borderRadius:'12px',padding:'1.25rem',width:'100%',maxWidth:'420px',marginBottom:'1rem'}}>
+        <p style={{fontSize:'13px',fontWeight:'500',color:'#ffffff',marginBottom:'.75rem'}}>
+          🎯 Investor Demo — try the platform instantly:
+        </p>
+        <div style={{display:'flex',gap:'8px'}}>
+          <button
+            onClick={()=>handleDemoLogin('business')}
+            disabled={loading}
+            style={{flex:1,padding:'9px',background:'#0F6E56',color:'#ffffff',border:'2px solid #5DCAA5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
+            {loading ? 'Loading...' : '🏢 Demo Business'}
+          </button>
+          <button
+            onClick={()=>handleDemoLogin('funder')}
+            disabled={loading}
+            style={{flex:1,padding:'9px',background:'#0F6E56',color:'#ffffff',border:'2px solid #5DCAA5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
+            {loading ? 'Loading...' : '💰 Demo Funder'}
+          </button>
+        </div>
+      </div>
+
+      <div style={{background:'#ffffff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'420px'}}>
+
+        <div style={{display:'flex',border:'1px solid #e5e5e5',borderRadius:'8px',overflow:'hidden',marginBottom:'1.5rem'}}>
+          <button onClick={()=>setTab('login')}
+            style={{flex:1,padding:'9px',fontSize:'14px',fontWeight:'500',border:'none',cursor:'pointer',background:tab==='login'?'#0F6E56':'transparent',color:tab==='login'?'#ffffff':'#666666'}}>
+            Sign in
+          </button>
+          <button onClick={()=>setTab('register')}
+            style={{flex:1,padding:'9px',fontSize:'14px',fontWeight:'500',border:'none',cursor:'pointer',background:tab==='register'?'#0F6E56':'transparent',color:tab==='register'?'#ffffff':'#666666'}}>
+            Create account
+          </button>
+        </div>
+
+        {error && (
+          <div style={{background:'#FEE2E2',border:'1px solid #FCA5A5',borderRadius:'8px',padding:'10px 12px',marginBottom:'1rem',fontSize:'13px',color:'#DC2626'}}>
+            {error}
+          </div>
+        )}
+
+        {tab === 'login' && (
+          <div>
+            <div style={{marginBottom:'1rem'}}>
+              <label style={{display:'block',fontSize:'13px',color:'#666666',marginBottom:'5px'}}>Email address</label>
+              <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)}
+                style={{width:'100%',padding:'9px 12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}}/>
+            </div>
+            <div style={{marginBottom:'.5rem'}}>
+              <label style={{display:'block',fontSize:'13px',color:'#666666',marginBottom:'5px'}}>Password</label>
+              <input type="password" placeholder="Your password" value={password} onChange={e=>setPassword(e.target.value)}
+                style={{width:'100%',padding:'9px 12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}}/>
+            </div>
+            <div style={{textAlign:'right',marginBottom:'1rem'}}>
+              <a href="#" style={{fontSize:'13px',color:'#0F6E56'}}>Forgot password?</a>
+            </div>
+            <button onClick={handleLogin} disabled={loading}
+              style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+            <p style={{textAlign:'center',fontSize:'13px',color:'#666666',marginTop:'1rem'}}>
+              Do not have an account?{' '}
+              <button onClick={()=>setTab('register')} style={{color:'#0F6E56',background:'none',border:'none',cursor:'pointer',fontSize:'13px'}}>
+                Create one free
+              </button>
+            </p>
+          </div>
+        )}
+
+        {tab === 'register' && (
+          <div>
+            {success ? (
+              <div style={{background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'8px',padding:'1rem',textAlign:'center'}}>
+                <p style={{color:'#085041',fontSize:'15px',fontWeight:'500',marginBottom:'.5rem'}}>Account created!</p>
+                <p style={{color:'#0F6E56',fontSize:'13px'}}>Check your email to verify your account then sign in.</p>
+                <button onClick={()=>setTab('login')} style={{marginTop:'1rem',padding:'8px 20px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>
+                  Go to Sign in
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p style={{fontSize:'13px',color:'#666666',marginBottom:'1rem'}}>I am registering as a:</p>
+                <div style={{display:'flex',gap:'8px',marginBottom:'1rem'}}>
+                  <button onClick={()=>setRole('business')}
+                    style={{flex:1,padding:'9px',border:role==='business'?'2px solid #0F6E56':'1px solid #e5e5
