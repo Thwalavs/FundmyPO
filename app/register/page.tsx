@@ -18,13 +18,14 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [companyDoc, setCompanyDoc] = useState('')
-  const [idDoc, setIdDoc] = useState('')
-  const [csdDoc, setCsdDoc] = useState('')
-  const [taxDoc, setTaxDoc] = useState('')
-  const [bbbeeDoc, setBbbeeDoc] = useState('')
-  const [fsca, setFsca] = useState('')
-  const [proofFunds, setProofFunds] = useState('')
+  const [companyDoc, setCompanyDoc] = useState<File|null>(null)
+  const [idDoc, setIdDoc] = useState<File|null>(null)
+  const [csdDoc, setCsdDoc] = useState<File|null>(null)
+  const [taxDoc, setTaxDoc] = useState<File|null>(null)
+  const [bbbeeDoc, setBbbeeDoc] = useState<File|null>(null)
+  const [fscaDoc, setFscaDoc] = useState<File|null>(null)
+  const [proofFunds, setProofFunds] = useState<File|null>(null)
+  const [uploadProgress, setUploadProgress] = useState('')
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -59,12 +60,24 @@ export default function RegisterPage() {
     } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
   }
 
+  async function uploadFile(supabase: any, file: File, userId: string, docName: string) {
+    const ext = file.name.split('.').pop()
+    const path = `${userId}/${docName}.${ext}`
+    const { error } = await supabase.storage
+      .from('verification-docs')
+      .upload(path, file, { upsert: true })
+    if (error) console.error('Upload error:', docName, error.message)
+    return path
+  }
+
   async function handleRegister() {
     setLoading(true)
     setError('')
     try {
       const supabase = await getSupabase()
-      const { error } = await supabase.auth.signUp({
+
+      // Create account
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -75,6 +88,24 @@ export default function RegisterPage() {
         }
       })
       if (error) { setError(error.message); setLoading(false); return }
+
+      const userId = data.user?.id
+      if (!userId) { setSuccess(true); setLoading(false); return }
+
+      // Upload documents
+      if (role === 'business') {
+        if (companyDoc) { setUploadProgress('Uploading company certificate...'); await uploadFile(supabase, companyDoc, userId, 'company-certificate') }
+        if (idDoc) { setUploadProgress('Uploading ID document...'); await uploadFile(supabase, idDoc, userId, 'id-document') }
+        if (csdDoc) { setUploadProgress('Uploading CSD report...'); await uploadFile(supabase, csdDoc, userId, 'csd-report') }
+        if (taxDoc) { setUploadProgress('Uploading tax clearance...'); await uploadFile(supabase, taxDoc, userId, 'tax-clearance') }
+        if (bbbeeDoc) { setUploadProgress('Uploading BBB-EE certificate...'); await uploadFile(supabase, bbbeeDoc, userId, 'bbbee-certificate') }
+      } else {
+        if (fscaDoc) { setUploadProgress('Uploading FSCA license...'); await uploadFile(supabase, fscaDoc, userId, 'fsca-license') }
+        if (idDoc) { setUploadProgress('Uploading ID document...'); await uploadFile(supabase, idDoc, userId, 'id-document') }
+        if (proofFunds) { setUploadProgress('Uploading proof of funds...'); await uploadFile(supabase, proofFunds, userId, 'proof-of-funds') }
+      }
+
+      setUploadProgress('')
       setSuccess(true)
       setLoading(false)
     } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
@@ -86,17 +117,15 @@ export default function RegisterPage() {
   const labelStyle = {display:'block' as const,fontSize:'13px',color:'#666666',marginBottom:'5px'}
   const fieldStyle = {marginBottom:'1rem'}
 
-  function UploadBox({ label, value, onChange }: { label: string, value: string, onChange: (v: string) => void }) {
+  function UploadBox({ label, file, onChange }: { label: string, file: File|null, onChange: (f: File|null) => void }) {
     return (
       <div style={fieldStyle}>
         <label style={labelStyle}>{label}</label>
-        <div
-          onClick={()=>onChange(value ? '' : label)}
-          style={{border:'2px dashed '+(value?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1rem',textAlign:'center',cursor:'pointer',background:value?'#f0faf6':'#fafafa'}}>
-          {value ? (
+        <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative'}}>
+          {file ? (
             <div>
-              <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'500'}}>✓ {label} uploaded</p>
-              <p style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>Click to remove</p>
+              <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'500'}}>✓ {file.name}</p>
+              <p style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>Click to change</p>
             </div>
           ) : (
             <div>
@@ -104,6 +133,11 @@ export default function RegisterPage() {
               <p style={{fontSize:'12px',color:'#aaa',marginTop:'2px'}}>PDF, JPG or PNG — max 5MB</p>
             </div>
           )}
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={e=>onChange(e.target.files?.[0] || null)}
+            style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',opacity:0,cursor:'pointer'}}/>
         </div>
       </div>
     )
@@ -151,7 +185,6 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* LOGIN */}
         {tab === 'login' && (
           <div>
             <div style={fieldStyle}>
@@ -178,7 +211,6 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* REGISTER */}
         {tab === 'register' && (
           <div>
             {success ? (
@@ -192,8 +224,6 @@ export default function RegisterPage() {
               </div>
             ) : (
               <div>
-
-                {/* STEP INDICATOR */}
                 <div style={{display:'flex',alignItems:'center',marginBottom:'1.5rem'}}>
                   {['Account details','Verification docs'].map((s,i)=>{
                     const num = i + 1
@@ -213,7 +243,6 @@ export default function RegisterPage() {
                   })}
                 </div>
 
-                {/* STEP 1 - ACCOUNT DETAILS */}
                 {step === 1 && (
                   <div>
                     <p style={{fontSize:'13px',color:'#666666',marginBottom:'1rem'}}>I am registering as a:</p>
@@ -238,8 +267,8 @@ export default function RegisterPage() {
                       </div>
                     </div>
                     <div style={fieldStyle}>
-                      <label style={labelStyle}>{role==='business' ? 'Business name' : 'Institution name'}</label>
-                      <input type="text" placeholder={role==='business' ? 'Dlamini Suppliers (Pty) Ltd' : 'Nkosi Capital (Pty) Ltd'}
+                      <label style={labelStyle}>{role==='business'?'Business name':'Institution name'}</label>
+                      <input type="text" placeholder={role==='business'?'Dlamini Suppliers (Pty) Ltd':'Nkosi Capital (Pty) Ltd'}
                         value={businessName} onChange={e=>setBusinessName(e.target.value)} style={inputStyle}/>
                     </div>
                     <div style={fieldStyle}>
@@ -251,8 +280,8 @@ export default function RegisterPage() {
                       <input type="tel" placeholder="+27 82 000 0000" value={phone} onChange={e=>setPhone(e.target.value)} style={inputStyle}/>
                     </div>
                     <div style={fieldStyle}>
-                      <label style={labelStyle}>{role==='business' ? 'Company registration number' : 'FSCA registration number'}</label>
-                      <input type="text" placeholder={role==='business' ? '2021/123456/07' : 'FSP 12345'}
+                      <label style={labelStyle}>{role==='business'?'Company registration number':'FSCA registration number'}</label>
+                      <input type="text" placeholder={role==='business'?'2021/123456/07':'FSP 12345'}
                         value={companyReg} onChange={e=>setCompanyReg(e.target.value)} style={inputStyle}/>
                     </div>
                     <div style={fieldStyle}>
@@ -266,33 +295,38 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                {/* STEP 2 - VERIFICATION DOCS */}
                 {step === 2 && (
                   <div>
                     <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
                       <p style={{fontSize:'13px',color:'#085041',fontWeight:'500',marginBottom:'3px'}}>🔒 Your documents are secure</p>
-                      <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and used only for verification purposes.</p>
+                      <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and stored securely. Only verified parties can access them.</p>
                     </div>
 
                     {role === 'business' ? (
                       <div>
-                        <UploadBox label="Company Registration Certificate" value={companyDoc} onChange={setCompanyDoc}/>
-                        <UploadBox label="ID Copy of Director" value={idDoc} onChange={setIdDoc}/>
-                        <UploadBox label="CSD Full Registration Report" value={csdDoc} onChange={setCsdDoc}/>
-                        <UploadBox label="Tax Clearance Certificate" value={taxDoc} onChange={setTaxDoc}/>
-                        <UploadBox label="BBB-EE Certificate or Sworn Affidavit" value={bbbeeDoc} onChange={setBbbeeDoc}/>
+                        <UploadBox label="Company Registration Certificate" file={companyDoc} onChange={setCompanyDoc}/>
+                        <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc}/>
+                        <UploadBox label="CSD Full Registration Report" file={csdDoc} onChange={setCsdDoc}/>
+                        <UploadBox label="Tax Clearance Certificate" file={taxDoc} onChange={setTaxDoc}/>
+                        <UploadBox label="BBB-EE Certificate or Sworn Affidavit" file={bbbeeDoc} onChange={setBbbeeDoc}/>
                       </div>
                     ) : (
                       <div>
-                        <UploadBox label="FSCA License" value={fsca} onChange={setFsca}/>
-                        <UploadBox label="ID Copy of Director" value={idDoc} onChange={setIdDoc}/>
-                        <UploadBox label="Proof of Funds" value={proofFunds} onChange={setProofFunds}/>
+                        <UploadBox label="FSCA License" file={fscaDoc} onChange={setFscaDoc}/>
+                        <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc}/>
+                        <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds}/>
+                      </div>
+                    )}
+
+                    {uploadProgress && (
+                      <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'13px',color:'#085041',textAlign:'center'}}>
+                        ⏳ {uploadProgress}
                       </div>
                     )}
 
                     <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
                       <p style={{fontSize:'13px',color:'#633806',fontWeight:'500',marginBottom:'3px'}}>⏱ Review process</p>
-                      <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours after submission. You will receive an email once approved.</p>
+                      <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
                     </div>
 
                     <div style={{display:'flex',gap:'12px'}}>
@@ -302,7 +336,7 @@ export default function RegisterPage() {
                       </button>
                       <button onClick={handleRegister} disabled={loading}
                         style={{flex:2,padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
-                        {loading ? 'Creating account...' : 'Submit & Create account'}
+                        {loading ? 'Uploading & creating account...' : 'Submit & Create account'}
                       </button>
                     </div>
                   </div>
