@@ -1,6 +1,5 @@
-'use client'
-import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
+﻿'use client'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
@@ -17,10 +16,22 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
+
+  async function getSupabase() {
+    const { createBrowserClient } = await import('@supabase/ssr')
+    return createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
 
   async function handleLogin() {
     setLoading(true)
     setError('')
+    const supabase = await getSupabase()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError(error.message)
@@ -33,6 +44,7 @@ export default function RegisterPage() {
   async function handleRegister() {
     setLoading(true)
     setError('')
+    const supabase = await getSupabase()
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -59,6 +71,7 @@ export default function RegisterPage() {
   async function handleDemoLogin(type: 'business' | 'funder') {
     setLoading(true)
     setError('')
+    const supabase = await getSupabase()
     const demoEmail = type === 'business' ? 'business@demo.com' : 'funder@demo.com'
     const { error } = await supabase.auth.signInWithPassword({
       email: demoEmail,
@@ -71,6 +84,8 @@ export default function RegisterPage() {
     }
     router.push(type === 'business' ? '/dashboard' : '/funder')
   }
+
+  if (!mounted) return null
 
   return (
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem'}}>
