@@ -5,7 +5,6 @@ const marketplace = [
   {
     id:'PO-2025-001',
     business:'Dlamini Suppliers',
-    businessId:'biz001',
     client:'Eskom Holdings SOC Ltd',
     clientContact:'John Smith',
     clientPhone:'+27 11 800 2111',
@@ -27,7 +26,6 @@ const marketplace = [
   {
     id:'PO-2025-002',
     business:'Zulu Trading Co.',
-    businessId:'biz002',
     client:'Transnet Freight Rail',
     clientContact:'Sarah Mokoena',
     clientPhone:'+27 11 584 0000',
@@ -49,7 +47,6 @@ const marketplace = [
   {
     id:'PO-2025-004',
     business:'Mokoena Supplies',
-    businessId:'biz003',
     client:'Sasol Limited',
     clientContact:'David Nkosi',
     clientPhone:'+27 17 610 0000',
@@ -84,31 +81,20 @@ const businessDocs = [
 ]
 
 function RiskBadge({ risk }: { risk: string }) {
-  const s = risk === 'Low'
-    ? { bg:'#E1F5EE', color:'#085041' }
-    : { bg:'#FAEEDA', color:'#633806' }
-  return (
-    <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>
-      {risk} risk
-    </span>
-  )
+  const s = risk === 'Low' ? { bg:'#E1F5EE', color:'#085041' } : { bg:'#FAEEDA', color:'#633806' }
+  return <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>{risk} risk</span>
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const s = status === 'accepted'
-    ? { bg:'#E1F5EE', color:'#085041', label:'Accepted' }
-    : { bg:'#FAEEDA', color:'#633806', label:'Pending' }
-  return (
-    <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>
-      {s.label}
-    </span>
-  )
+  const s = status === 'accepted' ? { bg:'#E1F5EE', color:'#085041', label:'Accepted' } : { bg:'#FAEEDA', color:'#633806', label:'Pending' }
+  return <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>{s.label}</span>
 }
 
 export default function FunderDashboard() {
   const [activeTab, setActiveTab] = useState<'marketplace'|'offers'|'profile'>('marketplace')
   const [submittedOffers, setSubmittedOffers] = useState<string[]>([])
   const [selectedPO, setSelectedPO] = useState<string|null>(null)
+  const [previewPO, setPreviewPO] = useState<string|null>(null)
   const [viewingDocs, setViewingDocs] = useState<string|null>(null)
   const [viewingPODocs, setViewingPODocs] = useState<string|null>(null)
   const [rate, setRate] = useState('')
@@ -120,13 +106,12 @@ export default function FunderDashboard() {
   function handleSubmitOffer(poId: string) {
     setSubmittedOffers(prev => [...prev, poId])
     setSelectedPO(null)
+    setPreviewPO(null)
     setRate('')
     setTerm('')
   }
 
   if (!mounted) return null
-
-  const currentPO = marketplace.find(p => p.id === viewingPODocs)
 
   return (
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
@@ -137,9 +122,7 @@ export default function FunderDashboard() {
         </a>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
           <span style={{fontSize:'13px',background:'#E1F5EE',padding:'4px 12px',borderRadius:'99px',color:'#085041',fontWeight:'500'}}>Funder portal</span>
-          <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'#E1F5EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:'500',color:'#085041'}}>
-            TN
-          </div>
+          <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'#E1F5EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:'500',color:'#085041'}}>TN</div>
         </div>
       </nav>
 
@@ -178,26 +161,25 @@ export default function FunderDashboard() {
           <div>
             <div style={{marginBottom:'1rem'}}>
               <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'.25rem'}}>Available Purchase Orders</h2>
-              <p style={{fontSize:'13px',color:'#666'}}>Submit an offer to unlock PO documents, supplier quotation and contact details.</p>
+              <p style={{fontSize:'13px',color:'#666'}}>Click "Preview" to see basic details. Submit an offer to unlock full documents and contact details.</p>
             </div>
 
             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
               {marketplace.map(po=>(
                 <div key={po.id} style={{background:'#fff',border:selectedPO===po.id?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
 
+                  {/* PO HEADER */}
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
                     <div>
                       <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
                         <span style={{fontSize:'15px',fontWeight:'500'}}>{po.id}</span>
                         <RiskBadge risk={po.risk}/>
                         {submittedOffers.includes(po.id) && (
-                          <span style={{background:'#E6F1FB',color:'#0C447C',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>
-                            Offer submitted
-                          </span>
+                          <span style={{background:'#E6F1FB',color:'#0C447C',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>Offer submitted ✓</span>
                         )}
                       </div>
                       <p style={{fontSize:'13px',color:'#666'}}>{po.business} → {po.client}</p>
-                      <p style={{fontSize:'12px',color:'#888'}}>Dept: {po.clientDept}</p>
+                      <p style={{fontSize:'12px',color:'#888'}}>Dept: {po.clientDept} • {po.sector}</p>
                     </div>
                     <div style={{textAlign:'right'}}>
                       <p style={{fontSize:'18px',fontWeight:'500',color:'#0F6E56'}}>{po.funding}</p>
@@ -206,18 +188,25 @@ export default function FunderDashboard() {
                     </div>
                   </div>
 
+                  {/* ACTION BUTTONS */}
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
-                    <div style={{display:'flex',gap:'12px',flexWrap:'wrap'}}>
-                      <span style={{fontSize:'12px',color:'#888'}}>📁 {po.sector}</span>
-                      <span style={{fontSize:'12px',color:'#888'}}>⏰ Expires {po.expires}</span>
-                    </div>
+                    <span style={{fontSize:'12px',color:'#888'}}>⏰ Expires {po.expires}</span>
                     <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+
+                      {/* PREVIEW BUTTON — always visible */}
+                      <button
+                        onClick={()=>setPreviewPO(previewPO===po.id?null:po.id)}
+                        style={{fontSize:'13px',color:'#633806',background:'#FAEEDA',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                        {previewPO===po.id ? 'Hide preview' : '👁 Preview'}
+                      </button>
+
+                      {/* AFTER OFFER BUTTONS */}
                       {submittedOffers.includes(po.id) && (
                         <>
                           <button
                             onClick={()=>setViewingPODocs(viewingPODocs===po.id?null:po.id)}
                             style={{fontSize:'13px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                            {viewingPODocs===po.id ? 'Hide PO docs' : '📋 View PO & Quotation'}
+                            {viewingPODocs===po.id ? 'Hide PO docs' : '📋 PO & Quotation'}
                           </button>
                           <button
                             onClick={()=>setViewingDocs(viewingDocs===po.id?null:po.id)}
@@ -226,15 +215,76 @@ export default function FunderDashboard() {
                           </button>
                         </>
                       )}
+
+                      {/* MAKE OFFER BUTTON */}
                       {!submittedOffers.includes(po.id) && (
                         <button
                           onClick={()=>setSelectedPO(selectedPO===po.id?null:po.id)}
-                          style={{fontSize:'13px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                          {selectedPO===po.id?'Cancel':'Make an offer'}
+                          style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                          {selectedPO===po.id ? 'Cancel' : '💰 Make an offer'}
                         </button>
                       )}
                     </div>
                   </div>
+
+                  {/* PREVIEW PANEL — visible before offer */}
+                  {previewPO === po.id && !submittedOffers.includes(po.id) && (
+                    <div style={{marginTop:'1rem',padding:'1.25rem',background:'#FFFBF0',borderRadius:'10px',border:'1px solid #F5D87A'}}>
+                      <p style={{fontSize:'13px',fontWeight:'500',color:'#633806',marginBottom:'1rem'}}>
+                        👁 Preview — Submit an offer to unlock full details
+                      </p>
+
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
+                        <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
+                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>📋 PO Summary</p>
+                          {[
+                            ['Client', po.client],
+                            ['Department', po.clientDept],
+                            ['Sector', po.sector],
+                            ['PO Value', po.value],
+                            ['Funding needed', po.funding],
+                          ].map(([label,value])=>(
+                            <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px solid #f0f0f0',fontSize:'12px'}}>
+                              <span style={{color:'#888'}}>{label}</span>
+                              <span style={{fontWeight:'500'}}>{value}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
+                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>📊 Profit Analysis</p>
+                          <div style={{textAlign:'center',padding:'1rem 0'}}>
+                            <p style={{fontSize:'28px',fontWeight:'500',color:'#085041'}}>{po.margin}</p>
+                            <p style={{fontSize:'12px',color:'#666'}}>Profit margin</p>
+                            <p style={{fontSize:'14px',fontWeight:'500',color:'#0F6E56',marginTop:'.5rem'}}>{po.profit}</p>
+                            <p style={{fontSize:'11px',color:'#666'}}>Estimated profit</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* BLURRED SECTION */}
+                      <div style={{position:'relative',borderRadius:'8px',overflow:'hidden'}}>
+                        <div style={{background:'#fff',padding:'1rem',filter:'blur(4px)',userSelect:'none'}}>
+                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>👤 Client Contact Details</p>
+                          {[['Contact person','████████████'],['Phone','+27 ██ ███ ████'],['Email','████████@██████.co.za']].map(([l,v])=>(
+                            <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',fontSize:'12px'}}>
+                              <span style={{color:'#888'}}>{l}</span><span>{v}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.7)',borderRadius:'8px'}}>
+                          <p style={{fontSize:'13px',fontWeight:'500',color:'#0F6E56',marginBottom:'.5rem'}}>🔒 Submit an offer to unlock</p>
+                          <p style={{fontSize:'12px',color:'#666'}}>Full contact details & documents</p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={()=>{ setSelectedPO(po.id); setPreviewPO(null) }}
+                        style={{width:'100%',marginTop:'1rem',padding:'10px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',fontWeight:'500',cursor:'pointer'}}>
+                        💰 Make an offer to unlock full access →
+                      </button>
+                    </div>
+                  )}
 
                   {/* OFFER FORM */}
                   {selectedPO === po.id && (
@@ -253,7 +303,7 @@ export default function FunderDashboard() {
                         </div>
                       </div>
                       <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#085041'}}>
-                        🔒 Submitting this offer will unlock the PO document, supplier quotation and all contact details for your verification.
+                        🔒 Submitting this offer will unlock the full PO document, supplier quotation and all contact details.
                       </div>
                       <button onClick={()=>handleSubmitOffer(po.id)}
                         style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
@@ -262,93 +312,54 @@ export default function FunderDashboard() {
                     </div>
                   )}
 
-                  {/* PO DOCUMENTS & CONTACT DETAILS */}
+                  {/* FULL PO DOCUMENTS — after offer */}
                   {viewingPODocs === po.id && (
                     <div style={{marginTop:'1rem',padding:'1.25rem',background:'#EEF4FB',borderRadius:'10px',border:'1px solid #B8D4F0'}}>
                       <p style={{fontSize:'13px',fontWeight:'500',color:'#0C447C',marginBottom:'1rem'}}>
-                        📋 PO Documents & Contact Details — {po.business}
+                        📋 Full PO Documents & Contact Details — {po.business}
                       </p>
-
-                      {/* CLIENT CONTACT */}
                       <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                         <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>👤 Client Contact Details</p>
-                        {[
-                          ['Company', po.client],
-                          ['Contact person', po.clientContact],
-                          ['Department', po.clientDept],
-                          ['Phone', po.clientPhone],
-                          ['Email', po.clientEmail],
-                        ].map(([label,value])=>(
-                          <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
-                            <span style={{color:'#888'}}>{label}</span>
-                            <span style={{fontWeight:'500',color:'#1a1a1a'}}>{value}</span>
+                        {[['Company',po.client],['Contact person',po.clientContact],['Department',po.clientDept],['Phone',po.clientPhone],['Email',po.clientEmail]].map(([l,v])=>(
+                          <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
+                            <span style={{color:'#888'}}>{l}</span>
+                            <span style={{fontWeight:'500'}}>{v}</span>
                           </div>
                         ))}
                       </div>
-
-                      {/* SUPPLIER CONTACT */}
                       <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                         <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>🏭 Supplier Contact Details</p>
-                        {[
-                          ['Supplier', po.supplier],
-                          ['Phone', po.supplierPhone],
-                          ['Email', po.supplierEmail],
-                          ['Quotation number', po.quotationNumber],
-                          ['Quotation value', po.quotationValue],
-                        ].map(([label,value])=>(
-                          <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
-                            <span style={{color:'#888'}}>{label}</span>
-                            <span style={{fontWeight:'500',color:'#1a1a1a'}}>{value}</span>
+                        {[['Supplier',po.supplier],['Phone',po.supplierPhone],['Email',po.supplierEmail],['Quotation number',po.quotationNumber],['Quotation value',po.quotationValue]].map(([l,v])=>(
+                          <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
+                            <span style={{color:'#888'}}>{l}</span>
+                            <span style={{fontWeight:'500'}}>{v}</span>
                           </div>
                         ))}
                       </div>
-
-                      {/* PROFIT MARGIN */}
                       <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                         <p style={{fontSize:'12px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>📊 Profit Margin Analysis</p>
                         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',textAlign:'center'}}>
-                          <div>
-                            <p style={{fontSize:'16px',fontWeight:'500',color:'#0F6E56'}}>{po.value}</p>
-                            <p style={{fontSize:'11px',color:'#666'}}>PO Value</p>
-                          </div>
-                          <div>
-                            <p style={{fontSize:'16px',fontWeight:'500',color:'#DC2626'}}>{po.quotationValue}</p>
-                            <p style={{fontSize:'11px',color:'#666'}}>Supplier Cost</p>
-                          </div>
-                          <div>
-                            <p style={{fontSize:'16px',fontWeight:'500',color:'#085041'}}>{po.margin}</p>
-                            <p style={{fontSize:'11px',color:'#666'}}>Profit Margin</p>
-                          </div>
+                          <div><p style={{fontSize:'16px',fontWeight:'500',color:'#0F6E56'}}>{po.value}</p><p style={{fontSize:'11px',color:'#666'}}>PO Value</p></div>
+                          <div><p style={{fontSize:'16px',fontWeight:'500',color:'#DC2626'}}>{po.quotationValue}</p><p style={{fontSize:'11px',color:'#666'}}>Supplier Cost</p></div>
+                          <div><p style={{fontSize:'16px',fontWeight:'500',color:'#085041'}}>{po.margin}</p><p style={{fontSize:'11px',color:'#666'}}>Profit Margin</p></div>
                         </div>
-                        <div style={{marginTop:'.75rem',textAlign:'center',fontSize:'13px',color:'#085041',fontWeight:'500'}}>
-                          Estimated profit: {po.profit} ✅
-                        </div>
+                        <p style={{marginTop:'.75rem',textAlign:'center',fontSize:'13px',color:'#085041',fontWeight:'500'}}>Estimated profit: {po.profit} ✅</p>
                       </div>
-
-                      {/* DOWNLOAD DOCUMENTS */}
                       <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
                         <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Download Documents</p>
-                        {[
-                          { name:'Purchase Order Document', desc:'Official PO from client' },
-                          { name:'Supplier Quotation', desc:'Quotation from supplier' },
-                        ].map(doc=>(
+                        {[{name:'Purchase Order Document',desc:'Official PO from client'},{name:'Supplier Quotation',desc:'Quotation from supplier'}].map(doc=>(
                           <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
                             <div>
-                              <p style={{fontSize:'13px',color:'#1a1a1a',fontWeight:'500'}}>📄 {doc.name}</p>
+                              <p style={{fontSize:'13px',fontWeight:'500'}}>📄 {doc.name}</p>
                               <p style={{fontSize:'11px',color:'#888'}}>{doc.desc}</p>
                             </div>
                             <div style={{display:'flex',gap:'8px'}}>
-                              <button style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
-                                View ↗
-                              </button>
-                              <button style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
-                                Download ↓
-                              </button>
+                              <button style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>View ↗</button>
+                              <button style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>Download ↓</button>
                             </div>
                           </div>
                         ))}
                       </div>
-
                       <div style={{marginTop:'1rem',background:'#FAEEDA',borderRadius:'8px',padding:'10px',fontSize:'12px',color:'#633806'}}>
                         ⚠️ These documents are confidential. Use the contact details above to verify the PO and quotation directly with the client and supplier before making a funding decision.
                       </div>
@@ -358,22 +369,14 @@ export default function FunderDashboard() {
                   {/* VERIFICATION DOCUMENTS */}
                   {viewingDocs === po.id && (
                     <div style={{marginTop:'1rem',padding:'1.25rem',background:'#E1F5EE',borderRadius:'10px',border:'1px solid #5DCAA5'}}>
-                      <p style={{fontSize:'13px',fontWeight:'500',color:'#085041',marginBottom:'.25rem'}}>
-                        📄 {po.business} — Business Verification Documents
-                      </p>
-                      <p style={{fontSize:'12px',color:'#0F6E56',marginBottom:'1rem'}}>
-                        These documents are confidential and available only because you submitted a funding offer.
-                      </p>
+                      <p style={{fontSize:'13px',fontWeight:'500',color:'#085041',marginBottom:'.25rem'}}>📄 {po.business} — Business Verification Documents</p>
+                      <p style={{fontSize:'12px',color:'#0F6E56',marginBottom:'1rem'}}>Confidential — available only because you submitted a funding offer.</p>
                       {businessDocs.map(doc=>(
                         <div key={doc} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #c8ead8'}}>
                           <span style={{fontSize:'13px',color:'#085041'}}>📄 {doc}</span>
                           <div style={{display:'flex',gap:'8px'}}>
-                            <button style={{fontSize:'12px',color:'#0F6E56',background:'#fff',border:'1px solid #0F6E56',padding:'4px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
-                              View ↗
-                            </button>
-                            <button style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'4px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
-                              Download ↓
-                            </button>
+                            <button style={{fontSize:'12px',color:'#0F6E56',background:'#fff',border:'1px solid #0F6E56',padding:'4px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>View ↗</button>
+                            <button style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'4px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>Download ↓</button>
                           </div>
                         </div>
                       ))}
