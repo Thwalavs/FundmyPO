@@ -28,7 +28,12 @@ export default function Home() {
           FundMyPO connects businesses holding confirmed purchase orders with a network of competitive funders — so you can fulfill contracts without waiting for cash.
         </p>
         <div style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-
+          <a href="/register" style={{background:'#0F6E56',color:'#fff',padding:'12px 28px',borderRadius:'8px',fontSize:'15px',textDecoration:'none',fontWeight:'500'}}>
+            Supplier
+          </a>
+          <a href="/register?role=funder" style={{background:'transparent',color:'#0F6E56',border:'1.5px solid #0F6E56',padding:'12px 28px',borderRadius:'8px',fontSize:'15px',textDecoration:'none',fontWeight:'500'}}>
+            Funder
+          </a>
         </div>
       </section>
 
@@ -76,7 +81,7 @@ export default function Home() {
               ['📊','Offer comparison','Side-by-side comparison of rates, terms and fees.'],
               ['🌍','Pan-African reach','Starting in South Africa, expanding across the continent.'],
             ].map(([icon,title,desc])=>(
-              <div key={title} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
+              <div key={title as string} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
                 <div style={{fontSize:'20px',marginBottom:'.6rem'}}>{icon}</div>
                 <h3 style={{fontSize:'14px',fontWeight:'500',marginBottom:'.3rem'}}>{title}</h3>
                 <p style={{fontSize:'13px',color:'#666',lineHeight:'1.6'}}>{desc}</p>
