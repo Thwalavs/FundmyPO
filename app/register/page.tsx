@@ -7,6 +7,7 @@ export default function RegisterPage() {
   const [tab, setTab] = useState<'login' | 'register'>('login')
   const [step, setStep] = useState(1)
   const [role, setRole] = useState('business')
+  const [portalRole, setPortalRole] = useState('business')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -27,7 +28,15 @@ export default function RegisterPage() {
   const [proofFunds, setProofFunds] = useState<File|null>(null)
   const [uploadProgress, setUploadProgress] = useState('')
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    setMounted(true)
+    const params = new URLSearchParams(window.location.search)
+    const roleParam = params.get('role')
+    if (roleParam === 'funder') {
+      setPortalRole('funder')
+      setRole('funder')
+    }
+  }, [])
 
   async function getSupabase() {
     const { createBrowserClient } = await import('@supabase/ssr')
@@ -52,36 +61,37 @@ export default function RegisterPage() {
     } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
   }
 
-  async function handleLogin() {
-  setLoading(true)
-  setError('')
-  try {
-    const supabase = await getSupabase()
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { setError(error.message); setLoading(false); return }
-    const userRole = data.user?.user_metadata?.role
+  async function handleLogin(currentPortalRole: string) {
+    setLoading(true)
+    setError('')
+    try {
+      const supabase = await getSupabase()
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) { setError(error.message); setLoading(false); return }
 
-    // Check if user is trying to log in through wrong portal
-    if (portalRole === 'funder' && userRole !== 'funder') {
-      await supabase.auth.signOut()
-      setError('This login is for funders only. Please use the business login instead.')
-      setLoading(false)
-      return
-    }
-    if (portalRole === 'business' && userRole === 'funder') {
-      await supabase.auth.signOut()
-      setError('This login is for businesses only. Please use the funder login instead.')
-      setLoading(false)
-      return
-    }
+      const userRole = data.user?.user_metadata?.role
 
-    if (userRole === 'funder') {
-      router.push('/funder')
-    } else {
-      router.push('/dashboard')
-    }
-  } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
-}
+      if (currentPortalRole === 'funder' && userRole !== 'funder') {
+        await supabase.auth.signOut()
+        setError('This portal is for funders only. Please use the business login instead.')
+        setLoading(false)
+        return
+      }
+
+      if (currentPortalRole === 'business' && userRole === 'funder') {
+        await supabase.auth.signOut()
+        setError('This portal is for businesses only. Please use the funder login instead.')
+        setLoading(false)
+        return
+      }
+
+      if (userRole === 'funder') {
+        router.push('/funder')
+      } else {
+        router.push('/dashboard')
+      }
+    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
+  }
 
   async function uploadFile(supabase: any, file: File, userId: string, docName: string) {
     const ext = file.name.split('.').pop()
@@ -170,6 +180,10 @@ export default function RegisterPage() {
         Fund<span style={{color:'#0F6E56'}}>MyPO</span>
       </a>
 
+      <div style={{background:portalRole==='funder'?'#0C447C':'#085041',borderRadius:'8px',padding:'8px 20px',marginBottom:'1rem',fontSize:'13px',color:'#fff',fontWeight:'500'}}>
+        {portalRole === 'funder' ? '💰 Funder Portal' : '🏢 Business Portal'}
+      </div>
+
       <div style={{background:'#085041',borderRadius:'12px',padding:'1.25rem',width:'100%',maxWidth:'460px',marginBottom:'1rem'}}>
         <p style={{fontSize:'13px',fontWeight:'500',color:'#ffffff',marginBottom:'.75rem'}}>
           Investor Demo - try the platform instantly:
@@ -205,9 +219,11 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* LOGIN */}
         {tab === 'login' && (
           <div>
+            <p style={{fontSize:'13px',color:'#666',marginBottom:'1rem'}}>
+              {portalRole === 'funder' ? 'Sign in to your funder account' : 'Sign in to your business account'}
+            </p>
             <div style={fieldStyle}>
               <label style={labelStyle}>Email address</label>
               <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)} style={inputStyle}/>
@@ -219,7 +235,7 @@ export default function RegisterPage() {
             <div style={{textAlign:'right',marginBottom:'1rem'}}>
               <a href="#" style={{fontSize:'13px',color:'#0F6E56'}}>Forgot password?</a>
             </div>
-            <button onClick={handleLogin} disabled={loading}
+            <button onClick={()=>handleLogin(portalRole)} disabled={loading}
               style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
@@ -229,10 +245,16 @@ export default function RegisterPage() {
                 Create one free
               </button>
             </p>
+            <p style={{textAlign:'center',fontSize:'12px',color:'#888',marginTop:'.5rem'}}>
+              {portalRole === 'funder' ? (
+                <>Wrong portal? <a href="/register" style={{color:'#0F6E56'}}>Go to business login</a></>
+              ) : (
+                <>Are you a funder? <a href="/register?role=funder" style={{color:'#0F6E56'}}>Go to funder login</a></>
+              )}
+            </p>
           </div>
         )}
 
-        {/* REGISTER */}
         {tab === 'register' && (
           <div>
             {success ? (
