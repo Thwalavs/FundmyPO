@@ -43,7 +43,10 @@ export default function RegisterPage() {
     try {
       const supabase = await getSupabase()
       const demoEmail = type === 'business' ? 'business@demo.com' : 'funder@demo.com'
-      const { error } = await supabase.auth.signInWithPassword({ email: demoEmail, password: 'Demo1234!' })
+      const { error } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: 'Demo1234!'
+      })
       if (error) { setError('Demo login failed: ' + error.message); setLoading(false); return }
       router.push(type === 'business' ? '/dashboard' : '/funder')
     } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
@@ -54,9 +57,14 @@ export default function RegisterPage() {
     setError('')
     try {
       const supabase = await getSupabase()
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
-      router.push('/dashboard')
+      const userRole = data.user?.user_metadata?.role
+      if (userRole === 'funder') {
+        router.push('/funder')
+      } else {
+        router.push('/dashboard')
+      }
     } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
   }
 
@@ -75,36 +83,35 @@ export default function RegisterPage() {
     setError('')
     try {
       const supabase = await getSupabase()
-
-      // Create account
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            role, first_name: firstName, last_name: lastName,
-            business_name: businessName, phone, company_reg: companyReg,
+            role,
+            first_name: firstName,
+            last_name: lastName,
+            business_name: businessName,
+            phone,
+            company_reg: companyReg,
           }
         }
       })
       if (error) { setError(error.message); setLoading(false); return }
-
       const userId = data.user?.id
-      if (!userId) { setSuccess(true); setLoading(false); return }
-
-      // Upload documents
-      if (role === 'business') {
-        if (companyDoc) { setUploadProgress('Uploading company certificate...'); await uploadFile(supabase, companyDoc, userId, 'company-certificate') }
-        if (idDoc) { setUploadProgress('Uploading ID document...'); await uploadFile(supabase, idDoc, userId, 'id-document') }
-        if (csdDoc) { setUploadProgress('Uploading CSD report...'); await uploadFile(supabase, csdDoc, userId, 'csd-report') }
-        if (taxDoc) { setUploadProgress('Uploading tax clearance...'); await uploadFile(supabase, taxDoc, userId, 'tax-clearance') }
-        if (bbbeeDoc) { setUploadProgress('Uploading BBB-EE certificate...'); await uploadFile(supabase, bbbeeDoc, userId, 'bbbee-certificate') }
-      } else {
-        if (fscaDoc) { setUploadProgress('Uploading FSCA license...'); await uploadFile(supabase, fscaDoc, userId, 'fsca-license') }
-        if (idDoc) { setUploadProgress('Uploading ID document...'); await uploadFile(supabase, idDoc, userId, 'id-document') }
-        if (proofFunds) { setUploadProgress('Uploading proof of funds...'); await uploadFile(supabase, proofFunds, userId, 'proof-of-funds') }
+      if (userId) {
+        if (role === 'business') {
+          if (companyDoc) { setUploadProgress('Uploading company certificate...'); await uploadFile(supabase, companyDoc, userId, 'company-certificate') }
+          if (idDoc) { setUploadProgress('Uploading ID document...'); await uploadFile(supabase, idDoc, userId, 'id-document') }
+          if (csdDoc) { setUploadProgress('Uploading CSD report...'); await uploadFile(supabase, csdDoc, userId, 'csd-report') }
+          if (taxDoc) { setUploadProgress('Uploading tax clearance...'); await uploadFile(supabase, taxDoc, userId, 'tax-clearance') }
+          if (bbbeeDoc) { setUploadProgress('Uploading BBB-EE certificate...'); await uploadFile(supabase, bbbeeDoc, userId, 'bbbee-certificate') }
+        } else {
+          if (fscaDoc) { setUploadProgress('Uploading FSCA license...'); await uploadFile(supabase, fscaDoc, userId, 'fsca-license') }
+          if (idDoc) { setUploadProgress('Uploading ID document...'); await uploadFile(supabase, idDoc, userId, 'id-document') }
+          if (proofFunds) { setUploadProgress('Uploading proof of funds...'); await uploadFile(supabase, proofFunds, userId, 'proof-of-funds') }
+        }
       }
-
       setUploadProgress('')
       setSuccess(true)
       setLoading(false)
@@ -133,10 +140,8 @@ export default function RegisterPage() {
               <p style={{fontSize:'12px',color:'#aaa',marginTop:'2px'}}>PDF, JPG or PNG — max 5MB</p>
             </div>
           )}
-          <input
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={e=>onChange(e.target.files?.[0] || null)}
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png"
+            onChange={e=>onChange(e.target.files?.[0]||null)}
             style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',opacity:0,cursor:'pointer'}}/>
         </div>
       </div>
@@ -185,6 +190,7 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {/* LOGIN */}
         {tab === 'login' && (
           <div>
             <div style={fieldStyle}>
@@ -211,6 +217,7 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {/* REGISTER */}
         {tab === 'register' && (
           <div>
             {success ? (
@@ -336,7 +343,7 @@ export default function RegisterPage() {
                       </button>
                       <button onClick={handleRegister} disabled={loading}
                         style={{flex:2,padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
-                        {loading ? 'Uploading & creating account...' : 'Submit & Create account'}
+                        {loading ? 'Creating account...' : 'Submit & Create account'}
                       </button>
                     </div>
                   </div>
