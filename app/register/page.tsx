@@ -184,21 +184,21 @@ export default function RegisterPage() {
         {portalRole === 'funder' ? '💰 Funder Portal' : '🏢 Business Portal'}
       </div>
 
-      <div style={{background:'#085041',borderRadius:'12px',padding:'1.25rem',width:'100%',maxWidth:'460px',marginBottom:'1rem'}}>
-        <p style={{fontSize:'13px',fontWeight:'500',color:'#ffffff',marginBottom:'.75rem'}}>
-          Investor Demo - try the platform instantly:
-        </p>
-        <div style={{display:'flex',gap:'8px'}}>
-          <button onClick={()=>handleDemoLogin('business')} disabled={loading}
-            style={{flex:1,padding:'9px',background:'#0F6E56',color:'#ffffff',border:'2px solid #5DCAA5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
-            {loading ? 'Loading...' : 'Demo Business'}
-          </button>
-          <button onClick={()=>handleDemoLogin('funder')} disabled={loading}
-            style={{flex:1,padding:'9px',background:'#0F6E56',color:'#ffffff',border:'2px solid #5DCAA5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
-            {loading ? 'Loading...' : 'Demo Funder'}
-          </button>
-        </div>
-      </div>
+  <div style={{background:'#085041',borderRadius:'12px',padding:'1.25rem',width:'100%',maxWidth:'460px',marginBottom:'1rem'}}>
+  <p style={{fontSize:'13px',fontWeight:'500',color:'#ffffff',marginBottom:'.75rem'}}>
+    Investor Demo - try the platform instantly:
+  </p>
+  <div style={{display:'flex',gap:'8px'}}>
+    <button onClick={()=>handleDemoLogin('business')} disabled={loading}
+      style={{flex:1,padding:'9px',background:'#0F6E56',color:'#ffffff',border:'2px solid #5DCAA5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
+      {loading ? 'Loading...' : 'Demo Business'}
+    </button>
+    <button onClick={()=>handleDemoLogin('funder')} disabled={loading}
+      style={{flex:1,padding:'9px',background:'#0F6E56',color:'#ffffff',border:'2px solid #5DCAA5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
+      {loading ? 'Loading...' : 'Demo Funder'}
+    </button>
+  </div>
+</div>
 
       <div style={{background:'#ffffff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'460px'}}>
 
