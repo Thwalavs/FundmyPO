@@ -46,21 +46,6 @@ export default function RegisterPage() {
     )
   }
 
-  async function handleDemoLogin(type: string) {
-    setLoading(true)
-    setError('')
-    try {
-      const supabase = await getSupabase()
-      const demoEmail = type === 'business' ? 'business@demo.com' : 'funder@demo.com'
-      const { error } = await supabase.auth.signInWithPassword({
-        email: demoEmail,
-        password: 'Demo1234!'
-      })
-      if (error) { setError('Demo login failed: ' + error.message); setLoading(false); return }
-      router.push(type === 'business' ? '/dashboard' : '/funder')
-    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
-  }
-
   async function handleLogin(currentPortalRole: string) {
     setLoading(true)
     setError('')
@@ -180,25 +165,10 @@ export default function RegisterPage() {
         Fund<span style={{color:'#0F6E56'}}>MyPO</span>
       </a>
 
-      <div style={{background:portalRole==='funder'?'#0C447C':'#085041',borderRadius:'8px',padding:'8px 20px',marginBottom:'1rem',fontSize:'13px',color:'#fff',fontWeight:'500'}}>
+      {/* PORTAL INDICATOR */}
+      <div style={{background:portalRole==='funder'?'#0C447C':'#085041',borderRadius:'8px',padding:'8px 20px',marginBottom:'1.5rem',fontSize:'13px',color:'#fff',fontWeight:'500'}}>
         {portalRole === 'funder' ? '💰 Funder Portal' : '🏢 Business Portal'}
       </div>
-
-  <div style={{background:'#085041',borderRadius:'12px',padding:'1.25rem',width:'100%',maxWidth:'460px',marginBottom:'1rem'}}>
-  <p style={{fontSize:'13px',fontWeight:'500',color:'#ffffff',marginBottom:'.75rem'}}>
-    Investor Demo - try the platform instantly:
-  </p>
-  <div style={{display:'flex',gap:'8px'}}>
-    <button onClick={()=>handleDemoLogin('business')} disabled={loading}
-      style={{flex:1,padding:'9px',background:'#0F6E56',color:'#ffffff',border:'2px solid #5DCAA5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
-      {loading ? 'Loading...' : 'Demo Business'}
-    </button>
-    <button onClick={()=>handleDemoLogin('funder')} disabled={loading}
-      style={{flex:1,padding:'9px',background:'#0F6E56',color:'#ffffff',border:'2px solid #5DCAA5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',fontWeight:'500'}}>
-      {loading ? 'Loading...' : 'Demo Funder'}
-    </button>
-  </div>
-</div>
 
       <div style={{background:'#ffffff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'460px'}}>
 
@@ -219,6 +189,7 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {/* LOGIN */}
         {tab === 'login' && (
           <div>
             <p style={{fontSize:'13px',color:'#666',marginBottom:'1rem'}}>
@@ -255,6 +226,7 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {/* REGISTER */}
         {tab === 'register' && (
           <div>
             {success ? (
