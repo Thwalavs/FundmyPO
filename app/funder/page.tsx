@@ -2,10 +2,72 @@
 import { useState, useEffect } from 'react'
 
 const marketplace = [
-  { id:'PO-2025-001', business:'Dlamini Suppliers', businessId:'biz001', client:'Eskom Holdings', value:'R 500,000', funding:'R 400,000', sector:'Construction', risk:'Low', expires:'10 May 2025' },
-  { id:'PO-2025-002', business:'Zulu Trading Co.', businessId:'biz002', client:'Transnet Freight Rail', value:'R 280,000', funding:'R 250,000', sector:'Transport', risk:'Medium', expires:'12 May 2025' },
-  { id:'PO-2025-004', business:'Mokoena Supplies', businessId:'biz003', client:'Sasol Limited', value:'R 920,000', funding:'R 800,000', sector:'Mining', risk:'Low', expires:'15 May 2025' },
-  { id:'PO-2025-005', business:'Ndlovu Contractors', businessId:'biz004', client:'City of Cape Town', value:'R 340,000', funding:'R 300,000', sector:'Government', risk:'Low', expires:'18 May 2025' },
+  {
+    id:'PO-2025-001',
+    business:'Dlamini Suppliers',
+    businessId:'biz001',
+    client:'Eskom Holdings SOC Ltd',
+    clientContact:'John Smith',
+    clientPhone:'+27 11 800 2111',
+    clientEmail:'procurement@eskom.co.za',
+    clientDept:'Supply Chain',
+    supplier:'ABC Electrical Supplies',
+    supplierPhone:'+27 11 234 5678',
+    supplierEmail:'sales@abcelectrical.co.za',
+    quotationNumber:'QT-2025-00456',
+    value:'R 500,000',
+    funding:'R 400,000',
+    quotationValue:'R 350,000',
+    profit:'R 150,000',
+    margin:'30%',
+    sector:'Construction',
+    risk:'Low',
+    expires:'10 Jun 2025'
+  },
+  {
+    id:'PO-2025-002',
+    business:'Zulu Trading Co.',
+    businessId:'biz002',
+    client:'Transnet Freight Rail',
+    clientContact:'Sarah Mokoena',
+    clientPhone:'+27 11 584 0000',
+    clientEmail:'supply@transnet.co.za',
+    clientDept:'Procurement',
+    supplier:'SA Steel Works',
+    supplierPhone:'+27 11 345 6789',
+    supplierEmail:'orders@sasteelworks.co.za',
+    quotationNumber:'QT-2025-00789',
+    value:'R 280,000',
+    funding:'R 250,000',
+    quotationValue:'R 210,000',
+    profit:'R 70,000',
+    margin:'25%',
+    sector:'Transport',
+    risk:'Medium',
+    expires:'12 Jun 2025'
+  },
+  {
+    id:'PO-2025-004',
+    business:'Mokoena Supplies',
+    businessId:'biz003',
+    client:'Sasol Limited',
+    clientContact:'David Nkosi',
+    clientPhone:'+27 17 610 0000',
+    clientEmail:'procurement@sasol.com',
+    clientDept:'Infrastructure',
+    supplier:'Mining Equipment SA',
+    supplierPhone:'+27 11 456 7890',
+    supplierEmail:'info@miningequipmentsa.co.za',
+    quotationNumber:'QT-2025-00321',
+    value:'R 920,000',
+    funding:'R 800,000',
+    quotationValue:'R 650,000',
+    profit:'R 270,000',
+    margin:'29%',
+    sector:'Mining',
+    risk:'Low',
+    expires:'15 Jun 2025'
+  },
 ]
 
 const myOffers = [
@@ -48,6 +110,7 @@ export default function FunderDashboard() {
   const [submittedOffers, setSubmittedOffers] = useState<string[]>([])
   const [selectedPO, setSelectedPO] = useState<string|null>(null)
   const [viewingDocs, setViewingDocs] = useState<string|null>(null)
+  const [viewingPODocs, setViewingPODocs] = useState<string|null>(null)
   const [rate, setRate] = useState('')
   const [term, setTerm] = useState('')
   const [mounted, setMounted] = useState(false)
@@ -63,16 +126,17 @@ export default function FunderDashboard() {
 
   if (!mounted) return null
 
+  const currentPO = marketplace.find(p => p.id === viewingPODocs)
+
   return (
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
 
-      {/* NAVBAR */}
       <nav style={{background:'#fff',borderBottom:'1px solid #e5e5e5',padding:'1rem 2rem',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <a href="/" style={{fontSize:'20px',fontWeight:'500',textDecoration:'none',color:'#1a1a1a'}}>
           Fund<span style={{color:'#0F6E56'}}>MyPO</span>
         </a>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
-<span style={{background:'#E1F5EE',padding:'4px 12px',borderRadius:'99px',color:'#085041',fontWeight:'500'}}>Funder portal</span>
+          <span style={{fontSize:'13px',background:'#E1F5EE',padding:'4px 12px',borderRadius:'99px',color:'#085041',fontWeight:'500'}}>Funder portal</span>
           <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'#E1F5EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:'500',color:'#085041'}}>
             TN
           </div>
@@ -81,16 +145,14 @@ export default function FunderDashboard() {
 
       <div style={{maxWidth:'900px',margin:'0 auto',padding:'2rem'}}>
 
-        {/* WELCOME */}
         <div style={{marginBottom:'1.5rem'}}>
           <h1 style={{fontSize:'24px',fontWeight:'500',marginBottom:'.25rem'}}>Welcome back, Thabo 👋</h1>
           <p style={{fontSize:'14px',color:'#666'}}>Browse available purchase orders and submit competitive funding offers.</p>
         </div>
 
-        {/* STATS */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:'12px',marginBottom:'2rem'}}>
           {[
-            { label:'Available POs', value:'4', color:'#0F6E56' },
+            { label:'Available POs', value:'3', color:'#0F6E56' },
             { label:'My active offers', value:'2', color:'#633806' },
             { label:'Total deployed', value:'R 780K', color:'#0C447C' },
             { label:'Accepted deals', value:'1', color:'#085041' },
@@ -102,7 +164,6 @@ export default function FunderDashboard() {
           ))}
         </div>
 
-        {/* TABS */}
         <div style={{display:'flex',gap:'4px',background:'#fff',border:'1px solid #e5e5e5',borderRadius:'10px',padding:'4px',marginBottom:'1.5rem',width:'fit-content'}}>
           {(['marketplace','offers','profile'] as const).map(t=>(
             <button key={t} onClick={()=>setActiveTab(t)}
@@ -112,12 +173,12 @@ export default function FunderDashboard() {
           ))}
         </div>
 
-        {/* MARKETPLACE TAB */}
+        {/* MARKETPLACE */}
         {activeTab === 'marketplace' && (
           <div>
             <div style={{marginBottom:'1rem'}}>
               <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'.25rem'}}>Available Purchase Orders</h2>
-              <p style={{fontSize:'13px',color:'#666'}}>Submit an offer to unlock business verification documents.</p>
+              <p style={{fontSize:'13px',color:'#666'}}>Submit an offer to unlock PO documents, supplier quotation and contact details.</p>
             </div>
 
             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
@@ -126,7 +187,7 @@ export default function FunderDashboard() {
 
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
                     <div>
-                      <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
                         <span style={{fontSize:'15px',fontWeight:'500'}}>{po.id}</span>
                         <RiskBadge risk={po.risk}/>
                         {submittedOffers.includes(po.id) && (
@@ -136,25 +197,34 @@ export default function FunderDashboard() {
                         )}
                       </div>
                       <p style={{fontSize:'13px',color:'#666'}}>{po.business} → {po.client}</p>
+                      <p style={{fontSize:'12px',color:'#888'}}>Dept: {po.clientDept}</p>
                     </div>
                     <div style={{textAlign:'right'}}>
                       <p style={{fontSize:'18px',fontWeight:'500',color:'#0F6E56'}}>{po.funding}</p>
                       <p style={{fontSize:'12px',color:'#888'}}>PO value: {po.value}</p>
+                      <p style={{fontSize:'12px',color:'#085041',fontWeight:'500'}}>Margin: {po.margin}</p>
                     </div>
                   </div>
 
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
-                    <div style={{display:'flex',gap:'12px'}}>
+                    <div style={{display:'flex',gap:'12px',flexWrap:'wrap'}}>
                       <span style={{fontSize:'12px',color:'#888'}}>📁 {po.sector}</span>
                       <span style={{fontSize:'12px',color:'#888'}}>⏰ Expires {po.expires}</span>
                     </div>
-                    <div style={{display:'flex',gap:'8px'}}>
+                    <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
                       {submittedOffers.includes(po.id) && (
-                        <button
-                          onClick={()=>setViewingDocs(viewingDocs===po.id?null:po.id)}
-                          style={{fontSize:'13px',color:'#085041',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                          {viewingDocs===po.id ? 'Hide docs' : '📄 View documents'}
-                        </button>
+                        <>
+                          <button
+                            onClick={()=>setViewingPODocs(viewingPODocs===po.id?null:po.id)}
+                            style={{fontSize:'13px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                            {viewingPODocs===po.id ? 'Hide PO docs' : '📋 View PO & Quotation'}
+                          </button>
+                          <button
+                            onClick={()=>setViewingDocs(viewingDocs===po.id?null:po.id)}
+                            style={{fontSize:'13px',color:'#085041',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                            {viewingDocs===po.id ? 'Hide docs' : '📄 Verification docs'}
+                          </button>
+                        </>
                       )}
                       {!submittedOffers.includes(po.id) && (
                         <button
@@ -183,7 +253,7 @@ export default function FunderDashboard() {
                         </div>
                       </div>
                       <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#085041'}}>
-                        🔒 Submitting this offer will unlock the business verification documents for your review.
+                        🔒 Submitting this offer will unlock the PO document, supplier quotation and all contact details for your verification.
                       </div>
                       <button onClick={()=>handleSubmitOffer(po.id)}
                         style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
@@ -192,11 +262,104 @@ export default function FunderDashboard() {
                     </div>
                   )}
 
-                  {/* DOCUMENT VIEWER */}
+                  {/* PO DOCUMENTS & CONTACT DETAILS */}
+                  {viewingPODocs === po.id && (
+                    <div style={{marginTop:'1rem',padding:'1.25rem',background:'#EEF4FB',borderRadius:'10px',border:'1px solid #B8D4F0'}}>
+                      <p style={{fontSize:'13px',fontWeight:'500',color:'#0C447C',marginBottom:'1rem'}}>
+                        📋 PO Documents & Contact Details — {po.business}
+                      </p>
+
+                      {/* CLIENT CONTACT */}
+                      <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+                        <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>👤 Client Contact Details</p>
+                        {[
+                          ['Company', po.client],
+                          ['Contact person', po.clientContact],
+                          ['Department', po.clientDept],
+                          ['Phone', po.clientPhone],
+                          ['Email', po.clientEmail],
+                        ].map(([label,value])=>(
+                          <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
+                            <span style={{color:'#888'}}>{label}</span>
+                            <span style={{fontWeight:'500',color:'#1a1a1a'}}>{value}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* SUPPLIER CONTACT */}
+                      <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+                        <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>🏭 Supplier Contact Details</p>
+                        {[
+                          ['Supplier', po.supplier],
+                          ['Phone', po.supplierPhone],
+                          ['Email', po.supplierEmail],
+                          ['Quotation number', po.quotationNumber],
+                          ['Quotation value', po.quotationValue],
+                        ].map(([label,value])=>(
+                          <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
+                            <span style={{color:'#888'}}>{label}</span>
+                            <span style={{fontWeight:'500',color:'#1a1a1a'}}>{value}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* PROFIT MARGIN */}
+                      <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+                        <p style={{fontSize:'12px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>📊 Profit Margin Analysis</p>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',textAlign:'center'}}>
+                          <div>
+                            <p style={{fontSize:'16px',fontWeight:'500',color:'#0F6E56'}}>{po.value}</p>
+                            <p style={{fontSize:'11px',color:'#666'}}>PO Value</p>
+                          </div>
+                          <div>
+                            <p style={{fontSize:'16px',fontWeight:'500',color:'#DC2626'}}>{po.quotationValue}</p>
+                            <p style={{fontSize:'11px',color:'#666'}}>Supplier Cost</p>
+                          </div>
+                          <div>
+                            <p style={{fontSize:'16px',fontWeight:'500',color:'#085041'}}>{po.margin}</p>
+                            <p style={{fontSize:'11px',color:'#666'}}>Profit Margin</p>
+                          </div>
+                        </div>
+                        <div style={{marginTop:'.75rem',textAlign:'center',fontSize:'13px',color:'#085041',fontWeight:'500'}}>
+                          Estimated profit: {po.profit} ✅
+                        </div>
+                      </div>
+
+                      {/* DOWNLOAD DOCUMENTS */}
+                      <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
+                        <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Download Documents</p>
+                        {[
+                          { name:'Purchase Order Document', desc:'Official PO from client' },
+                          { name:'Supplier Quotation', desc:'Quotation from supplier' },
+                        ].map(doc=>(
+                          <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
+                            <div>
+                              <p style={{fontSize:'13px',color:'#1a1a1a',fontWeight:'500'}}>📄 {doc.name}</p>
+                              <p style={{fontSize:'11px',color:'#888'}}>{doc.desc}</p>
+                            </div>
+                            <div style={{display:'flex',gap:'8px'}}>
+                              <button style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                                View ↗
+                              </button>
+                              <button style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                                Download ↓
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{marginTop:'1rem',background:'#FAEEDA',borderRadius:'8px',padding:'10px',fontSize:'12px',color:'#633806'}}>
+                        ⚠️ These documents are confidential. Use the contact details above to verify the PO and quotation directly with the client and supplier before making a funding decision.
+                      </div>
+                    </div>
+                  )}
+
+                  {/* VERIFICATION DOCUMENTS */}
                   {viewingDocs === po.id && (
                     <div style={{marginTop:'1rem',padding:'1.25rem',background:'#E1F5EE',borderRadius:'10px',border:'1px solid #5DCAA5'}}>
                       <p style={{fontSize:'13px',fontWeight:'500',color:'#085041',marginBottom:'.25rem'}}>
-                        📄 {po.business} — Verification Documents
+                        📄 {po.business} — Business Verification Documents
                       </p>
                       <p style={{fontSize:'12px',color:'#0F6E56',marginBottom:'1rem'}}>
                         These documents are confidential and available only because you submitted a funding offer.
@@ -223,7 +386,7 @@ export default function FunderDashboard() {
           </div>
         )}
 
-        {/* MY OFFERS TAB */}
+        {/* MY OFFERS */}
         {activeTab === 'offers' && (
           <div>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>My Submitted Offers</h2>
@@ -253,7 +416,7 @@ export default function FunderDashboard() {
           </div>
         )}
 
-        {/* PROFILE TAB */}
+        {/* PROFILE */}
         {activeTab === 'profile' && (
           <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1.5rem'}}>Funder Profile</h2>
