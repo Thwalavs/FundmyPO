@@ -72,7 +72,7 @@ export default function FunderDashboard() {
           Fund<span style={{color:'#0F6E56'}}>MyPO</span>
         </a>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
-          <span style={{fontSize:'13px',color:'#888',background:'#E1F5EE',padding:'4px 12px',borderRadius:'99px',color:'#085041',fontWeight:'500'}}>Funder portal</span>
+<span style={{background:'#E1F5EE',padding:'4px 12px',borderRadius:'99px',color:'#085041',fontWeight:'500'}}>Funder portal</span>
           <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'#E1F5EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:'500',color:'#085041'}}>
             TN
           </div>
