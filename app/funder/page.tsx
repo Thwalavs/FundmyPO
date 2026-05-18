@@ -14,9 +14,9 @@ const marketplace = [
     supplierPhone:'+27 11 234 5678',
     supplierEmail:'sales@abcelectrical.co.za',
     quotationNumber:'QT-2025-00456',
-    value:'R 500,000',
-    funding:'R 400,000',
-    quotationValue:'R 350,000',
+    value:'500000',
+    funding:'400000',
+    quotationValue:'350000',
     profit:'R 150,000',
     margin:'30%',
     sector:'Construction',
@@ -35,9 +35,9 @@ const marketplace = [
     supplierPhone:'+27 11 345 6789',
     supplierEmail:'orders@sasteelworks.co.za',
     quotationNumber:'QT-2025-00789',
-    value:'R 280,000',
-    funding:'R 250,000',
-    quotationValue:'R 210,000',
+    value:'280000',
+    funding:'250000',
+    quotationValue:'210000',
     profit:'R 70,000',
     margin:'25%',
     sector:'Transport',
@@ -56,9 +56,9 @@ const marketplace = [
     supplierPhone:'+27 11 456 7890',
     supplierEmail:'info@miningequipmentsa.co.za',
     quotationNumber:'QT-2025-00321',
-    value:'R 920,000',
-    funding:'R 800,000',
-    quotationValue:'R 650,000',
+    value:'920000',
+    funding:'800000',
+    quotationValue:'650000',
     profit:'R 270,000',
     margin:'29%',
     sector:'Mining',
@@ -90,6 +90,10 @@ function StatusBadge({ status }: { status: string }) {
   return <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>{s.label}</span>
 }
 
+function formatMoney(val: string) {
+  return 'R ' + parseFloat(val).toLocaleString()
+}
+
 export default function FunderDashboard() {
   const [activeTab, setActiveTab] = useState<'marketplace'|'offers'|'profile'>('marketplace')
   const [submittedOffers, setSubmittedOffers] = useState<string[]>([])
@@ -97,8 +101,8 @@ export default function FunderDashboard() {
   const [previewPO, setPreviewPO] = useState<string|null>(null)
   const [viewingDocs, setViewingDocs] = useState<string|null>(null)
   const [viewingPODocs, setViewingPODocs] = useState<string|null>(null)
-  const [rate, setRate] = useState('')
-  const [term, setTerm] = useState('')
+  const [rates, setRates] = useState<Record<string,string>>({})
+  const [terms, setTerms] = useState<Record<string,string>>({})
   const [mounted, setMounted] = useState(false)
 
   useEffect(()=>{ setMounted(true) },[])
@@ -107,8 +111,6 @@ export default function FunderDashboard() {
     setSubmittedOffers(prev => [...prev, poId])
     setSelectedPO(null)
     setPreviewPO(null)
-    setRate('')
-    setTerm('')
   }
 
   if (!mounted) return null
@@ -165,226 +167,264 @@ export default function FunderDashboard() {
             </div>
 
             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-              {marketplace.map(po=>(
-                <div key={po.id} style={{background:'#fff',border:selectedPO===po.id?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
+              {marketplace.map(po=>{
+                const fundingAmount = parseFloat(po.funding)
+                const rate = parseFloat(rates[po.id] || '0')
+                const commission = fundingAmount * 0.02
+                const youReceive = fundingAmount - commission
+                const interestEarned = (fundingAmount * rate) / 100
+                const totalReturn = youReceive + interestEarned
 
-                  {/* PO HEADER */}
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
-                    <div>
-                      <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
-                        <span style={{fontSize:'15px',fontWeight:'500'}}>{po.id}</span>
-                        <RiskBadge risk={po.risk}/>
+                return (
+                  <div key={po.id} style={{background:'#fff',border:selectedPO===po.id?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
+
+                    {/* HEADER */}
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
+                      <div>
+                        <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
+                          <span style={{fontSize:'15px',fontWeight:'500'}}>{po.id}</span>
+                          <RiskBadge risk={po.risk}/>
+                          {submittedOffers.includes(po.id) && (
+                            <span style={{background:'#E6F1FB',color:'#0C447C',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>Offer submitted ✓</span>
+                          )}
+                        </div>
+                        <p style={{fontSize:'13px',color:'#666'}}>{po.business} → {po.client}</p>
+                        <p style={{fontSize:'12px',color:'#888'}}>Dept: {po.clientDept} • {po.sector}</p>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <p style={{fontSize:'18px',fontWeight:'500',color:'#0F6E56'}}>{formatMoney(po.funding)}</p>
+                        <p style={{fontSize:'12px',color:'#888'}}>PO value: {formatMoney(po.value)}</p>
+                        <p style={{fontSize:'12px',color:'#085041',fontWeight:'500'}}>Margin: {po.margin}</p>
+                      </div>
+                    </div>
+
+                    {/* ACTION BUTTONS */}
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
+                      <span style={{fontSize:'12px',color:'#888'}}>⏰ Expires {po.expires}</span>
+                      <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                        <button
+                          onClick={()=>setPreviewPO(previewPO===po.id?null:po.id)}
+                          style={{fontSize:'13px',color:'#633806',background:'#FAEEDA',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                          {previewPO===po.id ? 'Hide preview' : '👁 Preview'}
+                        </button>
                         {submittedOffers.includes(po.id) && (
-                          <span style={{background:'#E6F1FB',color:'#0C447C',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>Offer submitted ✓</span>
+                          <>
+                            <button
+                              onClick={()=>setViewingPODocs(viewingPODocs===po.id?null:po.id)}
+                              style={{fontSize:'13px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                              {viewingPODocs===po.id ? 'Hide PO docs' : '📋 PO & Quotation'}
+                            </button>
+                            <button
+                              onClick={()=>setViewingDocs(viewingDocs===po.id?null:po.id)}
+                              style={{fontSize:'13px',color:'#085041',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                              {viewingDocs===po.id ? 'Hide docs' : '📄 Verification docs'}
+                            </button>
+                          </>
+                        )}
+                        {!submittedOffers.includes(po.id) && (
+                          <button
+                            onClick={()=>setSelectedPO(selectedPO===po.id?null:po.id)}
+                            style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                            {selectedPO===po.id ? 'Cancel' : '💰 Make an offer'}
+                          </button>
                         )}
                       </div>
-                      <p style={{fontSize:'13px',color:'#666'}}>{po.business} → {po.client}</p>
-                      <p style={{fontSize:'12px',color:'#888'}}>Dept: {po.clientDept} • {po.sector}</p>
                     </div>
-                    <div style={{textAlign:'right'}}>
-                      <p style={{fontSize:'18px',fontWeight:'500',color:'#0F6E56'}}>{po.funding}</p>
-                      <p style={{fontSize:'12px',color:'#888'}}>PO value: {po.value}</p>
-                      <p style={{fontSize:'12px',color:'#085041',fontWeight:'500'}}>Margin: {po.margin}</p>
-                    </div>
-                  </div>
 
-                  {/* ACTION BUTTONS */}
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
-                    <span style={{fontSize:'12px',color:'#888'}}>⏰ Expires {po.expires}</span>
-                    <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-
-                      {/* PREVIEW BUTTON — always visible */}
-                      <button
-                        onClick={()=>setPreviewPO(previewPO===po.id?null:po.id)}
-                        style={{fontSize:'13px',color:'#633806',background:'#FAEEDA',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                        {previewPO===po.id ? 'Hide preview' : '👁 Preview'}
-                      </button>
-
-                      {/* AFTER OFFER BUTTONS */}
-                      {submittedOffers.includes(po.id) && (
-                        <>
-                          <button
-                            onClick={()=>setViewingPODocs(viewingPODocs===po.id?null:po.id)}
-                            style={{fontSize:'13px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                            {viewingPODocs===po.id ? 'Hide PO docs' : '📋 PO & Quotation'}
-                          </button>
-                          <button
-                            onClick={()=>setViewingDocs(viewingDocs===po.id?null:po.id)}
-                            style={{fontSize:'13px',color:'#085041',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                            {viewingDocs===po.id ? 'Hide docs' : '📄 Verification docs'}
-                          </button>
-                        </>
-                      )}
-
-                      {/* MAKE OFFER BUTTON */}
-                      {!submittedOffers.includes(po.id) && (
+                    {/* PREVIEW PANEL */}
+                    {previewPO === po.id && !submittedOffers.includes(po.id) && (
+                      <div style={{marginTop:'1rem',padding:'1.25rem',background:'#FFFBF0',borderRadius:'10px',border:'1px solid #F5D87A'}}>
+                        <p style={{fontSize:'13px',fontWeight:'500',color:'#633806',marginBottom:'1rem'}}>
+                          👁 Preview — Submit an offer to unlock full details
+                        </p>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
+                          <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
+                            <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>📋 PO Summary</p>
+                            {[
+                              ['Client', po.client],
+                              ['Department', po.clientDept],
+                              ['Sector', po.sector],
+                              ['PO Value', formatMoney(po.value)],
+                              ['Funding needed', formatMoney(po.funding)],
+                            ].map(([label,value])=>(
+                              <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px solid #f0f0f0',fontSize:'12px'}}>
+                                <span style={{color:'#888'}}>{label}</span>
+                                <span style={{fontWeight:'500'}}>{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
+                            <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>📊 Profit Analysis</p>
+                            <div style={{textAlign:'center',padding:'1rem 0'}}>
+                              <p style={{fontSize:'28px',fontWeight:'500',color:'#085041'}}>{po.margin}</p>
+                              <p style={{fontSize:'12px',color:'#666'}}>Profit margin</p>
+                              <p style={{fontSize:'14px',fontWeight:'500',color:'#0F6E56',marginTop:'.5rem'}}>{po.profit}</p>
+                              <p style={{fontSize:'11px',color:'#666'}}>Estimated profit</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{position:'relative',borderRadius:'8px',overflow:'hidden'}}>
+                          <div style={{background:'#fff',padding:'1rem',filter:'blur(4px)',userSelect:'none'}}>
+                            <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>👤 Client Contact Details</p>
+                            {[['Contact person','████████████'],['Phone','+27 ██ ███ ████'],['Email','████████@██████.co.za']].map(([l,v])=>(
+                              <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',fontSize:'12px'}}>
+                                <span style={{color:'#888'}}>{l}</span><span>{v}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.7)',borderRadius:'8px'}}>
+                            <p style={{fontSize:'13px',fontWeight:'500',color:'#0F6E56',marginBottom:'.5rem'}}>🔒 Submit an offer to unlock</p>
+                            <p style={{fontSize:'12px',color:'#666'}}>Full contact details & documents</p>
+                          </div>
+                        </div>
                         <button
-                          onClick={()=>setSelectedPO(selectedPO===po.id?null:po.id)}
-                          style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                          {selectedPO===po.id ? 'Cancel' : '💰 Make an offer'}
+                          onClick={()=>{ setSelectedPO(po.id); setPreviewPO(null) }}
+                          style={{width:'100%',marginTop:'1rem',padding:'10px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',fontWeight:'500',cursor:'pointer'}}>
+                          💰 Make an offer to unlock full access →
                         </button>
-                      )}
-                    </div>
-                  </div>
+                      </div>
+                    )}
 
-                  {/* PREVIEW PANEL — visible before offer */}
-                  {previewPO === po.id && !submittedOffers.includes(po.id) && (
-                    <div style={{marginTop:'1rem',padding:'1.25rem',background:'#FFFBF0',borderRadius:'10px',border:'1px solid #F5D87A'}}>
-                      <p style={{fontSize:'13px',fontWeight:'500',color:'#633806',marginBottom:'1rem'}}>
-                        👁 Preview — Submit an offer to unlock full details
-                      </p>
-
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
-                        <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
-                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>📋 PO Summary</p>
-                          {[
-                            ['Client', po.client],
-                            ['Department', po.clientDept],
-                            ['Sector', po.sector],
-                            ['PO Value', po.value],
-                            ['Funding needed', po.funding],
-                          ].map(([label,value])=>(
-                            <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px solid #f0f0f0',fontSize:'12px'}}>
-                              <span style={{color:'#888'}}>{label}</span>
-                              <span style={{fontWeight:'500'}}>{value}</span>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
-                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>📊 Profit Analysis</p>
-                          <div style={{textAlign:'center',padding:'1rem 0'}}>
-                            <p style={{fontSize:'28px',fontWeight:'500',color:'#085041'}}>{po.margin}</p>
-                            <p style={{fontSize:'12px',color:'#666'}}>Profit margin</p>
-                            <p style={{fontSize:'14px',fontWeight:'500',color:'#0F6E56',marginTop:'.5rem'}}>{po.profit}</p>
-                            <p style={{fontSize:'11px',color:'#666'}}>Estimated profit</p>
+                    {/* OFFER FORM */}
+                    {selectedPO === po.id && (
+                      <div style={{marginTop:'1rem',padding:'1.25rem',background:'#f9f9f9',borderRadius:'10px',border:'1px solid #e5e5e5'}}>
+                        <p style={{fontSize:'14px',fontWeight:'500',marginBottom:'1rem'}}>Submit your funding offer</p>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
+                          <div>
+                            <label style={{display:'block',fontSize:'13px',color:'#666',marginBottom:'5px'}}>Interest rate (%)</label>
+                            <input type="number" placeholder="e.g. 3.5"
+                              value={rates[po.id]||''}
+                              onChange={e=>setRates(prev=>({...prev,[po.id]:e.target.value}))}
+                              style={{width:'100%',padding:'9px 12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}}/>
+                          </div>
+                          <div>
+                            <label style={{display:'block',fontSize:'13px',color:'#666',marginBottom:'5px'}}>Repayment term (days)</label>
+                            <input type="number" placeholder="e.g. 60"
+                              value={terms[po.id]||''}
+                              onChange={e=>setTerms(prev=>({...prev,[po.id]:e.target.value}))}
+                              style={{width:'100%',padding:'9px 12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}}/>
                           </div>
                         </div>
-                      </div>
 
-                      {/* BLURRED SECTION */}
-                      <div style={{position:'relative',borderRadius:'8px',overflow:'hidden'}}>
-                        <div style={{background:'#fff',padding:'1rem',filter:'blur(4px)',userSelect:'none'}}>
+                        {/* COMMISSION BREAKDOWN */}
+                        <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'12px',marginBottom:'1rem'}}>
+                          <p style={{fontSize:'13px',fontWeight:'500',color:'#085041',marginBottom:'.75rem'}}>💰 Fee & commission breakdown</p>
+                          <div style={{fontSize:'13px',color:'#085041'}}>
+                            <div style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px solid #c8ead8'}}>
+                              <span>Funding amount</span>
+                              <span style={{fontWeight:'500'}}>{formatMoney(po.funding)}</span>
+                            </div>
+                            {rate > 0 && (
+                              <div style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px solid #c8ead8'}}>
+                                <span>Your interest earned ({rates[po.id]}%)</span>
+                                <span style={{fontWeight:'500',color:'#0F6E56'}}>+ R {interestEarned.toLocaleString()}</span>
+                              </div>
+                            )}
+                            <div style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px solid #c8ead8'}}>
+                              <span>FundMyPO commission (2%)</span>
+                              <span style={{fontWeight:'500',color:'#DC2626'}}>- R {commission.toLocaleString()}</span>
+                            </div>
+                            <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0',fontWeight:'500',fontSize:'14px'}}>
+                              <span>You deploy</span>
+                              <span style={{color:'#085041'}}>R {youReceive.toLocaleString()}</span>
+                            </div>
+                            {rate > 0 && (
+                              <div style={{display:'flex',justifyContent:'space-between',padding:'4px 0',fontWeight:'500',fontSize:'14px',borderTop:'1px solid #c8ead8'}}>
+                                <span>Total return</span>
+                                <span style={{color:'#085041'}}>R {totalReturn.toLocaleString()}</span>
+                              </div>
+                            )}
+                          </div>
+                          {!rates[po.id] && (
+                            <p style={{fontSize:'12px',color:'#0F6E56',marginTop:'.5rem'}}>Enter your interest rate above to see full breakdown.</p>
+                          )}
+                        </div>
+
+                        <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#633806'}}>
+                          🔒 Submitting this offer will unlock the full PO document, supplier quotation and all contact details for your verification.
+                        </div>
+
+                        <button onClick={()=>handleSubmitOffer(po.id)}
+                          style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
+                          Submit offer & unlock documents ✓
+                        </button>
+                      </div>
+                    )}
+
+                    {/* FULL PO DOCUMENTS */}
+                    {viewingPODocs === po.id && (
+                      <div style={{marginTop:'1rem',padding:'1.25rem',background:'#EEF4FB',borderRadius:'10px',border:'1px solid #B8D4F0'}}>
+                        <p style={{fontSize:'13px',fontWeight:'500',color:'#0C447C',marginBottom:'1rem'}}>
+                          📋 Full PO Documents & Contact Details — {po.business}
+                        </p>
+                        <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>👤 Client Contact Details</p>
-                          {[['Contact person','████████████'],['Phone','+27 ██ ███ ████'],['Email','████████@██████.co.za']].map(([l,v])=>(
-                            <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',fontSize:'12px'}}>
-                              <span style={{color:'#888'}}>{l}</span><span>{v}</span>
+                          {[['Company',po.client],['Contact person',po.clientContact],['Department',po.clientDept],['Phone',po.clientPhone],['Email',po.clientEmail]].map(([l,v])=>(
+                            <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
+                              <span style={{color:'#888'}}>{l}</span>
+                              <span style={{fontWeight:'500'}}>{v}</span>
                             </div>
                           ))}
                         </div>
-                        <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.7)',borderRadius:'8px'}}>
-                          <p style={{fontSize:'13px',fontWeight:'500',color:'#0F6E56',marginBottom:'.5rem'}}>🔒 Submit an offer to unlock</p>
-                          <p style={{fontSize:'12px',color:'#666'}}>Full contact details & documents</p>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={()=>{ setSelectedPO(po.id); setPreviewPO(null) }}
-                        style={{width:'100%',marginTop:'1rem',padding:'10px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'13px',fontWeight:'500',cursor:'pointer'}}>
-                        💰 Make an offer to unlock full access →
-                      </button>
-                    </div>
-                  )}
-
-                  {/* OFFER FORM */}
-                  {selectedPO === po.id && (
-                    <div style={{marginTop:'1rem',padding:'1rem',background:'#f9f9f9',borderRadius:'10px',border:'1px solid #e5e5e5'}}>
-                      <p style={{fontSize:'14px',fontWeight:'500',marginBottom:'1rem'}}>Submit your funding offer</p>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
-                        <div>
-                          <label style={{display:'block',fontSize:'13px',color:'#666',marginBottom:'5px'}}>Interest rate (%)</label>
-                          <input type="number" placeholder="e.g. 3.5" value={rate} onChange={e=>setRate(e.target.value)}
-                            style={{width:'100%',padding:'9px 12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}}/>
-                        </div>
-                        <div>
-                          <label style={{display:'block',fontSize:'13px',color:'#666',marginBottom:'5px'}}>Repayment term (days)</label>
-                          <input type="number" placeholder="e.g. 60" value={term} onChange={e=>setTerm(e.target.value)}
-                            style={{width:'100%',padding:'9px 12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}}/>
-                        </div>
-                      </div>
-                      <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#085041'}}>
-                        🔒 Submitting this offer will unlock the full PO document, supplier quotation and all contact details.
-                      </div>
-                      <button onClick={()=>handleSubmitOffer(po.id)}
-                        style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
-                        Submit offer & unlock documents ✓
-                      </button>
-                    </div>
-                  )}
-
-                  {/* FULL PO DOCUMENTS — after offer */}
-                  {viewingPODocs === po.id && (
-                    <div style={{marginTop:'1rem',padding:'1.25rem',background:'#EEF4FB',borderRadius:'10px',border:'1px solid #B8D4F0'}}>
-                      <p style={{fontSize:'13px',fontWeight:'500',color:'#0C447C',marginBottom:'1rem'}}>
-                        📋 Full PO Documents & Contact Details — {po.business}
-                      </p>
-                      <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
-                        <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>👤 Client Contact Details</p>
-                        {[['Company',po.client],['Contact person',po.clientContact],['Department',po.clientDept],['Phone',po.clientPhone],['Email',po.clientEmail]].map(([l,v])=>(
-                          <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
-                            <span style={{color:'#888'}}>{l}</span>
-                            <span style={{fontWeight:'500'}}>{v}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
-                        <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>🏭 Supplier Contact Details</p>
-                        {[['Supplier',po.supplier],['Phone',po.supplierPhone],['Email',po.supplierEmail],['Quotation number',po.quotationNumber],['Quotation value',po.quotationValue]].map(([l,v])=>(
-                          <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
-                            <span style={{color:'#888'}}>{l}</span>
-                            <span style={{fontWeight:'500'}}>{v}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
-                        <p style={{fontSize:'12px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>📊 Profit Margin Analysis</p>
-                        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',textAlign:'center'}}>
-                          <div><p style={{fontSize:'16px',fontWeight:'500',color:'#0F6E56'}}>{po.value}</p><p style={{fontSize:'11px',color:'#666'}}>PO Value</p></div>
-                          <div><p style={{fontSize:'16px',fontWeight:'500',color:'#DC2626'}}>{po.quotationValue}</p><p style={{fontSize:'11px',color:'#666'}}>Supplier Cost</p></div>
-                          <div><p style={{fontSize:'16px',fontWeight:'500',color:'#085041'}}>{po.margin}</p><p style={{fontSize:'11px',color:'#666'}}>Profit Margin</p></div>
-                        </div>
-                        <p style={{marginTop:'.75rem',textAlign:'center',fontSize:'13px',color:'#085041',fontWeight:'500'}}>Estimated profit: {po.profit} ✅</p>
-                      </div>
-                      <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
-                        <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Download Documents</p>
-                        {[{name:'Purchase Order Document',desc:'Official PO from client'},{name:'Supplier Quotation',desc:'Quotation from supplier'}].map(doc=>(
-                          <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
-                            <div>
-                              <p style={{fontSize:'13px',fontWeight:'500'}}>📄 {doc.name}</p>
-                              <p style={{fontSize:'11px',color:'#888'}}>{doc.desc}</p>
+                        <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>🏭 Supplier Contact Details</p>
+                          {[['Supplier',po.supplier],['Phone',po.supplierPhone],['Email',po.supplierEmail],['Quotation number',po.quotationNumber],['Quotation value','R '+parseFloat(po.quotationValue).toLocaleString()]].map(([l,v])=>(
+                            <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
+                              <span style={{color:'#888'}}>{l}</span>
+                              <span style={{fontWeight:'500'}}>{v}</span>
                             </div>
+                          ))}
+                        </div>
+                        <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+                          <p style={{fontSize:'12px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>📊 Profit Margin Analysis</p>
+                          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',textAlign:'center'}}>
+                            <div><p style={{fontSize:'16px',fontWeight:'500',color:'#0F6E56'}}>{formatMoney(po.value)}</p><p style={{fontSize:'11px',color:'#666'}}>PO Value</p></div>
+                            <div><p style={{fontSize:'16px',fontWeight:'500',color:'#DC2626'}}>{formatMoney(po.quotationValue)}</p><p style={{fontSize:'11px',color:'#666'}}>Supplier Cost</p></div>
+                            <div><p style={{fontSize:'16px',fontWeight:'500',color:'#085041'}}>{po.margin}</p><p style={{fontSize:'11px',color:'#666'}}>Profit Margin</p></div>
+                          </div>
+                          <p style={{marginTop:'.75rem',textAlign:'center',fontSize:'13px',color:'#085041',fontWeight:'500'}}>Estimated profit: {po.profit} ✅</p>
+                        </div>
+                        <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
+                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Download Documents</p>
+                          {[{name:'Purchase Order Document',desc:'Official PO from client'},{name:'Supplier Quotation',desc:'Quotation from supplier'}].map(doc=>(
+                            <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
+                              <div>
+                                <p style={{fontSize:'13px',fontWeight:'500'}}>📄 {doc.name}</p>
+                                <p style={{fontSize:'11px',color:'#888'}}>{doc.desc}</p>
+                              </div>
+                              <div style={{display:'flex',gap:'8px'}}>
+                                <button style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>View ↗</button>
+                                <button style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>Download ↓</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{marginTop:'1rem',background:'#FAEEDA',borderRadius:'8px',padding:'10px',fontSize:'12px',color:'#633806'}}>
+                          ⚠️ These documents are confidential. Use the contact details above to verify the PO and quotation directly with the client and supplier before making a funding decision.
+                        </div>
+                      </div>
+                    )}
+
+                    {/* VERIFICATION DOCUMENTS */}
+                    {viewingDocs === po.id && (
+                      <div style={{marginTop:'1rem',padding:'1.25rem',background:'#E1F5EE',borderRadius:'10px',border:'1px solid #5DCAA5'}}>
+                        <p style={{fontSize:'13px',fontWeight:'500',color:'#085041',marginBottom:'.25rem'}}>📄 {po.business} — Business Verification Documents</p>
+                        <p style={{fontSize:'12px',color:'#0F6E56',marginBottom:'1rem'}}>Confidential — available only because you submitted a funding offer.</p>
+                        {businessDocs.map(doc=>(
+                          <div key={doc} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #c8ead8'}}>
+                            <span style={{fontSize:'13px',color:'#085041'}}>📄 {doc}</span>
                             <div style={{display:'flex',gap:'8px'}}>
-                              <button style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>View ↗</button>
-                              <button style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>Download ↓</button>
+                              <button style={{fontSize:'12px',color:'#0F6E56',background:'#fff',border:'1px solid #0F6E56',padding:'4px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>View ↗</button>
+                              <button style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'4px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>Download ↓</button>
                             </div>
                           </div>
                         ))}
                       </div>
-                      <div style={{marginTop:'1rem',background:'#FAEEDA',borderRadius:'8px',padding:'10px',fontSize:'12px',color:'#633806'}}>
-                        ⚠️ These documents are confidential. Use the contact details above to verify the PO and quotation directly with the client and supplier before making a funding decision.
-                      </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* VERIFICATION DOCUMENTS */}
-                  {viewingDocs === po.id && (
-                    <div style={{marginTop:'1rem',padding:'1.25rem',background:'#E1F5EE',borderRadius:'10px',border:'1px solid #5DCAA5'}}>
-                      <p style={{fontSize:'13px',fontWeight:'500',color:'#085041',marginBottom:'.25rem'}}>📄 {po.business} — Business Verification Documents</p>
-                      <p style={{fontSize:'12px',color:'#0F6E56',marginBottom:'1rem'}}>Confidential — available only because you submitted a funding offer.</p>
-                      {businessDocs.map(doc=>(
-                        <div key={doc} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #c8ead8'}}>
-                          <span style={{fontSize:'13px',color:'#085041'}}>📄 {doc}</span>
-                          <div style={{display:'flex',gap:'8px'}}>
-                            <button style={{fontSize:'12px',color:'#0F6E56',background:'#fff',border:'1px solid #0F6E56',padding:'4px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>View ↗</button>
-                            <button style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'4px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>Download ↓</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                </div>
-              ))}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
