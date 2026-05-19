@@ -54,7 +54,7 @@ export default function RegisterPage() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
 
-    const userRole = data.user?.user_metadata?.role || data.user?.app_metadata?.role
+      const userRole = data.user?.user_metadata?.role
 
       if (currentPortalRole === 'funder' && userRole !== 'funder') {
         await supabase.auth.signOut()
@@ -70,13 +70,15 @@ export default function RegisterPage() {
         return
       }
 
-if (userRole === 'admin') {
-  router.push('/admin')
-} else if (userRole === 'funder') {
-  router.push('/funder')
-} else {
-  router.push('/dashboard')
-}
+      if (userRole === 'admin') {
+        router.push('/admin')
+      } else if (userRole === 'funder') {
+        router.push('/funder')
+      } else {
+        router.push('/dashboard')
+      }
+    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
+  }
 
   async function uploadFile(supabase: any, file: File, userId: string, docName: string) {
     const ext = file.name.split('.').pop()
@@ -165,7 +167,6 @@ if (userRole === 'admin') {
         Fund<span style={{color:'#0F6E56'}}>MyPO</span>
       </a>
 
-      {/* PORTAL INDICATOR */}
       <div style={{background:portalRole==='funder'?'#0C447C':'#085041',borderRadius:'8px',padding:'8px 20px',marginBottom:'1.5rem',fontSize:'13px',color:'#fff',fontWeight:'500'}}>
         {portalRole === 'funder' ? '💰 Funder Portal' : '🏢 Business Portal'}
       </div>
@@ -189,7 +190,6 @@ if (userRole === 'admin') {
           </div>
         )}
 
-        {/* LOGIN */}
         {tab === 'login' && (
           <div>
             <p style={{fontSize:'13px',color:'#666',marginBottom:'1rem'}}>
@@ -226,7 +226,6 @@ if (userRole === 'admin') {
           </div>
         )}
 
-        {/* REGISTER */}
         {tab === 'register' && (
           <div>
             {success ? (
@@ -315,7 +314,7 @@ if (userRole === 'admin') {
                   <div>
                     <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
                       <p style={{fontSize:'13px',color:'#085041',fontWeight:'500',marginBottom:'3px'}}>🔒 Your documents are secure</p>
-                      <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and stored securely. Only verified parties can access them.</p>
+                      <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and stored securely.</p>
                     </div>
 
                     {role === 'business' ? (
@@ -342,7 +341,7 @@ if (userRole === 'admin') {
 
                     <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
                       <p style={{fontSize:'13px',color:'#633806',fontWeight:'500',marginBottom:'3px'}}>⏱ Review process</p>
-                      <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
+                      <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours.</p>
                     </div>
 
                     <div style={{display:'flex',gap:'12px'}}>
