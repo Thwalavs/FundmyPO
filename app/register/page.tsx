@@ -54,7 +54,7 @@ export default function RegisterPage() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
 
-      const userRole = data.user?.user_metadata?.role
+    const userRole = data.user?.user_metadata?.role || data.user?.app_metadata?.role
 
       if (currentPortalRole === 'funder' && userRole !== 'funder') {
         await supabase.auth.signOut()
@@ -70,13 +70,13 @@ export default function RegisterPage() {
         return
       }
 
-      if (userRole === 'funder') {
-        router.push('/funder')
-      } else {
-        router.push('/dashboard')
-      }
-    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
-  }
+if (userRole === 'admin') {
+  router.push('/admin')
+} else if (userRole === 'funder') {
+  router.push('/funder')
+} else {
+  router.push('/dashboard')
+}
 
   async function uploadFile(supabase: any, file: File, userId: string, docName: string) {
     const ext = file.name.split('.').pop()
