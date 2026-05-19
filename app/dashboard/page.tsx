@@ -64,6 +64,16 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
+async function handleSignOut() {
+  const { createBrowserClient } = await import('@supabase/ssr')
+  const supabase = createBrowserClient(
+    'https://efzszombcfxyyobqehyp.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
+  )
+  await supabase.auth.signOut()
+  window.location.href = '/'
+}
+
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'home'|'status'|'profile'>('home')
   const [viewingOffers, setViewingOffers] = useState<string|null>(null)
@@ -81,14 +91,21 @@ export default function DashboardPage() {
   return (
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
 
-  <nav style={{background:'#fff',borderBottom:'1px solid #e5e5e5',padding:'1rem 2rem',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-  <a href="/" style={{fontSize:'20px',fontWeight:'500',textDecoration:'none',color:'#1a1a1a'}}>
-    Fund<span style={{color:'#0F6E56'}}>MyPO</span>
-  </a>
-  <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'#E1F5EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:'500',color:'#085041'}}>
-    VS
-  </div>
-</nav>
+      <nav style={{background:'#fff',borderBottom:'1px solid #e5e5e5',padding:'1rem 2rem',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <a href="/" style={{fontSize:'20px',fontWeight:'500',textDecoration:'none',color:'#1a1a1a'}}>
+          Fund<span style={{color:'#0F6E56'}}>MyPO</span>
+        </a>
+        <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
+          <button
+            onClick={handleSignOut}
+            style={{fontSize:'13px',color:'#666',background:'transparent',border:'1px solid #e5e5e5',padding:'8px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+            Sign out
+          </button>
+          <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'#E1F5EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:'500',color:'#085041'}}>
+            VS
+          </div>
+        </div>
+      </nav>
 
       <div style={{maxWidth:'900px',margin:'0 auto',padding:'2rem'}}>
 
@@ -97,7 +114,6 @@ export default function DashboardPage() {
           <p style={{fontSize:'14px',color:'#666'}}>What would you like to do today?</p>
         </div>
 
-        {/* HOME TAB */}
         {activeTab === 'home' && (
           <div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'2rem'}}>
@@ -159,7 +175,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* STATUS TAB */}
         {activeTab === 'status' && (
           <div>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
@@ -225,19 +240,15 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* OFFERS LIST */}
                     {viewingOffers === app.id && app.offersList.length > 0 && (
                       <div style={{marginTop:'1.25rem'}}>
                         <p style={{fontSize:'14px',fontWeight:'500',marginBottom:'1rem',color:'#1a1a1a'}}>
                           Compare funding offers for {app.poNumber}
                         </p>
-
                         {acceptedOffer[app.id] ? (
                           <div style={{background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'12px',padding:'1.5rem',textAlign:'center'}}>
                             <div style={{fontSize:'32px',marginBottom:'.5rem'}}>🎉</div>
-                            <p style={{fontSize:'16px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>
-                              Offer accepted successfully!
-                            </p>
+                            <p style={{fontSize:'16px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>Offer accepted successfully!</p>
                             <p style={{fontSize:'14px',color:'#0F6E56',marginBottom:'.25rem'}}>
                               You accepted the offer from <strong>{app.offersList.find(o=>o.id===acceptedOffer[app.id])?.funder}</strong>
                             </p>
@@ -261,21 +272,14 @@ export default function DashboardPage() {
                                     <p style={{fontSize:'12px',color:'#888'}}>interest rate</p>
                                   </div>
                                 </div>
-
                                 <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'8px',background:'#fff',borderRadius:'8px',padding:'12px',marginBottom:'1rem'}}>
-                                  {[
-                                    ['Amount', offer.amount],
-                                    ['Term', offer.term],
-                                    ['Fee', offer.fee],
-                                    ['Total repay', offer.total],
-                                  ].map(([l,v])=>(
+                                  {[['Amount',offer.amount],['Term',offer.term],['Fee',offer.fee],['Total repay',offer.total]].map(([l,v])=>(
                                     <div key={l} style={{textAlign:'center'}}>
                                       <p style={{fontSize:'13px',fontWeight:'500',color:'#1a1a1a'}}>{v}</p>
                                       <p style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{l}</p>
                                     </div>
                                   ))}
                                 </div>
-
                                 <button
                                   onClick={()=>handleAcceptOffer(app.id, offer.id)}
                                   style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
@@ -294,7 +298,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* PROFILE TAB */}
         {activeTab === 'profile' && (
           <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1.5rem'}}>Business Profile</h2>
