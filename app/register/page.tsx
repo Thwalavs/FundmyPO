@@ -168,7 +168,7 @@ export default function RegisterPage() {
       </a>
 
       <div style={{background:portalRole==='funder'?'#0C447C':'#085041',borderRadius:'8px',padding:'8px 20px',marginBottom:'1.5rem',fontSize:'13px',color:'#fff',fontWeight:'500'}}>
-        {portalRole === 'funder' ? '💰 Funder Portal' : '🏢 Business Portal'}
+        {portalRole === 'funder' ? '💰 Funder Portal' : '🏢 Supplier Portal'}
       </div>
 
       <div style={{background:'#ffffff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'460px'}}>
