@@ -135,8 +135,8 @@ export default function Home() {
         <div style={{fontSize:'16px',fontWeight:'500'}}>Fund<span style={{color:'#0F6E56'}}>MyPO</span></div>
         <p style={{fontSize:'13px',color:'#888'}}>© 2025 Project Pulse Innovation. All rights reserved.</p>
         <div style={{display:'flex',gap:'1rem'}}>
-          <a href="#" style={{fontSize:'13px',color:'#888',textDecoration:'none'}}>Privacy</a>
-          <a href="#" style={{fontSize:'13px',color:'#888',textDecoration:'none'}}>Terms</a>
+          <a href="/privacy" style={{fontSize:'13px',color:'#888',textDecoration:'none'}}>Privacy</a>
+          <a href="/terms" style={{fontSize:'13px',color:'#888',textDecoration:'none'}}>Terms</a>
           <a href="#" style={{fontSize:'13px',color:'#888',textDecoration:'none'}}>Contact</a>
         </div>
       </footer>

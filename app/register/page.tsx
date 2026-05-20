@@ -46,6 +46,21 @@ export default function RegisterPage() {
     )
   }
 
+  async function handleForgotPassword() {
+    if (!email) { setError('Please enter your email address first.'); return }
+    setLoading(true)
+    setError('')
+    try {
+      const supabase = await getSupabase()
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://fundmy-po.vercel.app/reset-password'
+      })
+      setLoading(false)
+      if (error) { setError(error.message); return }
+      alert('Password reset email sent! Check your inbox.')
+    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
+  }
+
   async function handleLogin(currentPortalRole: string) {
     setLoading(true)
     setError('')
@@ -53,23 +68,19 @@ export default function RegisterPage() {
       const supabase = await getSupabase()
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
-
       const userRole = data.user?.user_metadata?.role
-
       if (currentPortalRole === 'funder' && userRole !== 'funder') {
         await supabase.auth.signOut()
         setError('This portal is for funders only. Please use the supplier login instead.')
         setLoading(false)
         return
       }
-
       if (currentPortalRole === 'business' && userRole === 'funder') {
         await supabase.auth.signOut()
         setError('This portal is for suppliers only. Please use the funder login instead.')
         setLoading(false)
         return
       }
-
       if (userRole === 'admin') {
         router.push('/admin')
       } else if (userRole === 'funder') {
@@ -83,9 +94,7 @@ export default function RegisterPage() {
   async function uploadFile(supabase: any, file: File, userId: string, docName: string) {
     const ext = file.name.split('.').pop()
     const path = `${userId}/${docName}.${ext}`
-    const { error } = await supabase.storage
-      .from('verification-docs')
-      .upload(path, file, { upsert: true })
+    const { error } = await supabase.storage.from('verification-docs').upload(path, file, { upsert: true })
     if (error) console.error('Upload error:', docName, error.message)
     return path
   }
@@ -133,6 +142,7 @@ export default function RegisterPage() {
   if (!mounted) return null
 
   const inputStyle = {width:'100%',padding:'9px 12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}
+  const inputFilled = (val: string) => ({...inputStyle, borderColor: val ? '#0F6E56' : '#e5e5e5'})
   const labelStyle = {display:'block' as const,fontSize:'13px',color:'#666666',marginBottom:'5px'}
   const fieldStyle = {marginBottom:'1rem'}
 
@@ -205,7 +215,10 @@ export default function RegisterPage() {
               <input type="password" placeholder="Your password" value={password} onChange={e=>setPassword(e.target.value)} style={inputStyle}/>
             </div>
             <div style={{textAlign:'right',marginBottom:'1rem'}}>
-              <a href="#" style={{fontSize:'13px',color:'#0F6E56'}}>Forgot password?</a>
+              <button onClick={handleForgotPassword} disabled={loading}
+                style={{fontSize:'13px',color:'#0F6E56',background:'none',border:'none',cursor:'pointer',padding:0}}>
+                Forgot password?
+              </button>
             </div>
             <button onClick={()=>handleLogin(portalRole)} disabled={loading}
               style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
@@ -277,41 +290,34 @@ export default function RegisterPage() {
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
                       <div>
                         <label style={labelStyle}>First name <span style={{color:'#DC2626'}}>*</span></label>
-                        <input type="text" placeholder="Sipho" value={firstName} onChange={e=>setFirstName(e.target.value)}
-                          style={{...inputStyle,borderColor:firstName?'#0F6E56':'#e5e5e5'}}/>
+                        <input type="text" placeholder="Sipho" value={firstName} onChange={e=>setFirstName(e.target.value)} style={inputFilled(firstName)}/>
                       </div>
                       <div>
                         <label style={labelStyle}>Last name <span style={{color:'#DC2626'}}>*</span></label>
-                        <input type="text" placeholder="Dlamini" value={lastName} onChange={e=>setLastName(e.target.value)}
-                          style={{...inputStyle,borderColor:lastName?'#0F6E56':'#e5e5e5'}}/>
+                        <input type="text" placeholder="Dlamini" value={lastName} onChange={e=>setLastName(e.target.value)} style={inputFilled(lastName)}/>
                       </div>
                     </div>
                     <div style={fieldStyle}>
                       <label style={labelStyle}>{role==='business'?'Business name':'Institution name'} <span style={{color:'#DC2626'}}>*</span></label>
                       <input type="text" placeholder={role==='business'?'Dlamini Suppliers (Pty) Ltd':'Nkosi Capital (Pty) Ltd'}
-                        value={businessName} onChange={e=>setBusinessName(e.target.value)}
-                        style={{...inputStyle,borderColor:businessName?'#0F6E56':'#e5e5e5'}}/>
+                        value={businessName} onChange={e=>setBusinessName(e.target.value)} style={inputFilled(businessName)}/>
                     </div>
                     <div style={fieldStyle}>
                       <label style={labelStyle}>Email address <span style={{color:'#DC2626'}}>*</span></label>
-                      <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)}
-                        style={{...inputStyle,borderColor:email?'#0F6E56':'#e5e5e5'}}/>
+                      <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)} style={inputFilled(email)}/>
                     </div>
                     <div style={fieldStyle}>
                       <label style={labelStyle}>Phone number <span style={{color:'#DC2626'}}>*</span></label>
-                      <input type="tel" placeholder="+27 82 000 0000" value={phone} onChange={e=>setPhone(e.target.value)}
-                        style={{...inputStyle,borderColor:phone?'#0F6E56':'#e5e5e5'}}/>
+                      <input type="tel" placeholder="+27 82 000 0000" value={phone} onChange={e=>setPhone(e.target.value)} style={inputFilled(phone)}/>
                     </div>
                     <div style={fieldStyle}>
                       <label style={labelStyle}>{role==='business'?'Company registration number':'FSCA registration number'} <span style={{color:'#DC2626'}}>*</span></label>
                       <input type="text" placeholder={role==='business'?'2021/123456/07':'FSP 12345'}
-                        value={companyReg} onChange={e=>setCompanyReg(e.target.value)}
-                        style={{...inputStyle,borderColor:companyReg?'#0F6E56':'#e5e5e5'}}/>
+                        value={companyReg} onChange={e=>setCompanyReg(e.target.value)} style={inputFilled(companyReg)}/>
                     </div>
                     <div style={fieldStyle}>
                       <label style={labelStyle}>Password <span style={{color:'#DC2626'}}>*</span></label>
-                      <input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}
-                        style={{...inputStyle,borderColor:password.length>=8?'#0F6E56':'#e5e5e5'}}/>
+                      <input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)} style={inputFilled(password)}/>
                       {password.length > 0 && password.length < 8 && (
                         <p style={{fontSize:'12px',color:'#DC2626',marginTop:'4px'}}>Password must be at least 8 characters</p>
                       )}
@@ -376,10 +382,17 @@ export default function RegisterPage() {
                       </div>
                     )}
 
-                    <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
+                    <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                       <p style={{fontSize:'13px',color:'#633806',fontWeight:'500',marginBottom:'3px'}}>⏱ Review process</p>
                       <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
                     </div>
+
+                    <p style={{fontSize:'12px',color:'#888',marginBottom:'1rem',textAlign:'center'}}>
+                      By creating an account you agree to our{' '}
+                      <a href="/terms" target="_blank" style={{color:'#0F6E56'}}>Terms & Conditions</a>
+                      {' '}and{' '}
+                      <a href="/privacy" target="_blank" style={{color:'#0F6E56'}}>Privacy Policy</a>
+                    </p>
 
                     <div style={{display:'flex',gap:'12px'}}>
                       <button onClick={()=>{ setError(''); setStep(1) }}
