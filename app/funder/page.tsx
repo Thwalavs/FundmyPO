@@ -56,29 +56,29 @@ function RealOffers() {
   const [myOffers, setMyOffers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(()=>{
-    async function load() {
-      try {
-        const { createBrowserClient } = await import('@supabase/ssr')
-        const supabase = createBrowserClient(
-          'https://efzszombcfxyyobqehyp.supabase.co',
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
-        )
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-        const { data: offers } = await supabase
-          .from('funding_offers')
-          .select('*, purchase_orders(*)')
-          .eq('funder_id', user.id)
-          .order('created_at', { ascending: false })
-        setMyOffers(offers || [])
-      } catch(e) { console.log(e) }
-      finally { setLoading(false) }
-    }
-    load()
-  },[])
+  async function load() {
+    setLoading(true)
+    try {
+      const { createBrowserClient } = await import('@supabase/ssr')
+      const supabase = createBrowserClient(
+        'https://efzszombcfxyyobqehyp.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
+      )
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: offers } = await supabase
+        .from('funding_offers')
+        .select('*, purchase_orders(*)')
+        .eq('funder_id', user.id)
+        .order('created_at', { ascending: false })
+      setMyOffers(offers || [])
+    } catch(e) { console.log(e) }
+    finally { setLoading(false) }
+  }
 
-  if (loading) return <p style={{fontSize:'14px',color:'#888'}}>Loading your offers...</p>
+  useEffect(()=>{ load() },[])
+
+  if (loading) return <p style={{fontSize:'14px',color:'#888',padding:'1rem'}}>Loading your offers...</p>
 
   if (myOffers.length === 0) return (
     <div style={{textAlign:'center',padding:'3rem',background:'#fff',borderRadius:'12px',border:'1px solid #e5e5e5'}}>
@@ -88,49 +88,57 @@ function RealOffers() {
   )
 
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-      {myOffers.map((offer: any)=>{
-        const po = offer.purchase_orders
-        const isAccepted = offer.status === 'accepted'
-        return (
-          <div key={offer.id} style={{background:'#fff',border:isAccepted?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
-              <div>
-                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
-                  <span style={{fontSize:'15px',fontWeight:'500'}}>{po?.po_number || 'PO'}</span>
-                  <span style={{
-                    background:isAccepted?'#E1F5EE':'#FAEEDA',
-                    color:isAccepted?'#085041':'#633806',
-                    padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'
-                  }}>
-                    {isAccepted ? '✅ Accepted' : '⏳ Pending'}
-                  </span>
+    <div>
+      <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'1rem'}}>
+        <button onClick={()=>load()}
+          style={{fontSize:'13px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'8px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+          🔄 Refresh offers
+        </button>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+        {myOffers.map((offer: any)=>{
+          const po = offer.purchase_orders
+          const isAccepted = offer.status === 'accepted'
+          return (
+            <div key={offer.id} style={{background:'#fff',border:isAccepted?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
+                <div>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
+                    <span style={{fontSize:'15px',fontWeight:'500'}}>{po?.po_number || 'PO'}</span>
+                    <span style={{
+                      background:isAccepted?'#E1F5EE':'#FAEEDA',
+                      color:isAccepted?'#085041':'#633806',
+                      padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'
+                    }}>
+                      {isAccepted ? '✅ Accepted' : '⏳ Pending'}
+                    </span>
+                  </div>
+                  <p style={{fontSize:'13px',color:'#666'}}>{po?.client_name}</p>
+                  <p style={{fontSize:'12px',color:'#888'}}>📅 {new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
                 </div>
-                <p style={{fontSize:'13px',color:'#666'}}>{po?.client_name}</p>
-                <p style={{fontSize:'12px',color:'#888'}}>📅 {new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
+                <div style={{textAlign:'right'}}>
+                  <p style={{fontSize:'18px',fontWeight:'500',color:'#0F6E56'}}>R {offer.amount.toLocaleString()}</p>
+                  <p style={{fontSize:'12px',color:'#888'}}>at {offer.interest_rate}% • {offer.term_days} days</p>
+                </div>
               </div>
-              <div style={{textAlign:'right'}}>
-                <p style={{fontSize:'18px',fontWeight:'500',color:'#0F6E56'}}>R {offer.amount.toLocaleString()}</p>
-                <p style={{fontSize:'12px',color:'#888'}}>at {offer.interest_rate}% • {offer.term_days} days</p>
-              </div>
+              {isAccepted && (
+                <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginTop:'.5rem'}}>
+                  <p style={{fontSize:'13px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>🎉 Your offer was accepted!</p>
+                  <p style={{fontSize:'12px',color:'#0F6E56',lineHeight:'1.6'}}>
+                    Please proceed with the funding disbursement of <strong>R {offer.amount.toLocaleString()}</strong> to {po?.client_name}.
+                    FundMyPO commission of <strong>R {(offer.amount * 0.02).toLocaleString()}</strong> (2%) will be deducted.
+                  </p>
+                </div>
+              )}
+              {!isAccepted && (
+                <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginTop:'.5rem',fontSize:'12px',color:'#666'}}>
+                  ⏳ Waiting for the business to review and accept your offer.
+                </div>
+              )}
             </div>
-            {isAccepted && (
-              <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginTop:'.5rem'}}>
-                <p style={{fontSize:'13px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>🎉 Your offer was accepted!</p>
-                <p style={{fontSize:'12px',color:'#0F6E56',lineHeight:'1.6'}}>
-                  Please proceed with the funding disbursement of <strong>R {offer.amount.toLocaleString()}</strong> to {po?.client_name}.
-                  FundMyPO commission of <strong>R {(offer.amount * 0.02).toLocaleString()}</strong> (2%) will be deducted.
-                </p>
-              </div>
-            )}
-            {!isAccepted && (
-              <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginTop:'.5rem',fontSize:'12px',color:'#666'}}>
-                ⏳ Waiting for the business to review and accept your offer.
-              </div>
-            )}
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -258,7 +266,6 @@ export default function FunderDashboard() {
           ))}
         </div>
 
-        {/* MARKETPLACE */}
         {activeTab === 'marketplace' && (
           <div>
             <div style={{marginBottom:'1rem'}}>
@@ -333,7 +340,6 @@ export default function FunderDashboard() {
                       </div>
                     </div>
 
-                    {/* PREVIEW */}
                     {previewPO === po.id && !submittedOffers.includes(po.id) && (
                       <div style={{marginTop:'1rem',padding:'1.25rem',background:'#FFFBF0',borderRadius:'10px',border:'1px solid #F5D87A'}}>
                         <p style={{fontSize:'13px',fontWeight:'500',color:'#633806',marginBottom:'1rem'}}>
@@ -386,7 +392,6 @@ export default function FunderDashboard() {
                       </div>
                     )}
 
-                    {/* OFFER FORM */}
                     {selectedPO === po.id && (
                       <div style={{marginTop:'1rem',padding:'1.25rem',background:'#f9f9f9',borderRadius:'10px',border:'1px solid #e5e5e5'}}>
                         <p style={{fontSize:'14px',fontWeight:'500',marginBottom:'1rem'}}>Submit your funding offer</p>
@@ -441,45 +446,27 @@ export default function FunderDashboard() {
                       </div>
                     )}
 
-                    {/* ALL DOCUMENTS */}
                     {viewingPODocs === po.id && (
                       <div style={{marginTop:'1rem',padding:'1.25rem',background:'#EEF4FB',borderRadius:'10px',border:'1px solid #B8D4F0'}}>
                         <p style={{fontSize:'13px',fontWeight:'500',color:'#0C447C',marginBottom:'1rem'}}>
                           📋 Full Documents & Contact Details
                         </p>
-
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>👤 Client Contact Details</p>
-                          {[
-                            ['Company', po.client_name],
-                            ['Contact person', po.client_contact],
-                            ['Department', po.client_department],
-                            ['Phone', po.client_phone],
-                            ['Email', po.client_email],
-                          ].map(([l,v])=>(
+                          {[['Company',po.client_name],['Contact person',po.client_contact],['Department',po.client_department],['Phone',po.client_phone],['Email',po.client_email]].map(([l,v])=>(
                             <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
-                              <span style={{color:'#888'}}>{l}</span>
-                              <span style={{fontWeight:'500'}}>{v}</span>
+                              <span style={{color:'#888'}}>{l}</span><span style={{fontWeight:'500'}}>{v}</span>
                             </div>
                           ))}
                         </div>
-
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>🏭 Supplier Contact Details</p>
-                          {[
-                            ['Supplier', po.supplier_name],
-                            ['Phone', po.supplier_phone],
-                            ['Email', po.supplier_email],
-                            ['Quotation number', po.quotation_number],
-                            ['Quotation value', `R ${po.quotation_value.toLocaleString()}`],
-                          ].map(([l,v])=>(
+                          {[['Supplier',po.supplier_name],['Phone',po.supplier_phone],['Email',po.supplier_email],['Quotation number',po.quotation_number],['Quotation value',`R ${po.quotation_value.toLocaleString()}`]].map(([l,v])=>(
                             <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid #f0f0f0',fontSize:'13px'}}>
-                              <span style={{color:'#888'}}>{l}</span>
-                              <span style={{fontWeight:'500'}}>{v}</span>
+                              <span style={{color:'#888'}}>{l}</span><span style={{fontWeight:'500'}}>{v}</span>
                             </div>
                           ))}
                         </div>
-
                         <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>📊 Profit Margin Analysis</p>
                           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',textAlign:'center'}}>
@@ -489,7 +476,6 @@ export default function FunderDashboard() {
                           </div>
                           <p style={{marginTop:'.75rem',textAlign:'center',fontSize:'13px',color:'#085041',fontWeight:'500'}}>Estimated profit: R {profit.toLocaleString()} ✅</p>
                         </div>
-
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 PO & Quotation Documents</p>
                           {[
@@ -505,7 +491,6 @@ export default function FunderDashboard() {
                             </div>
                           ))}
                         </div>
-
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Business Verification Documents</p>
                           {[
@@ -524,13 +509,11 @@ export default function FunderDashboard() {
                             </div>
                           ))}
                         </div>
-
                         <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'10px',fontSize:'12px',color:'#633806'}}>
                           ⚠️ These documents are confidential. Use the contact details above to verify the PO and quotation directly with the client and supplier before making a funding decision.
                         </div>
                       </div>
                     )}
-
                   </div>
                 )
               })}
@@ -538,7 +521,6 @@ export default function FunderDashboard() {
           </div>
         )}
 
-        {/* MY OFFERS */}
         {activeTab === 'offers' && (
           <div>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>My Submitted Offers</h2>
@@ -546,7 +528,6 @@ export default function FunderDashboard() {
           </div>
         )}
 
-        {/* PROFILE */}
         {activeTab === 'profile' && (
           <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1.5rem'}}>Funder Profile</h2>
