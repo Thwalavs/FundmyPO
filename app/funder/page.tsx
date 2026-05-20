@@ -23,6 +23,14 @@ type PO = {
   created_at: string
 }
 
+const SUPABASE_URL = 'https://efzszombcfxyyobqehyp.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
+
+async function getSupabase() {
+  const { createBrowserClient } = await import('@supabase/ssr')
+  return createBrowserClient(SUPABASE_URL, SUPABASE_KEY)
+}
+
 function RiskBadge({ value }: { value: number }) {
   const risk = value >= 200000 ? 'Low' : 'Medium'
   const s = risk === 'Low' ? { bg:'#E1F5EE', color:'#085041' } : { bg:'#FAEEDA', color:'#633806' }
@@ -30,26 +38,20 @@ function RiskBadge({ value }: { value: number }) {
 }
 
 async function handleSignOut() {
-  const { createBrowserClient } = await import('@supabase/ssr')
-  const supabase = createBrowserClient(
-    'https://efzszombcfxyyobqehyp.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
-  )
+  const supabase = await getSupabase()
   await supabase.auth.signOut()
   window.location.href = '/'
 }
 
 async function downloadDoc(userId: string, docPath: string) {
-  const { createBrowserClient } = await import('@supabase/ssr')
-  const supabase = createBrowserClient(
-    'https://efzszombcfxyyobqehyp.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
-  )
-  for (const ext of ['pdf','jpg','jpeg','png']) {
-    const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${userId}/${docPath}.${ext}`, 3600)
-    if (data?.signedUrl) { window.open(data.signedUrl, '_blank'); return }
-  }
-  alert('Document not found. The business may not have uploaded this document yet.')
+  const supabase = await getSupabase()
+  const { data: files } = await supabase.storage.from('verification-docs').list(userId)
+  if (!files || files.length === 0) { alert('No documents found for this business.'); return }
+  const matchedFile = files.find(f => f.name.startsWith(docPath))
+  if (!matchedFile) { alert('Document not found. The business may not have uploaded this document yet.'); return }
+  const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${userId}/${matchedFile.name}`, 3600)
+  if (data?.signedUrl) { window.open(data.signedUrl, '_blank') }
+  else { alert('Could not generate download link. Please try again.') }
 }
 
 function RealOffers() {
@@ -59,11 +61,7 @@ function RealOffers() {
   async function load() {
     setLoading(true)
     try {
-      const { createBrowserClient } = await import('@supabase/ssr')
-      const supabase = createBrowserClient(
-        'https://efzszombcfxyyobqehyp.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
-      )
+      const supabase = await getSupabase()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const { data: offers } = await supabase
@@ -105,11 +103,7 @@ function RealOffers() {
                 <div>
                   <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
                     <span style={{fontSize:'15px',fontWeight:'500'}}>{po?.po_number || 'PO'}</span>
-                    <span style={{
-                      background:isAccepted?'#E1F5EE':'#FAEEDA',
-                      color:isAccepted?'#085041':'#633806',
-                      padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'
-                    }}>
+                    <span style={{background:isAccepted?'#E1F5EE':'#FAEEDA',color:isAccepted?'#085041':'#633806',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>
                       {isAccepted ? '✅ Accepted' : '⏳ Pending'}
                     </span>
                   </div>
@@ -153,6 +147,7 @@ export default function FunderDashboard() {
   const [viewingPODocs, setViewingPODocs] = useState<string|null>(null)
   const [rates, setRates] = useState<Record<string,string>>({})
   const [terms, setTerms] = useState<Record<string,string>>({})
+  const [offerError, setOfferError] = useState<Record<string,string>>({})
   const [mounted, setMounted] = useState(false)
   const [funderName, setFunderName] = useState('Funder')
 
@@ -164,11 +159,7 @@ export default function FunderDashboard() {
 
   async function loadFunderName() {
     try {
-      const { createBrowserClient } = await import('@supabase/ssr')
-      const supabase = createBrowserClient(
-        'https://efzszombcfxyyobqehyp.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
-      )
+      const supabase = await getSupabase()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) setFunderName(user.user_metadata?.first_name || user.email || 'Funder')
     } catch(e) { console.log(e) }
@@ -176,11 +167,7 @@ export default function FunderDashboard() {
 
   async function loadPOs() {
     try {
-      const { createBrowserClient } = await import('@supabase/ssr')
-      const supabase = createBrowserClient(
-        'https://efzszombcfxyyobqehyp.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
-      )
+      const supabase = await getSupabase()
       const { data, error } = await supabase
         .from('purchase_orders')
         .select('*')
@@ -194,12 +181,24 @@ export default function FunderDashboard() {
   async function handleSubmitOffer(poId: string) {
     const po = marketplace.find(p => p.id === poId)
     if (!po) return
+
+    if (!rates[poId] || !terms[poId]) {
+      setOfferError(prev => ({...prev, [poId]: 'Please enter both interest rate and repayment term before submitting.'}))
+      return
+    }
+    if (parseFloat(rates[poId]) <= 0) {
+      setOfferError(prev => ({...prev, [poId]: 'Interest rate must be greater than 0.'}))
+      return
+    }
+    if (parseInt(terms[poId]) <= 0) {
+      setOfferError(prev => ({...prev, [poId]: 'Repayment term must be greater than 0 days.'}))
+      return
+    }
+
+    setOfferError(prev => ({...prev, [poId]: ''}))
+
     try {
-      const { createBrowserClient } = await import('@supabase/ssr')
-      const supabase = createBrowserClient(
-        'https://efzszombcfxyyobqehyp.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
-      )
+      const supabase = await getSupabase()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       await supabase.from('funding_offers').insert({
@@ -266,6 +265,7 @@ export default function FunderDashboard() {
           ))}
         </div>
 
+        {/* MARKETPLACE */}
         {activeTab === 'marketplace' && (
           <div>
             <div style={{marginBottom:'1rem'}}>
@@ -273,11 +273,7 @@ export default function FunderDashboard() {
               <p style={{fontSize:'13px',color:'#666'}}>Preview a PO then submit an offer to unlock all documents and contact details.</p>
             </div>
 
-            {loadingPOs && (
-              <div style={{textAlign:'center',padding:'3rem',color:'#666'}}>
-                <p>Loading purchase orders...</p>
-              </div>
-            )}
+            {loadingPOs && <div style={{textAlign:'center',padding:'3rem',color:'#666'}}><p>Loading purchase orders...</p></div>}
 
             {!loadingPOs && marketplace.length === 0 && (
               <div style={{textAlign:'center',padding:'3rem',background:'#fff',borderRadius:'12px',border:'1px solid #e5e5e5'}}>
@@ -340,24 +336,16 @@ export default function FunderDashboard() {
                       </div>
                     </div>
 
+                    {/* PREVIEW */}
                     {previewPO === po.id && !submittedOffers.includes(po.id) && (
                       <div style={{marginTop:'1rem',padding:'1.25rem',background:'#FFFBF0',borderRadius:'10px',border:'1px solid #F5D87A'}}>
-                        <p style={{fontSize:'13px',fontWeight:'500',color:'#633806',marginBottom:'1rem'}}>
-                          👁 Preview — Submit an offer to unlock full details
-                        </p>
+                        <p style={{fontSize:'13px',fontWeight:'500',color:'#633806',marginBottom:'1rem'}}>👁 Preview — Submit an offer to unlock full details</p>
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
                           <div style={{background:'#fff',borderRadius:'8px',padding:'1rem'}}>
                             <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>📋 PO Summary</p>
-                            {[
-                              ['Client', po.client_name],
-                              ['Department', po.client_department],
-                              ['Sector', po.sector],
-                              ['PO Value', `R ${po.po_value.toLocaleString()}`],
-                              ['Funding needed', `R ${po.funding_needed.toLocaleString()}`],
-                            ].map(([label,value])=>(
+                            {[['Client',po.client_name],['Department',po.client_department],['Sector',po.sector],['PO Value',`R ${po.po_value.toLocaleString()}`],['Funding needed',`R ${po.funding_needed.toLocaleString()}`]].map(([label,value])=>(
                               <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px solid #f0f0f0',fontSize:'12px'}}>
-                                <span style={{color:'#888'}}>{label}</span>
-                                <span style={{fontWeight:'500'}}>{value}</span>
+                                <span style={{color:'#888'}}>{label}</span><span style={{fontWeight:'500'}}>{value}</span>
                               </div>
                             ))}
                           </div>
@@ -392,18 +380,26 @@ export default function FunderDashboard() {
                       </div>
                     )}
 
+                    {/* OFFER FORM */}
                     {selectedPO === po.id && (
                       <div style={{marginTop:'1rem',padding:'1.25rem',background:'#f9f9f9',borderRadius:'10px',border:'1px solid #e5e5e5'}}>
                         <p style={{fontSize:'14px',fontWeight:'500',marginBottom:'1rem'}}>Submit your funding offer</p>
+
+                        {offerError[po.id] && (
+                          <div style={{background:'#FEE2E2',border:'1px solid #FCA5A5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'13px',color:'#DC2626'}}>
+                            {offerError[po.id]}
+                          </div>
+                        )}
+
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
                           <div>
-                            <label style={{display:'block',fontSize:'13px',color:'#666',marginBottom:'5px'}}>Interest rate (%)</label>
+                            <label style={{display:'block',fontSize:'13px',color:'#666',marginBottom:'5px'}}>Interest rate (%) <span style={{color:'#DC2626'}}>*</span></label>
                             <input type="number" placeholder="e.g. 3.5" value={rates[po.id]||''}
                               onChange={e=>setRates(prev=>({...prev,[po.id]:e.target.value}))}
                               style={{width:'100%',padding:'9px 12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}}/>
                           </div>
                           <div>
-                            <label style={{display:'block',fontSize:'13px',color:'#666',marginBottom:'5px'}}>Repayment term (days)</label>
+                            <label style={{display:'block',fontSize:'13px',color:'#666',marginBottom:'5px'}}>Repayment term (days) <span style={{color:'#DC2626'}}>*</span></label>
                             <input type="number" placeholder="e.g. 60" value={terms[po.id]||''}
                               onChange={e=>setTerms(prev=>({...prev,[po.id]:e.target.value}))}
                               style={{width:'100%',padding:'9px 12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}}/>
@@ -446,11 +442,11 @@ export default function FunderDashboard() {
                       </div>
                     )}
 
+                    {/* ALL DOCUMENTS */}
                     {viewingPODocs === po.id && (
                       <div style={{marginTop:'1rem',padding:'1.25rem',background:'#EEF4FB',borderRadius:'10px',border:'1px solid #B8D4F0'}}>
-                        <p style={{fontSize:'13px',fontWeight:'500',color:'#0C447C',marginBottom:'1rem'}}>
-                          📋 Full Documents & Contact Details
-                        </p>
+                        <p style={{fontSize:'13px',fontWeight:'500',color:'#0C447C',marginBottom:'1rem'}}>📋 Full Documents & Contact Details</p>
+
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>👤 Client Contact Details</p>
                           {[['Company',po.client_name],['Contact person',po.client_contact],['Department',po.client_department],['Phone',po.client_phone],['Email',po.client_email]].map(([l,v])=>(
@@ -459,6 +455,7 @@ export default function FunderDashboard() {
                             </div>
                           ))}
                         </div>
+
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>🏭 Supplier Contact Details</p>
                           {[['Supplier',po.supplier_name],['Phone',po.supplier_phone],['Email',po.supplier_email],['Quotation number',po.quotation_number],['Quotation value',`R ${po.quotation_value.toLocaleString()}`]].map(([l,v])=>(
@@ -467,6 +464,7 @@ export default function FunderDashboard() {
                             </div>
                           ))}
                         </div>
+
                         <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>📊 Profit Margin Analysis</p>
                           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',textAlign:'center'}}>
@@ -476,6 +474,7 @@ export default function FunderDashboard() {
                           </div>
                           <p style={{marginTop:'.75rem',textAlign:'center',fontSize:'13px',color:'#085041',fontWeight:'500'}}>Estimated profit: R {profit.toLocaleString()} ✅</p>
                         </div>
+
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 PO & Quotation Documents</p>
                           {[
@@ -491,6 +490,7 @@ export default function FunderDashboard() {
                             </div>
                           ))}
                         </div>
+
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Business Verification Documents</p>
                           {[
@@ -509,11 +509,13 @@ export default function FunderDashboard() {
                             </div>
                           ))}
                         </div>
+
                         <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'10px',fontSize:'12px',color:'#633806'}}>
                           ⚠️ These documents are confidential. Use the contact details above to verify the PO and quotation directly with the client and supplier before making a funding decision.
                         </div>
                       </div>
                     )}
+
                   </div>
                 )
               })}
@@ -521,6 +523,7 @@ export default function FunderDashboard() {
           </div>
         )}
 
+        {/* MY OFFERS */}
         {activeTab === 'offers' && (
           <div>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>My Submitted Offers</h2>
@@ -528,6 +531,7 @@ export default function FunderDashboard() {
           </div>
         )}
 
+        {/* PROFILE */}
         {activeTab === 'profile' && (
           <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1.5rem'}}>Funder Profile</h2>
