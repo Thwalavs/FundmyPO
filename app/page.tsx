@@ -3,28 +3,27 @@ export default function Home() {
     <main style={{fontFamily:'sans-serif',margin:0,padding:0}}>
 
       {/* NAVBAR */}
-      <nav style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1rem 2rem',borderBottom:'1px solid #e5e5e5'}}>
+      <nav style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1rem',borderBottom:'1px solid #e5e5e5'}}>
         <div style={{fontSize:'20px',fontWeight:'500'}}>
           Fund<span style={{color:'#0F6E56'}}>MyPO</span>
         </div>
-        <div style={{display:'flex',gap:'1.5rem',alignItems:'center'}}>
-          <a href="#how" style={{fontSize:'14px',color:'#666',textDecoration:'none'}}>How it works</a>
-          <a href="#features" style={{fontSize:'14px',color:'#666',textDecoration:'none'}}>Features</a>
-          <a href="#pricing" style={{fontSize:'14px',color:'#666',textDecoration:'none'}}>Pricing</a>
-          <a href="/register" style={{background:'#0F6E56',color:'#fff',padding:'10px 22px',borderRadius:'8px',fontSize:'14px',textDecoration:'none'}}>Get started</a>
+        <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+          <a href="/register" style={{background:'#0F6E56',color:'#fff',padding:'10px 18px',borderRadius:'8px',fontSize:'14px',textDecoration:'none',fontWeight:'500',whiteSpace:'nowrap'}}>
+            Get started
+          </a>
         </div>
       </nav>
 
       {/* HERO */}
-      <section style={{textAlign:'center',padding:'4rem 2rem',maxWidth:'760px',margin:'0 auto'}}>
+      <section style={{textAlign:'center',padding:'3rem 1.5rem',maxWidth:'760px',margin:'0 auto'}}>
         <div style={{display:'inline-block',background:'#E1F5EE',color:'#0F6E56',fontSize:'12px',padding:'5px 14px',borderRadius:'99px',marginBottom:'1.5rem',fontWeight:'500'}}>
           Africa's PO funding marketplace
         </div>
-        <h1 style={{fontSize:'42px',fontWeight:'500',lineHeight:'1.2',marginBottom:'1rem'}}>
+        <h1 style={{fontSize:'clamp(28px,6vw,42px)',fontWeight:'500',lineHeight:'1.2',marginBottom:'1rem'}}>
           Turn your purchase orders into{' '}
           <span style={{color:'#0F6E56'}}>working capital</span>
         </h1>
-        <p style={{fontSize:'17px',color:'#666',lineHeight:'1.7',marginBottom:'2rem'}}>
+        <p style={{fontSize:'clamp(14px,3vw,17px)',color:'#666',lineHeight:'1.7',marginBottom:'2rem'}}>
           FundMyPO connects businesses holding confirmed purchase orders with a network of competitive funders — so you can fulfill contracts without waiting for cash.
         </p>
         <div style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
@@ -38,21 +37,21 @@ export default function Home() {
       </section>
 
       {/* STATS */}
-      <section style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',maxWidth:'640px',margin:'0 auto 4rem',padding:'0 2rem'}}>
+      <section style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',maxWidth:'640px',margin:'0 auto 3rem',padding:'0 1.5rem'}}>
         {[['342','POs funded'],['28','Active funders'],['48h','Avg. turnaround']].map(([num,label])=>(
           <div key={label} style={{background:'#f9f9f9',borderRadius:'12px',padding:'1rem',textAlign:'center'}}>
-            <div style={{fontSize:'24px',fontWeight:'500',color:'#0F6E56'}}>{num}</div>
-            <div style={{fontSize:'12px',color:'#888',marginTop:'4px'}}>{label}</div>
+            <div style={{fontSize:'clamp(18px,4vw,24px)',fontWeight:'500',color:'#0F6E56'}}>{num}</div>
+            <div style={{fontSize:'clamp(10px,2vw,12px)',color:'#888',marginTop:'4px'}}>{label}</div>
           </div>
         ))}
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how" style={{padding:'3rem 2rem',borderTop:'1px solid #e5e5e5'}}>
+      <section id="how" style={{padding:'2.5rem 1.5rem',borderTop:'1px solid #e5e5e5'}}>
         <div style={{maxWidth:'760px',margin:'0 auto'}}>
           <p style={{fontSize:'12px',fontWeight:'500',color:'#0F6E56',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:'.5rem'}}>How it works</p>
-          <h2 style={{fontSize:'28px',fontWeight:'500',marginBottom:'2rem'}}>From PO to funding in days, not weeks</h2>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:'16px'}}>
+          <h2 style={{fontSize:'clamp(20px,4vw,28px)',fontWeight:'500',marginBottom:'1.5rem'}}>From PO to funding in days, not weeks</h2>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:'12px'}}>
             {[
               ['1','Upload your PO','Submit your verified purchase order through our secure portal.'],
               ['2','Funders compete','Multiple funders review your PO and submit competitive offers.'],
@@ -70,11 +69,11 @@ export default function Home() {
       </section>
 
       {/* FEATURES */}
-      <section id="features" style={{padding:'3rem 2rem',borderTop:'1px solid #e5e5e5'}}>
+      <section id="features" style={{padding:'2.5rem 1.5rem',borderTop:'1px solid #e5e5e5'}}>
         <div style={{maxWidth:'760px',margin:'0 auto'}}>
           <p style={{fontSize:'12px',fontWeight:'500',color:'#0F6E56',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:'.5rem'}}>Features</p>
-          <h2 style={{fontSize:'28px',fontWeight:'500',marginBottom:'2rem'}}>Built for SMEs, contractors & suppliers</h2>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:'16px'}}>
+          <h2 style={{fontSize:'clamp(20px,4vw,28px)',fontWeight:'500',marginBottom:'1.5rem'}}>Built for SMEs, contractors & suppliers</h2>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:'12px'}}>
             {[
               ['🔒','Secure PO verification','Documents are validated and risk-assessed before listing.'],
               ['⚡','Competitive marketplace','Multiple funders bid on your PO for the best rate.'],
@@ -92,10 +91,10 @@ export default function Home() {
       </section>
 
       {/* PRICING */}
-      <section id="pricing" style={{padding:'3rem 2rem',borderTop:'1px solid #e5e5e5'}}>
+      <section id="pricing" style={{padding:'2.5rem 1.5rem',borderTop:'1px solid #e5e5e5'}}>
         <div style={{maxWidth:'760px',margin:'0 auto'}}>
           <p style={{fontSize:'12px',fontWeight:'500',color:'#0F6E56',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:'.5rem'}}>Pricing</p>
-          <h2 style={{fontSize:'28px',fontWeight:'500',marginBottom:'2rem'}}>Simple, transparent plans</h2>
+          <h2 style={{fontSize:'clamp(20px,4vw,28px)',fontWeight:'500',marginBottom:'1.5rem'}}>Simple, transparent plans</h2>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:'16px'}}>
             {[
               {name:'Starter',price:'Free',sub:'to list',features:['1 active PO listing','Access to all funders','Basic offer comparison','Transaction fee on funding'],featured:false},
@@ -123,16 +122,16 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section style={{background:'#E1F5EE',borderRadius:'12px',padding:'3rem 2rem',textAlign:'center',margin:'2rem'}}>
-        <h2 style={{fontSize:'28px',fontWeight:'500',marginBottom:'.75rem',color:'#085041'}}>Ready to unlock your purchase orders?</h2>
-        <p style={{fontSize:'15px',color:'#0F6E56',marginBottom:'1.5rem'}}>Join hundreds of businesses already accessing fast, competitive PO funding.</p>
+      <section style={{background:'#E1F5EE',borderRadius:'12px',padding:'2.5rem 1.5rem',textAlign:'center',margin:'1.5rem'}}>
+        <h2 style={{fontSize:'clamp(20px,4vw,28px)',fontWeight:'500',marginBottom:'.75rem',color:'#085041'}}>Ready to unlock your purchase orders?</h2>
+        <p style={{fontSize:'clamp(13px,3vw,15px)',color:'#0F6E56',marginBottom:'1.5rem'}}>Join hundreds of businesses already accessing fast, competitive PO funding.</p>
         <a href="/register" style={{background:'#0F6E56',color:'#fff',padding:'12px 28px',borderRadius:'8px',fontSize:'15px',textDecoration:'none',fontWeight:'500'}}>
           Create your free account ↗
         </a>
       </section>
 
       {/* FOOTER */}
-      <footer style={{padding:'1.5rem 2rem',borderTop:'1px solid #e5e5e5',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
+      <footer style={{padding:'1.5rem',borderTop:'1px solid #e5e5e5',display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',textAlign:'center'}}>
         <div style={{fontSize:'16px',fontWeight:'500'}}>Fund<span style={{color:'#0F6E56'}}>MyPO</span></div>
         <p style={{fontSize:'13px',color:'#888'}}>© 2025 Project Pulse Innovation. All rights reserved.</p>
         <div style={{display:'flex',gap:'1rem'}}>
