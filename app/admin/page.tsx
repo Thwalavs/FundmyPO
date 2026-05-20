@@ -13,6 +13,7 @@ function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, { bg: string; color: string; label: string }> = {
     pending:   { bg:'#FAEEDA', color:'#633806', label:'Pending' },
     verified:  { bg:'#E1F5EE', color:'#085041', label:'Verified' },
+    approved:  { bg:'#E1F5EE', color:'#085041', label:'Approved' },
     active:    { bg:'#E1F5EE', color:'#085041', label:'Active' },
     reviewing: { bg:'#FAEEDA', color:'#633806', label:'Under review' },
     funded:    { bg:'#E6F1FB', color:'#0C447C', label:'Funded' },
@@ -35,6 +36,7 @@ export default function AdminDashboard() {
   const [authorized, setAuthorized] = useState(false)
   const [adminName, setAdminName] = useState('Admin')
   const [users, setUsers] = useState<any[]>([])
+  const [userStatuses, setUserStatuses] = useState<Record<string,string>>({})
   const [pos, setPos] = useState<any[]>([])
   const [offers, setOffers] = useState<any[]>([])
   const [loadingUsers, setLoadingUsers] = useState(true)
@@ -63,16 +65,21 @@ export default function AdminDashboard() {
   async function loadData() {
     const supabase = await getSupabase()
 
-    // Load users from auth
+    // Load users
     try {
       const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        }
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       })
       const data = await res.json()
       setUsers(data.users || [])
+
+      // Load profile statuses
+      const { data: profiles } = await supabase.from('profiles').select('id, status')
+      if (profiles) {
+        const statusMap: Record<string,string> = {}
+        profiles.forEach((p: any) => { statusMap[p.id] = p.status })
+        setUserStatuses(statusMap)
+      }
     } catch(e) { console.log('Error loading users:', e) }
     finally { setLoadingUsers(false) }
 
@@ -89,6 +96,22 @@ export default function AdminDashboard() {
       setOffers(data || [])
     } catch(e) { console.log('Error loading offers:', e) }
     finally { setLoadingOffers(false) }
+  }
+
+  async function handleApprove(userId: string) {
+    try {
+      const supabase = await getSupabase()
+      await supabase.from('profiles').upsert({ id: userId, status: 'approved' })
+      setUserStatuses(prev => ({...prev, [userId]: 'approved'}))
+    } catch(e) { console.log(e) }
+  }
+
+  async function handleReject(userId: string) {
+    try {
+      const supabase = await getSupabase()
+      await supabase.from('profiles').upsert({ id: userId, status: 'rejected' })
+      setUserStatuses(prev => ({...prev, [userId]: 'rejected'}))
+    } catch(e) { console.log(e) }
   }
 
   async function handleSignOut() {
@@ -115,6 +138,7 @@ export default function AdminDashboard() {
 
   const businessUsers = users.filter(u => u.user_metadata?.role === 'business')
   const funderUsers = users.filter(u => u.user_metadata?.role === 'funder')
+  const pendingUsers = users.filter(u => u.user_metadata?.role !== 'admin' && (!userStatuses[u.id] || userStatuses[u.id] === 'pending'))
   const activePOs = pos.filter(p => p.status === 'reviewing' || p.status === 'active')
   const fundedPOs = pos.filter(p => p.status === 'funded')
   const acceptedOffers = offers.filter(o => o.status === 'accepted')
@@ -148,12 +172,11 @@ export default function AdminDashboard() {
           <p style={{fontSize:'14px',color:'#666'}}>Manage users, POs and commissions for FundMyPO</p>
         </div>
 
-        {/* TABS */}
         <div style={{display:'flex',gap:'4px',background:'#fff',border:'1px solid #e5e5e5',borderRadius:'10px',padding:'4px',marginBottom:'2rem',flexWrap:'wrap'}}>
           {(['overview','users','pos','offers','commissions'] as const).map(t=>(
             <button key={t} onClick={()=>setActiveTab(t)}
               style={{padding:'8px 16px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'13px',fontWeight:'500',background:activeTab===t?'#085041':'transparent',color:activeTab===t?'#fff':'#666'}}>
-              {t==='overview'?'Overview':t==='users'?`Users (${users.length})`:t==='pos'?`POs (${pos.length})`:t==='offers'?`Offers (${offers.length})`:'Commissions'}
+              {t==='overview'?'Overview':t==='users'?`Users (${users.filter(u=>u.user_metadata?.role!=='admin').length})`:t==='pos'?`POs (${pos.length})`:t==='offers'?`Offers (${offers.length})`:'Commissions'}
             </button>
           ))}
         </div>
@@ -163,11 +186,11 @@ export default function AdminDashboard() {
           <div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:'12px',marginBottom:'2rem'}}>
               {[
-                { label:'Total users', value:users.length.toString(), color:'#085041' },
+                { label:'Total users', value:users.filter(u=>u.user_metadata?.role!=='admin').length.toString(), color:'#085041' },
                 { label:'Businesses', value:businessUsers.length.toString(), color:'#0F6E56' },
                 { label:'Funders', value:funderUsers.length.toString(), color:'#0C447C' },
+                { label:'Pending approvals', value:pendingUsers.length.toString(), color:'#633806' },
                 { label:'Total POs', value:pos.length.toString(), color:'#633806' },
-                { label:'Active POs', value:activePOs.length.toString(), color:'#0F6E56' },
                 { label:'Funded POs', value:fundedPOs.length.toString(), color:'#085041' },
                 { label:'Total offers', value:offers.length.toString(), color:'#633806' },
                 { label:'Commission earned', value:`R ${totalCommission.toLocaleString()}`, color:'#0F6E56' },
@@ -178,6 +201,32 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
+
+            {/* PENDING APPROVALS */}
+            {pendingUsers.length > 0 && (
+              <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem',marginBottom:'1.5rem'}}>
+                <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>⏳ Pending User Approvals ({pendingUsers.length})</h2>
+                {pendingUsers.map(user=>(
+                  <div key={user.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:'1px solid #f0f0f0',flexWrap:'wrap',gap:'8px'}}>
+                    <div>
+                      <p style={{fontSize:'14px',fontWeight:'500'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name+' '+user.user_metadata?.last_name}</p>
+                      <p style={{fontSize:'12px',color:'#666'}}>{user.email}</p>
+                      <p style={{fontSize:'12px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '💰 Funder' : '🏢 Business'} — Joined {new Date(user.created_at).toLocaleDateString('en-ZA')}</p>
+                    </div>
+                    <div style={{display:'flex',gap:'8px'}}>
+                      <button onClick={()=>handleApprove(user.id)}
+                        style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'7px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                        Approve ✓
+                      </button>
+                      <button onClick={()=>handleReject(user.id)}
+                        style={{fontSize:'13px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'7px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                        Reject ✗
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* RECENT POs */}
             <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem',marginBottom:'1.5rem'}}>
@@ -192,11 +241,10 @@ export default function AdminDashboard() {
                       <StatusBadge status={po.status}/>
                     </div>
                     <p style={{fontSize:'12px',color:'#666'}}>{po.client_name} • {po.sector}</p>
-                    <p style={{fontSize:'11px',color:'#888'}}>{new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
                   </div>
                   <div style={{textAlign:'right'}}>
                     <p style={{fontSize:'14px',fontWeight:'500',color:'#0F6E56'}}>R {po.po_value?.toLocaleString()}</p>
-                    <p style={{fontSize:'12px',color:'#888'}}>Funding: R {po.funding_needed?.toLocaleString()}</p>
+                    <p style={{fontSize:'12px',color:'#888'}}>{new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
                   </div>
                 </div>
               ))}
@@ -206,15 +254,17 @@ export default function AdminDashboard() {
             <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
               <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>Recent Registrations</h2>
               {loadingUsers && <p style={{fontSize:'14px',color:'#888'}}>Loading...</p>}
-              {!loadingUsers && users.length === 0 && <p style={{fontSize:'14px',color:'#888'}}>No users yet</p>}
-              {users.slice(0,5).map(user=>(
+              {users.filter(u=>u.user_metadata?.role!=='admin').slice(0,5).map(user=>(
                 <div key={user.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #f0f0f0',flexWrap:'wrap',gap:'8px'}}>
                   <div>
-                    <p style={{fontSize:'14px',fontWeight:'500'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name || user.email}</p>
+                    <p style={{fontSize:'14px',fontWeight:'500'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name+' '+user.user_metadata?.last_name || user.email}</p>
                     <p style={{fontSize:'12px',color:'#666'}}>{user.email}</p>
-                    <p style={{fontSize:'11px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '💰 Funder' : user.user_metadata?.role === 'admin' ? '👨‍💼 Admin' : '🏢 Business'}</p>
+                    <p style={{fontSize:'11px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '💰 Funder' : '🏢 Business'}</p>
                   </div>
-                  <p style={{fontSize:'12px',color:'#888'}}>{new Date(user.created_at).toLocaleDateString('en-ZA')}</p>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                    <StatusBadge status={userStatuses[user.id] || 'pending'}/>
+                    <p style={{fontSize:'12px',color:'#888'}}>{new Date(user.created_at).toLocaleDateString('en-ZA')}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -226,22 +276,24 @@ export default function AdminDashboard() {
           <div>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:'8px'}}>
               <h2 style={{fontSize:'18px',fontWeight:'500'}}>All Users</h2>
-              <div style={{display:'flex',gap:'8px'}}>
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
                 <span style={{fontSize:'13px',background:'#E1F5EE',color:'#085041',padding:'4px 12px',borderRadius:'99px'}}>{businessUsers.length} businesses</span>
                 <span style={{fontSize:'13px',background:'#E6F1FB',color:'#0C447C',padding:'4px 12px',borderRadius:'99px'}}>{funderUsers.length} funders</span>
+                <span style={{fontSize:'13px',background:'#FAEEDA',color:'#633806',padding:'4px 12px',borderRadius:'99px'}}>{pendingUsers.length} pending</span>
               </div>
             </div>
             {loadingUsers && <p style={{fontSize:'14px',color:'#888'}}>Loading users...</p>}
             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-              {users.map(user=>{
+              {users.filter(u=>u.user_metadata?.role!=='admin').map(user=>{
+                const currentStatus = userStatuses[user.id] || 'pending'
                 const role = user.user_metadata?.role
-                if (role === 'admin') return null
                 return (
                   <div key={user.id} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px'}}>
                       <div>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
-                          <span style={{fontSize:'15px',fontWeight:'500'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name+' '+user.user_metadata?.last_name || 'Unknown'}</span>
+                          <span style={{fontSize:'15px',fontWeight:'500'}}>{user.user_metadata?.business_name || (user.user_metadata?.first_name+' '+user.user_metadata?.last_name) || 'Unknown'}</span>
+                          <StatusBadge status={currentStatus}/>
                           <span style={{fontSize:'12px',color:'#666',background:'#f5f5f5',padding:'2px 8px',borderRadius:'99px'}}>
                             {role === 'funder' ? '💰 Funder' : '🏢 Business'}
                           </span>
@@ -264,6 +316,27 @@ export default function AdminDashboard() {
                           style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
                           View docs
                         </button>
+                        {currentStatus === 'pending' && (
+                          <>
+                            <button onClick={()=>handleApprove(user.id)}
+                              style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                              Approve ✓
+                            </button>
+                            <button onClick={()=>handleReject(user.id)}
+                              style={{fontSize:'12px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                              Reject ✗
+                            </button>
+                          </>
+                        )}
+                        {currentStatus === 'approved' && (
+                          <span style={{fontSize:'12px',color:'#085041',background:'#E1F5EE',padding:'6px 12px',borderRadius:'6px',fontWeight:'500'}}>✓ Approved</span>
+                        )}
+                        {currentStatus === 'rejected' && (
+                          <button onClick={()=>handleApprove(user.id)}
+                            style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                            Re-approve
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -310,40 +383,34 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                    <button
-                      onClick={async()=>{
-                        const supabase = await getSupabase()
-                        const { data: files } = await supabase.storage.from('verification-docs').list(po.user_id)
-                        if (!files || files.length === 0) { alert('No documents uploaded yet.'); return }
-                        const poDoc = files.find(f => f.name.startsWith('po-'+po.id))
-                        if (!poDoc) { alert('PO document not found.'); return }
-                        const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${po.user_id}/${poDoc.name}`, 3600)
-                        if (data?.signedUrl) window.open(data.signedUrl, '_blank')
-                      }}
-                      style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                    <button onClick={async()=>{
+                      const supabase = await getSupabase()
+                      const { data: files } = await supabase.storage.from('verification-docs').list(po.user_id)
+                      if (!files || files.length === 0) { alert('No documents uploaded yet.'); return }
+                      const poDoc = files.find((f:any) => f.name.startsWith('po-'+po.id))
+                      if (!poDoc) { alert('PO document not found.'); return }
+                      const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${po.user_id}/${poDoc.name}`, 3600)
+                      if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+                    }} style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
                       View PO doc
                     </button>
-                    <button
-                      onClick={async()=>{
-                        const supabase = await getSupabase()
-                        const { data: files } = await supabase.storage.from('verification-docs').list(po.user_id)
-                        if (!files || files.length === 0) { alert('No documents uploaded yet.'); return }
-                        const quoteDoc = files.find(f => f.name.startsWith('quotation-'+po.id))
-                        if (!quoteDoc) { alert('Quotation document not found.'); return }
-                        const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${po.user_id}/${quoteDoc.name}`, 3600)
-                        if (data?.signedUrl) window.open(data.signedUrl, '_blank')
-                      }}
-                      style={{fontSize:'12px',color:'#085041',background:'#E1F5EE',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                    <button onClick={async()=>{
+                      const supabase = await getSupabase()
+                      const { data: files } = await supabase.storage.from('verification-docs').list(po.user_id)
+                      if (!files || files.length === 0) { alert('No documents uploaded yet.'); return }
+                      const quoteDoc = files.find((f:any) => f.name.startsWith('quotation-'+po.id))
+                      if (!quoteDoc) { alert('Quotation document not found.'); return }
+                      const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${po.user_id}/${quoteDoc.name}`, 3600)
+                      if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+                    }} style={{fontSize:'12px',color:'#085041',background:'#E1F5EE',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
                       View quotation
                     </button>
                     {po.status === 'reviewing' && (
-                      <button
-                        onClick={async()=>{
-                          const supabase = await getSupabase()
-                          await supabase.from('purchase_orders').update({ status: 'active' }).eq('id', po.id)
-                          loadData()
-                        }}
-                        style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                      <button onClick={async()=>{
+                        const supabase = await getSupabase()
+                        await supabase.from('purchase_orders').update({ status: 'active' }).eq('id', po.id)
+                        loadData()
+                      }} style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
                         Approve PO ✓
                       </button>
                     )}
@@ -405,7 +472,6 @@ export default function AdminDashboard() {
                 <p style={{fontSize:'12px',color:'#633806',marginTop:'4px'}}>Pending offers</p>
               </div>
             </div>
-
             <h2 style={{fontSize:'18px',fontWeight:'500',marginBottom:'1rem'}}>Commission Breakdown</h2>
             {acceptedOffers.length === 0 && (
               <div style={{textAlign:'center',padding:'3rem',background:'#fff',borderRadius:'12px',border:'1px solid #e5e5e5'}}>
