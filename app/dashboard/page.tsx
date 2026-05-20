@@ -100,19 +100,67 @@ export default function DashboardPage() {
     finally { setLoadingPos(false) }
   }
 
-  async function handleAcceptOffer(poId: string, offerId: string) {
-    try {
-      const { createBrowserClient } = await import('@supabase/ssr')
-      const supabase = createBrowserClient(
-        'https://efzszombcfxyyobqehyp.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
-      )
-      await supabase.from('funding_offers').update({ status: 'accepted' }).eq('id', offerId)
-      await supabase.from('purchase_orders').update({ status: 'funded' }).eq('id', poId)
-      setAcceptedOffers(prev => ({...prev, [poId]: offerId}))
-      await loadData()
-    } catch(e) { console.log(e) }
-  }
+async function handleAcceptOffer(poId: string, offerId: string) {
+  try {
+    const { createBrowserClient } = await import('@supabase/ssr')
+    const supabase = createBrowserClient(
+      'https://efzszombcfxyyobqehyp.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
+    )
+
+    // Update offer and PO status
+    await supabase.from('funding_offers').update({ status: 'accepted' }).eq('id', offerId)
+    await supabase.from('purchase_orders').update({ status: 'funded' }).eq('id', poId)
+
+    // Get offer and PO details for email
+    const { data: offerData } = await supabase
+      .from('funding_offers')
+      .select('*')
+      .eq('id', offerId)
+      .single()
+
+    const { data: poData } = await supabase
+      .from('purchase_orders')
+      .select('*')
+      .eq('id', poId)
+      .single()
+
+    // Get funder email
+    if (offerData && poData) {
+      const { data: funderData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', offerData.funder_id)
+        .single()
+
+      const commission = (offerData.amount * 0.02).toLocaleString()
+
+      // Send email to funder
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'offer_accepted',
+            to: funderData?.email || 'vsiphoesihle@gmail.com',
+            data: {
+              funderName: funderData?.first_name || 'Funder',
+              poNumber: poData.po_number,
+              businessName: poData.client_name,
+              amount: `R ${offerData.amount.toLocaleString()}`,
+              rate: `${offerData.interest_rate}%`,
+              term: `${offerData.term_days} days`,
+              commission: `R ${commission}`,
+            }
+          })
+        })
+      } catch(e) { console.log('Email failed:', e) }
+    }
+
+    setAcceptedOffers(prev => ({...prev, [poId]: offerId}))
+    await loadData()
+  } catch(e) { console.log(e) }
+}
 
   if (!mounted) return null
 
