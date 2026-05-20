@@ -58,14 +58,14 @@ export default function RegisterPage() {
 
       if (currentPortalRole === 'funder' && userRole !== 'funder') {
         await supabase.auth.signOut()
-        setError('This portal is for funders only. Please use the business login instead.')
+        setError('This portal is for funders only. Please use the supplier login instead.')
         setLoading(false)
         return
       }
 
       if (currentPortalRole === 'business' && userRole === 'funder') {
         await supabase.auth.signOut()
-        setError('This portal is for businesses only. Please use the funder login instead.')
+        setError('This portal is for suppliers only. Please use the funder login instead.')
         setLoading(false)
         return
       }
@@ -136,10 +136,10 @@ export default function RegisterPage() {
   const labelStyle = {display:'block' as const,fontSize:'13px',color:'#666666',marginBottom:'5px'}
   const fieldStyle = {marginBottom:'1rem'}
 
-  function UploadBox({ label, file, onChange }: { label: string, file: File|null, onChange: (f: File|null) => void }) {
+  function UploadBox({ label, file, onChange, required }: { label: string, file: File|null, onChange: (f: File|null) => void, required?: boolean }) {
     return (
       <div style={fieldStyle}>
-        <label style={labelStyle}>{label}</label>
+        <label style={labelStyle}>{label} {required && <span style={{color:'#DC2626'}}>*</span>}</label>
         <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative'}}>
           {file ? (
             <div>
@@ -174,11 +174,11 @@ export default function RegisterPage() {
       <div style={{background:'#ffffff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'460px'}}>
 
         <div style={{display:'flex',border:'1px solid #e5e5e5',borderRadius:'8px',overflow:'hidden',marginBottom:'1.5rem'}}>
-          <button onClick={()=>{setTab('login');setStep(1)}}
+          <button onClick={()=>{setTab('login');setStep(1);setError('')}}
             style={{flex:1,padding:'9px',fontSize:'14px',fontWeight:'500',border:'none',cursor:'pointer',background:tab==='login'?'#0F6E56':'transparent',color:tab==='login'?'#ffffff':'#666666'}}>
             Sign in
           </button>
-          <button onClick={()=>{setTab('register');setStep(1)}}
+          <button onClick={()=>{setTab('register');setStep(1);setError('')}}
             style={{flex:1,padding:'9px',fontSize:'14px',fontWeight:'500',border:'none',cursor:'pointer',background:tab==='register'?'#0F6E56':'transparent',color:tab==='register'?'#ffffff':'#666666'}}>
             Create account
           </button>
@@ -190,10 +190,11 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {/* LOGIN */}
         {tab === 'login' && (
           <div>
             <p style={{fontSize:'13px',color:'#666',marginBottom:'1rem'}}>
-              {portalRole === 'funder' ? 'Sign in to your funder account' : 'Sign in to your business account'}
+              {portalRole === 'funder' ? 'Sign in to your funder account' : 'Sign in to your supplier account'}
             </p>
             <div style={fieldStyle}>
               <label style={labelStyle}>Email address</label>
@@ -218,7 +219,7 @@ export default function RegisterPage() {
             </p>
             <p style={{textAlign:'center',fontSize:'12px',color:'#888',marginTop:'.5rem'}}>
               {portalRole === 'funder' ? (
-                <>Wrong portal? <a href="/register" style={{color:'#0F6E56'}}>Go to business login</a></>
+                <>Wrong portal? <a href="/register" style={{color:'#0F6E56'}}>Go to supplier login</a></>
               ) : (
                 <>Are you a funder? <a href="/register?role=funder" style={{color:'#0F6E56'}}>Go to funder login</a></>
               )}
@@ -226,6 +227,7 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {/* REGISTER */}
         {tab === 'register' && (
           <div>
             {success ? (
@@ -233,7 +235,7 @@ export default function RegisterPage() {
                 <div style={{fontSize:'32px',marginBottom:'.5rem'}}>🎉</div>
                 <p style={{color:'#085041',fontSize:'15px',fontWeight:'500',marginBottom:'.5rem'}}>Account created successfully!</p>
                 <p style={{color:'#0F6E56',fontSize:'13px',marginBottom:'1rem'}}>Your documents are under review. You will be notified within 24-48 hours.</p>
-                <button onClick={()=>setTab('login')} style={{padding:'8px 20px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>
+                <button onClick={()=>{ setTab('login'); setSuccess(false) }} style={{padding:'8px 20px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>
                   Go to Sign in
                 </button>
               </div>
@@ -258,13 +260,14 @@ export default function RegisterPage() {
                   })}
                 </div>
 
+                {/* STEP 1 */}
                 {step === 1 && (
                   <div>
                     <p style={{fontSize:'13px',color:'#666666',marginBottom:'1rem'}}>I am registering as a:</p>
                     <div style={{display:'flex',gap:'8px',marginBottom:'1rem'}}>
                       <button onClick={()=>setRole('business')}
                         style={{flex:1,padding:'9px',border:role==='business'?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',background:role==='business'?'#E1F5EE':'transparent',color:role==='business'?'#085041':'#666666',fontWeight:'500'}}>
-                        Business / SME
+                        Supplier / SME
                       </button>
                       <button onClick={()=>setRole('funder')}
                         style={{flex:1,padding:'9px',border:role==='funder'?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',background:role==='funder'?'#E1F5EE':'transparent',color:role==='funder'?'#085041':'#666666',fontWeight:'500'}}>
@@ -273,63 +276,97 @@ export default function RegisterPage() {
                     </div>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
                       <div>
-                        <label style={labelStyle}>First name</label>
-                        <input type="text" placeholder="Sipho" value={firstName} onChange={e=>setFirstName(e.target.value)} style={inputStyle}/>
+                        <label style={labelStyle}>First name <span style={{color:'#DC2626'}}>*</span></label>
+                        <input type="text" placeholder="Sipho" value={firstName} onChange={e=>setFirstName(e.target.value)}
+                          style={{...inputStyle,borderColor:firstName?'#0F6E56':'#e5e5e5'}}/>
                       </div>
                       <div>
-                        <label style={labelStyle}>Last name</label>
-                        <input type="text" placeholder="Dlamini" value={lastName} onChange={e=>setLastName(e.target.value)} style={inputStyle}/>
+                        <label style={labelStyle}>Last name <span style={{color:'#DC2626'}}>*</span></label>
+                        <input type="text" placeholder="Dlamini" value={lastName} onChange={e=>setLastName(e.target.value)}
+                          style={{...inputStyle,borderColor:lastName?'#0F6E56':'#e5e5e5'}}/>
                       </div>
                     </div>
                     <div style={fieldStyle}>
-                      <label style={labelStyle}>{role==='business'?'Business name':'Institution name'}</label>
+                      <label style={labelStyle}>{role==='business'?'Business name':'Institution name'} <span style={{color:'#DC2626'}}>*</span></label>
                       <input type="text" placeholder={role==='business'?'Dlamini Suppliers (Pty) Ltd':'Nkosi Capital (Pty) Ltd'}
-                        value={businessName} onChange={e=>setBusinessName(e.target.value)} style={inputStyle}/>
+                        value={businessName} onChange={e=>setBusinessName(e.target.value)}
+                        style={{...inputStyle,borderColor:businessName?'#0F6E56':'#e5e5e5'}}/>
                     </div>
                     <div style={fieldStyle}>
-                      <label style={labelStyle}>Email address</label>
-                      <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)} style={inputStyle}/>
+                      <label style={labelStyle}>Email address <span style={{color:'#DC2626'}}>*</span></label>
+                      <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)}
+                        style={{...inputStyle,borderColor:email?'#0F6E56':'#e5e5e5'}}/>
                     </div>
                     <div style={fieldStyle}>
-                      <label style={labelStyle}>Phone number</label>
-                      <input type="tel" placeholder="+27 82 000 0000" value={phone} onChange={e=>setPhone(e.target.value)} style={inputStyle}/>
+                      <label style={labelStyle}>Phone number <span style={{color:'#DC2626'}}>*</span></label>
+                      <input type="tel" placeholder="+27 82 000 0000" value={phone} onChange={e=>setPhone(e.target.value)}
+                        style={{...inputStyle,borderColor:phone?'#0F6E56':'#e5e5e5'}}/>
                     </div>
                     <div style={fieldStyle}>
-                      <label style={labelStyle}>{role==='business'?'Company registration number':'FSCA registration number'}</label>
+                      <label style={labelStyle}>{role==='business'?'Company registration number':'FSCA registration number'} <span style={{color:'#DC2626'}}>*</span></label>
                       <input type="text" placeholder={role==='business'?'2021/123456/07':'FSP 12345'}
-                        value={companyReg} onChange={e=>setCompanyReg(e.target.value)} style={inputStyle}/>
+                        value={companyReg} onChange={e=>setCompanyReg(e.target.value)}
+                        style={{...inputStyle,borderColor:companyReg?'#0F6E56':'#e5e5e5'}}/>
                     </div>
                     <div style={fieldStyle}>
-                      <label style={labelStyle}>Password</label>
-                      <input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)} style={inputStyle}/>
+                      <label style={labelStyle}>Password <span style={{color:'#DC2626'}}>*</span></label>
+                      <input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}
+                        style={{...inputStyle,borderColor:password.length>=8?'#0F6E56':'#e5e5e5'}}/>
+                      {password.length > 0 && password.length < 8 && (
+                        <p style={{fontSize:'12px',color:'#DC2626',marginTop:'4px'}}>Password must be at least 8 characters</p>
+                      )}
                     </div>
-                    <button onClick={()=>setStep(2)}
-                      style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
+
+                    <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
+                      <span style={{color:'#DC2626'}}>*</span> All fields are required
+                    </div>
+
+                    <button onClick={()=>{
+                      if (!firstName || !lastName || !businessName || !email || !phone || !companyReg || !password) {
+                        setError('Please fill in all required fields before continuing.')
+                        return
+                      }
+                      if (password.length < 8) {
+                        setError('Password must be at least 8 characters.')
+                        return
+                      }
+                      if (!email.includes('@')) {
+                        setError('Please enter a valid email address.')
+                        return
+                      }
+                      setError('')
+                      setStep(2)
+                    }} style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
                       Continue to verification →
                     </button>
                   </div>
                 )}
 
+                {/* STEP 2 */}
                 {step === 2 && (
                   <div>
                     <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
                       <p style={{fontSize:'13px',color:'#085041',fontWeight:'500',marginBottom:'3px'}}>🔒 Your documents are secure</p>
-                      <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and stored securely.</p>
+                      <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and stored securely. Only verified parties can access them.</p>
+                    </div>
+
+                    <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
+                      <span style={{color:'#DC2626'}}>*</span> All documents are required before submitting
                     </div>
 
                     {role === 'business' ? (
                       <div>
-                        <UploadBox label="Company Registration Certificate" file={companyDoc} onChange={setCompanyDoc}/>
-                        <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc}/>
-                        <UploadBox label="CSD Full Registration Report" file={csdDoc} onChange={setCsdDoc}/>
-                        <UploadBox label="Tax Clearance Certificate" file={taxDoc} onChange={setTaxDoc}/>
-                        <UploadBox label="BBB-EE Certificate or Sworn Affidavit" file={bbbeeDoc} onChange={setBbbeeDoc}/>
+                        <UploadBox label="Company Registration Certificate" file={companyDoc} onChange={setCompanyDoc} required/>
+                        <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc} required/>
+                        <UploadBox label="CSD Full Registration Report" file={csdDoc} onChange={setCsdDoc} required/>
+                        <UploadBox label="Tax Clearance Certificate" file={taxDoc} onChange={setTaxDoc} required/>
+                        <UploadBox label="BBB-EE Certificate or Sworn Affidavit" file={bbbeeDoc} onChange={setBbbeeDoc} required/>
                       </div>
                     ) : (
                       <div>
-                        <UploadBox label="FSCA License" file={fscaDoc} onChange={setFscaDoc}/>
-                        <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc}/>
-                        <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds}/>
+                        <UploadBox label="FSCA License" file={fscaDoc} onChange={setFscaDoc} required/>
+                        <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc} required/>
+                        <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds} required/>
                       </div>
                     )}
 
@@ -341,15 +378,29 @@ export default function RegisterPage() {
 
                     <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
                       <p style={{fontSize:'13px',color:'#633806',fontWeight:'500',marginBottom:'3px'}}>⏱ Review process</p>
-                      <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours.</p>
+                      <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
                     </div>
 
                     <div style={{display:'flex',gap:'12px'}}>
-                      <button onClick={()=>setStep(1)}
+                      <button onClick={()=>{ setError(''); setStep(1) }}
                         style={{flex:1,padding:'11px',background:'transparent',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>
                         ← Back
                       </button>
-                      <button onClick={handleRegister} disabled={loading}
+                      <button onClick={()=>{
+                        if (role === 'business') {
+                          if (!companyDoc || !idDoc || !csdDoc || !taxDoc || !bbbeeDoc) {
+                            setError('Please upload all 5 required documents before submitting.')
+                            return
+                          }
+                        } else {
+                          if (!fscaDoc || !idDoc || !proofFunds) {
+                            setError('Please upload all 3 required documents before submitting.')
+                            return
+                          }
+                        }
+                        setError('')
+                        handleRegister()
+                      }} disabled={loading}
                         style={{flex:2,padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
                         {loading ? 'Creating account...' : 'Submit & Create account'}
                       </button>
