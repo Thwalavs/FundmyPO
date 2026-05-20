@@ -1,60 +1,35 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const applications = [
-  {
-    id:'APP-2025-001',
-    poNumber:'PO-2025-001',
-    client:'Eskom Holdings SOC Ltd',
-    department:'Supply Chain',
-    value:'R 500,000',
-    funding:'R 400,000',
-    sector:'Construction',
-    status:'offers',
-    offers:3,
-    date:'2 May 2025',
-    offersList: [
-      { id:1, funder:'Nkosi Capital', amount:'R 400,000', rate:'3.5%', term:'60 days', fee:'R 14,000', total:'R 414,000', status:'pending' },
-      { id:2, funder:'Apex Finance', amount:'R 380,000', rate:'4.1%', term:'45 days', fee:'R 15,580', total:'R 395,580', status:'pending' },
-      { id:3, funder:'SA Growth Fund', amount:'R 400,000', rate:'3.8%', term:'90 days', fee:'R 15,200', total:'R 415,200', status:'pending' },
-    ]
-  },
-  {
-    id:'APP-2025-002',
-    poNumber:'PO-2025-002',
-    client:'Transnet Freight Rail',
-    department:'Procurement',
-    value:'R 280,000',
-    funding:'R 250,000',
-    sector:'Transport',
-    status:'reviewing',
-    offers:0,
-    date:'5 May 2025',
-    offersList: []
-  },
-  {
-    id:'APP-2025-003',
-    poNumber:'PO-2025-003',
-    client:'City of Johannesburg',
-    department:'Infrastructure',
-    value:'R 750,000',
-    funding:'R 600,000',
-    sector:'Government',
-    status:'funded',
-    offers:5,
-    date:'1 Apr 2025',
-    offersList: []
-  },
-]
+type PO = {
+  id: string
+  po_number: string
+  client_name: string
+  client_department: string
+  po_value: number
+  funding_needed: number
+  sector: string
+  status: string
+  created_at: string
+}
+
+type Offer = {
+  id: string
+  po_id: string
+  amount: number
+  interest_rate: number
+  term_days: number
+  status: string
+  created_at: string
+}
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, { bg: string; color: string; label: string }> = {
-    offers:    { bg:'#E1F5EE', color:'#085041', label:'Offers received' },
     reviewing: { bg:'#FAEEDA', color:'#633806', label:'Under review' },
+    active:    { bg:'#E1F5EE', color:'#085041', label:'Active' },
     funded:    { bg:'#E6F1FB', color:'#0C447C', label:'Funded' },
-    pending:   { bg:'#f5f5f5', color:'#666', label:'Pending' },
     accepted:  { bg:'#E1F5EE', color:'#085041', label:'Accepted ✓' },
-    declined:  { bg:'#FEE2E2', color:'#DC2626', label:'Declined' },
+    pending:   { bg:'#f5f5f5', color:'#666', label:'Pending' },
   }
   const s = styles[status] || styles.pending
   return (
@@ -76,17 +51,74 @@ async function handleSignOut() {
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'home'|'status'|'profile'>('home')
+  const [pos, setPos] = useState<PO[]>([])
+  const [offers, setOffers] = useState<Record<string, Offer[]>>({})
+  const [loadingPos, setLoadingPos] = useState(true)
   const [viewingOffers, setViewingOffers] = useState<string|null>(null)
-  const [acceptedOffer, setAcceptedOffer] = useState<Record<string,number>>({})
+  const [acceptedOffers, setAcceptedOffers] = useState<Record<string,string>>({})
   const [mounted, setMounted] = useState(false)
+  const [userName, setUserName] = useState('')
 
-  useEffect(()=>{ setMounted(true) },[])
+  useEffect(()=>{
+    setMounted(true)
+    loadData()
+  },[])
 
-  function handleAcceptOffer(appId: string, offerId: number) {
-    setAcceptedOffer(prev => ({...prev, [appId]: offerId}))
+  async function loadData() {
+    try {
+      const { createBrowserClient } = await import('@supabase/ssr')
+      const supabase = createBrowserClient(
+        'https://efzszombcfxyyobqehyp.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
+      )
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { window.location.href = '/register'; return }
+
+      setUserName(user.user_metadata?.first_name || user.user_metadata?.business_name || user.email || '')
+
+      const { data: poData } = await supabase
+        .from('purchase_orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      setPos(poData || [])
+
+      if (poData && poData.length > 0) {
+        const offersMap: Record<string, Offer[]> = {}
+        for (const po of poData) {
+          const { data: offerData } = await supabase
+            .from('funding_offers')
+            .select('*')
+            .eq('po_id', po.id)
+            .order('interest_rate', { ascending: true })
+          offersMap[po.id] = offerData || []
+        }
+        setOffers(offersMap)
+      }
+    } catch(e) { console.log(e) }
+    finally { setLoadingPos(false) }
+  }
+
+  async function handleAcceptOffer(poId: string, offerId: string) {
+    try {
+      const { createBrowserClient } = await import('@supabase/ssr')
+      const supabase = createBrowserClient(
+        'https://efzszombcfxyyobqehyp.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
+      )
+      await supabase.from('funding_offers').update({ status: 'accepted' }).eq('id', offerId)
+      await supabase.from('purchase_orders').update({ status: 'funded' }).eq('id', poId)
+      setAcceptedOffers(prev => ({...prev, [poId]: offerId}))
+      await loadData()
+    } catch(e) { console.log(e) }
   }
 
   if (!mounted) return null
+
+  const totalFunding = pos.reduce((sum, po) => sum + po.funding_needed, 0)
+  const totalOffers = Object.values(offers).reduce((sum, arr) => sum + arr.length, 0)
+  const fundedPos = pos.filter(p => p.status === 'funded').length
 
   return (
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
@@ -96,13 +128,12 @@ export default function DashboardPage() {
           Fund<span style={{color:'#0F6E56'}}>MyPO</span>
         </a>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
-          <button
-            onClick={handleSignOut}
+          <button onClick={handleSignOut}
             style={{fontSize:'13px',color:'#666',background:'transparent',border:'1px solid #e5e5e5',padding:'8px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
             Sign out
           </button>
           <div style={{width:'36px',height:'36px',borderRadius:'50%',background:'#E1F5EE',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:'500',color:'#085041'}}>
-            VS
+            {userName.slice(0,2).toUpperCase() || 'VS'}
           </div>
         </div>
       </nav>
@@ -110,10 +141,11 @@ export default function DashboardPage() {
       <div style={{maxWidth:'900px',margin:'0 auto',padding:'2rem'}}>
 
         <div style={{marginBottom:'2rem'}}>
-          <h1 style={{fontSize:'24px',fontWeight:'500',marginBottom:'.25rem'}}>Welcome back! 👋</h1>
+          <h1 style={{fontSize:'24px',fontWeight:'500',marginBottom:'.25rem'}}>Welcome back{userName ? ', '+userName : ''}! 👋</h1>
           <p style={{fontSize:'14px',color:'#666'}}>What would you like to do today?</p>
         </div>
 
+        {/* HOME TAB */}
         {activeTab === 'home' && (
           <div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'2rem'}}>
@@ -144,30 +176,40 @@ export default function DashboardPage() {
 
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:'12px',marginBottom:'2rem'}}>
               {[
-                { label:'Active applications', value:'2', color:'#0F6E56' },
-                { label:'Offers received', value:'3', color:'#633806' },
-                { label:'Total funded', value:'R 600K', color:'#0C447C' },
-                { label:'Avg. turnaround', value:'36h', color:'#085041' },
+                { label:'My applications', value:pos.length.toString(), color:'#0F6E56' },
+                { label:'Offers received', value:totalOffers.toString(), color:'#633806' },
+                { label:'Funded POs', value:fundedPos.toString(), color:'#0C447C' },
+                { label:'Total funding sought', value:`R ${totalFunding.toLocaleString()}`, color:'#085041' },
               ].map(({label,value,color})=>(
                 <div key={label} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
-                  <div style={{fontSize:'24px',fontWeight:'500',color}}>{value}</div>
+                  <div style={{fontSize:'22px',fontWeight:'500',color}}>{value}</div>
                   <div style={{fontSize:'12px',color:'#888',marginTop:'4px'}}>{label}</div>
                 </div>
               ))}
             </div>
 
             <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
-              <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>Recent activity</h2>
-              {[
-                { text:'New funding offer received for PO-2025-001', time:'2 hours ago', color:'#0F6E56' },
-                { text:'PO-2025-002 is under review by our team', time:'1 day ago', color:'#633806' },
-                { text:'PO-2025-003 has been successfully funded', time:'2 weeks ago', color:'#0C447C' },
-              ].map((item,i)=>(
-                <div key={i} style={{display:'flex',gap:'12px',padding:'10px 0',borderBottom:i<2?'1px solid #f0f0f0':'none',alignItems:'flex-start'}}>
-                  <div style={{width:'8px',height:'8px',borderRadius:'50%',background:item.color,marginTop:'5px',flexShrink:0}}></div>
+              <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>Recent applications</h2>
+              {loadingPos && <p style={{fontSize:'14px',color:'#888'}}>Loading...</p>}
+              {!loadingPos && pos.length === 0 && (
+                <div style={{textAlign:'center',padding:'1.5rem'}}>
+                  <p style={{fontSize:'14px',color:'#888',marginBottom:'1rem'}}>No applications yet</p>
+                  <a href="/upload" style={{background:'#0F6E56',color:'#fff',padding:'10px 20px',borderRadius:'8px',fontSize:'13px',textDecoration:'none',fontWeight:'500'}}>
+                    Apply for funding →
+                  </a>
+                </div>
+              )}
+              {pos.slice(0,3).map((po,i)=>(
+                <div key={po.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:i<2?'1px solid #f0f0f0':'none',flexWrap:'wrap',gap:'8px'}}>
                   <div>
-                    <p style={{fontSize:'14px',color:'#1a1a1a'}}>{item.text}</p>
-                    <p style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>{item.time}</p>
+                    <p style={{fontSize:'14px',fontWeight:'500'}}>{po.po_number || 'PO-'+po.id.slice(0,8)}</p>
+                    <p style={{fontSize:'12px',color:'#666'}}>{po.client_name} — {po.sector}</p>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                    <StatusBadge status={po.status}/>
+                    {(offers[po.id]||[]).length > 0 && (
+                      <span style={{fontSize:'12px',color:'#0F6E56',fontWeight:'500'}}>💰 {(offers[po.id]||[]).length} offer{(offers[po.id]||[]).length>1?'s':''}</span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -175,9 +217,10 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* STATUS TAB */}
         {activeTab === 'status' && (
           <div>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem',flexWrap:'wrap',gap:'8px'}}>
               <div>
                 <h2 style={{fontSize:'18px',fontWeight:'500',marginBottom:'.25rem'}}>My Funding Applications</h2>
                 <p style={{fontSize:'13px',color:'#666'}}>View offers and accept the best funding deal</p>
@@ -193,126 +236,148 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {loadingPos && <p style={{fontSize:'14px',color:'#888'}}>Loading your applications...</p>}
+
+            {!loadingPos && pos.length === 0 && (
+              <div style={{textAlign:'center',padding:'3rem',background:'#fff',borderRadius:'12px',border:'1px solid #e5e5e5'}}>
+                <p style={{fontSize:'16px',color:'#666',marginBottom:'.5rem'}}>No applications yet</p>
+                <p style={{fontSize:'13px',color:'#888',marginBottom:'1.5rem'}}>Submit your first PO to start receiving funding offers.</p>
+                <a href="/upload" style={{background:'#0F6E56',color:'#fff',padding:'12px 24px',borderRadius:'8px',fontSize:'14px',textDecoration:'none',fontWeight:'500'}}>
+                  Apply for funding →
+                </a>
+              </div>
+            )}
+
             <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-              {applications.map(app=>(
-                <div key={app.id}>
-                  <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
+              {pos.map(po=>{
+                const poOffers = offers[po.id] || []
+                const acceptedOffer = poOffers.find(o => o.status === 'accepted' || acceptedOffers[po.id] === o.id)
+                return (
+                  <div key={po.id} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
                       <div>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
-                          <span style={{fontSize:'15px',fontWeight:'500'}}>{app.poNumber}</span>
-                          <StatusBadge status={app.status}/>
-                          {acceptedOffer[app.id] && <span style={{background:'#E1F5EE',color:'#085041',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>Deal accepted ✓</span>}
+                          <span style={{fontSize:'15px',fontWeight:'500'}}>{po.po_number || 'PO-'+po.id.slice(0,8)}</span>
+                          <StatusBadge status={po.status}/>
                         </div>
-                        <p style={{fontSize:'13px',color:'#666'}}>{app.client}</p>
-                        <p style={{fontSize:'12px',color:'#888'}}>Dept: {app.department}</p>
+                        <p style={{fontSize:'13px',color:'#666'}}>{po.client_name}</p>
+                        <p style={{fontSize:'12px',color:'#888'}}>Dept: {po.client_department} • {po.sector}</p>
+                        <p style={{fontSize:'12px',color:'#888'}}>📅 {new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
                       </div>
                       <div style={{textAlign:'right'}}>
-                        <p style={{fontSize:'15px',fontWeight:'500',color:'#0F6E56'}}>{app.value}</p>
-                        <p style={{fontSize:'12px',color:'#888'}}>Funding: {app.funding}</p>
+                        <p style={{fontSize:'15px',fontWeight:'500',color:'#0F6E56'}}>R {po.po_value.toLocaleString()}</p>
+                        <p style={{fontSize:'12px',color:'#888'}}>Funding: R {po.funding_needed.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    {/* PROGRESS BAR */}
+                    <div style={{marginBottom:'.75rem'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
+                        {['Submitted','Under review','Offers received','Funded'].map((step,i)=>{
+                          const statusIndex = ['reviewing','reviewing','active','funded'].indexOf(po.status)
+                          const done = i <= statusIndex || po.status === 'funded'
+                          const current = (po.status === 'reviewing' && i === 1) || (po.status === 'active' && i === 2) || (po.status === 'funded' && i === 3)
+                          return (
+                            <div key={step} style={{display:'flex',flexDirection:'column',alignItems:'center',flex:1}}>
+                              <div style={{width:'20px',height:'20px',borderRadius:'50%',background:done||current?'#0F6E56':'#e5e5e5',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px',marginBottom:'4px'}}>
+                                {done ? '✓' : i+1}
+                              </div>
+                              <span style={{fontSize:'9px',color:current?'#0F6E56':'#888',textAlign:'center',whiteSpace:'nowrap'}}>{step}</span>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
 
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
-                      <div style={{display:'flex',gap:'12px',flexWrap:'wrap'}}>
-                        <span style={{fontSize:'12px',color:'#888'}}>📁 {app.sector}</span>
-                        <span style={{fontSize:'12px',color:'#888'}}>📅 {app.date}</span>
-                        {app.offers > 0 && <span style={{fontSize:'12px',color:'#0F6E56',fontWeight:'500'}}>💰 {app.offers} offer{app.offers>1?'s':''}</span>}
-                      </div>
-                      <div style={{display:'flex',gap:'8px'}}>
-                        {app.offers > 0 && (
-                          <button
-                            onClick={()=>setViewingOffers(viewingOffers===app.id?null:app.id)}
-                            style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                            {viewingOffers===app.id ? 'Hide offers' : `💰 View ${app.offers} offers`}
-                          </button>
-                        )}
-                        {app.status === 'reviewing' && (
-                          <span style={{fontSize:'12px',color:'#633806',background:'#FAEEDA',padding:'6px 14px',borderRadius:'8px'}}>
-                            ⏳ Being reviewed
-                          </span>
-                        )}
-                        {app.status === 'funded' && (
-                          <span style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',padding:'6px 14px',borderRadius:'8px'}}>
-                            ✅ Successfully funded
-                          </span>
+                      <div>
+                        {poOffers.length > 0 && (
+                          <span style={{fontSize:'12px',color:'#0F6E56',fontWeight:'500'}}>💰 {poOffers.length} offer{poOffers.length>1?'s':''} received</span>
                         )}
                       </div>
+                      {poOffers.length > 0 && !acceptedOffer && (
+                        <button
+                          onClick={()=>setViewingOffers(viewingOffers===po.id?null:po.id)}
+                          style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                          {viewingOffers===po.id ? 'Hide offers' : `💰 View ${poOffers.length} offers`}
+                        </button>
+                      )}
+                      {po.status === 'reviewing' && poOffers.length === 0 && (
+                        <span style={{fontSize:'12px',color:'#633806',background:'#FAEEDA',padding:'6px 14px',borderRadius:'8px'}}>
+                          ⏳ Being reviewed by funders
+                        </span>
+                      )}
+                      {po.status === 'funded' && (
+                        <span style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',padding:'6px 14px',borderRadius:'8px'}}>
+                          ✅ Successfully funded
+                        </span>
+                      )}
                     </div>
 
-                    {viewingOffers === app.id && app.offersList.length > 0 && (
-                      <div style={{marginTop:'1.25rem'}}>
-                        <p style={{fontSize:'14px',fontWeight:'500',marginBottom:'1rem',color:'#1a1a1a'}}>
-                          Compare funding offers for {app.poNumber}
+                    {/* ACCEPTED OFFER SUMMARY */}
+                    {acceptedOffer && (
+                      <div style={{marginTop:'1rem',background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'12px',padding:'1.25rem',textAlign:'center'}}>
+                        <div style={{fontSize:'32px',marginBottom:'.5rem'}}>🎉</div>
+                        <p style={{fontSize:'16px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>Offer accepted!</p>
+                        <p style={{fontSize:'13px',color:'#0F6E56'}}>
+                          Funding of R {acceptedOffer.amount.toLocaleString()} at {acceptedOffer.interest_rate}% for {acceptedOffer.term_days} days will be processed within 24 hours.
                         </p>
-                        {acceptedOffer[app.id] ? (
-                          <div style={{background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'12px',padding:'1.5rem',textAlign:'center'}}>
-                            <div style={{fontSize:'32px',marginBottom:'.5rem'}}>🎉</div>
-                            <p style={{fontSize:'16px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>Offer accepted successfully!</p>
-                            <p style={{fontSize:'14px',color:'#0F6E56',marginBottom:'.25rem'}}>
-                              You accepted the offer from <strong>{app.offersList.find(o=>o.id===acceptedOffer[app.id])?.funder}</strong>
-                            </p>
-                            <p style={{fontSize:'13px',color:'#0F6E56'}}>
-                              Funding of {app.offersList.find(o=>o.id===acceptedOffer[app.id])?.amount} at {app.offersList.find(o=>o.id===acceptedOffer[app.id])?.rate} will be processed within 24 hours.
-                            </p>
-                          </div>
-                        ) : (
-                          <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-                            {app.offersList.map((offer,i)=>(
-                              <div key={offer.id} style={{background:'#f9f9f9',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
-                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
-                                  <div>
-                                    <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
-                                      <span style={{fontSize:'15px',fontWeight:'500'}}>{offer.funder}</span>
-                                      {i===0 && <span style={{background:'#E1F5EE',color:'#085041',fontSize:'11px',padding:'2px 8px',borderRadius:'99px',fontWeight:'500'}}>⭐ Best rate</span>}
-                                    </div>
-                                  </div>
-                                  <div style={{textAlign:'right'}}>
-                                    <p style={{fontSize:'20px',fontWeight:'500',color:'#0F6E56'}}>{offer.rate}</p>
-                                    <p style={{fontSize:'12px',color:'#888'}}>interest rate</p>
+                      </div>
+                    )}
+
+                    {/* OFFERS LIST */}
+                    {viewingOffers === po.id && poOffers.length > 0 && !acceptedOffer && (
+                      <div style={{marginTop:'1.25rem'}}>
+                        <p style={{fontSize:'14px',fontWeight:'500',marginBottom:'1rem'}}>Compare funding offers</p>
+                        <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+                          {poOffers.map((offer,i)=>(
+                            <div key={offer.id} style={{background:'#f9f9f9',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
+                              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
+                                <div>
+                                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
+                                    <span style={{fontSize:'15px',fontWeight:'500'}}>Offer {i+1}</span>
+                                    {i===0 && <span style={{background:'#E1F5EE',color:'#085041',fontSize:'11px',padding:'2px 8px',borderRadius:'99px',fontWeight:'500'}}>⭐ Best rate</span>}
                                   </div>
                                 </div>
-                                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'8px',background:'#fff',borderRadius:'8px',padding:'12px',marginBottom:'1rem'}}>
-                                  {[['Amount',offer.amount],['Term',offer.term],['Fee',offer.fee],['Total repay',offer.total]].map(([l,v])=>(
-                                    <div key={l} style={{textAlign:'center'}}>
-                                      <p style={{fontSize:'13px',fontWeight:'500',color:'#1a1a1a'}}>{v}</p>
-                                      <p style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{l}</p>
-                                    </div>
-                                  ))}
+                                <div style={{textAlign:'right'}}>
+                                  <p style={{fontSize:'20px',fontWeight:'500',color:'#0F6E56'}}>{offer.interest_rate}%</p>
+                                  <p style={{fontSize:'12px',color:'#888'}}>interest rate</p>
                                 </div>
-                                <button
-                                  onClick={()=>handleAcceptOffer(app.id, offer.id)}
-                                  style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
-                                  Accept this offer ✓
-                                </button>
                               </div>
-                            ))}
-                          </div>
-                        )}
+                              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',background:'#fff',borderRadius:'8px',padding:'12px',marginBottom:'1rem'}}>
+                                {[
+                                  ['Amount', `R ${offer.amount.toLocaleString()}`],
+                                  ['Term', `${offer.term_days} days`],
+                                  ['Fee', `R ${(offer.amount * offer.interest_rate / 100).toLocaleString()}`],
+                                ].map(([l,v])=>(
+                                  <div key={l} style={{textAlign:'center'}}>
+                                    <p style={{fontSize:'13px',fontWeight:'500',color:'#1a1a1a'}}>{v}</p>
+                                    <p style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{l}</p>
+                                  </div>
+                                ))}
+                              </div>
+                              <button
+                                onClick={()=>handleAcceptOffer(po.id, offer.id)}
+                                style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
+                                Accept this offer ✓
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
 
+        {/* PROFILE TAB */}
         {activeTab === 'profile' && (
           <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1.5rem'}}>Business Profile</h2>
-            {[
-              ['Business name','VAA GROUP'],
-              ['Email','vsiphoesihle@gmail.com'],
-              ['Phone','+27 65 822 6174'],
-              ['Company reg.','2018/624926'],
-              ['Account status','Verified ✓'],
-            ].map(([label,value])=>(
-              <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid #f0f0f0',fontSize:'14px'}}>
-                <span style={{color:'#888'}}>{label}</span>
-                <span style={{fontWeight:'500',color:label==='Account status'?'#0F6E56':'#1a1a1a'}}>{value}</span>
-              </div>
-            ))}
+            <p style={{fontSize:'14px',color:'#666'}}>Profile details coming soon.</p>
           </div>
         )}
 
