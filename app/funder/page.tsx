@@ -29,11 +29,6 @@ function RiskBadge({ value }: { value: number }) {
   return <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>{risk} risk</span>
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const s = status === 'accepted' ? { bg:'#E1F5EE', color:'#085041', label:'Accepted' } : { bg:'#FAEEDA', color:'#633806', label:'Pending' }
-  return <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>{s.label}</span>
-}
-
 async function handleSignOut() {
   const { createBrowserClient } = await import('@supabase/ssr')
   const supabase = createBrowserClient(
@@ -44,6 +39,19 @@ async function handleSignOut() {
   window.location.href = '/'
 }
 
+async function downloadDoc(userId: string, docPath: string) {
+  const { createBrowserClient } = await import('@supabase/ssr')
+  const supabase = createBrowserClient(
+    'https://efzszombcfxyyobqehyp.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
+  )
+  for (const ext of ['pdf','jpg','jpeg','png']) {
+    const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${userId}/${docPath}.${ext}`, 3600)
+    if (data?.signedUrl) { window.open(data.signedUrl, '_blank'); return }
+  }
+  alert('Document not found. The business may not have uploaded this document yet.')
+}
+
 export default function FunderDashboard() {
   const [activeTab, setActiveTab] = useState<'marketplace'|'offers'|'profile'>('marketplace')
   const [marketplace, setMarketplace] = useState<PO[]>([])
@@ -51,7 +59,6 @@ export default function FunderDashboard() {
   const [submittedOffers, setSubmittedOffers] = useState<string[]>([])
   const [selectedPO, setSelectedPO] = useState<string|null>(null)
   const [previewPO, setPreviewPO] = useState<string|null>(null)
-  const [viewingDocs, setViewingDocs] = useState<string|null>(null)
   const [viewingPODocs, setViewingPODocs] = useState<string|null>(null)
   const [rates, setRates] = useState<Record<string,string>>({})
   const [terms, setTerms] = useState<Record<string,string>>({})
@@ -168,11 +175,12 @@ export default function FunderDashboard() {
           ))}
         </div>
 
+        {/* MARKETPLACE */}
         {activeTab === 'marketplace' && (
           <div>
             <div style={{marginBottom:'1rem'}}>
               <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'.25rem'}}>Available Purchase Orders</h2>
-              <p style={{fontSize:'13px',color:'#666'}}>Click "Preview" to see basic details. Submit an offer to unlock full documents and contact details.</p>
+              <p style={{fontSize:'13px',color:'#666'}}>Preview a PO then submit an offer to unlock all documents and contact details.</p>
             </div>
 
             {loadingPOs && (
@@ -201,6 +209,7 @@ export default function FunderDashboard() {
                 return (
                   <div key={po.id} style={{background:'#fff',border:selectedPO===po.id?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
 
+                    {/* HEADER */}
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
                       <div>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
@@ -220,6 +229,7 @@ export default function FunderDashboard() {
                       </div>
                     </div>
 
+                    {/* ACTION BUTTONS */}
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
                       <span style={{fontSize:'12px',color:'#888'}}>📅 {new Date(po.created_at).toLocaleDateString('en-ZA')}</span>
                       <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
@@ -228,12 +238,10 @@ export default function FunderDashboard() {
                           {previewPO===po.id ? 'Hide preview' : '👁 Preview'}
                         </button>
                         {submittedOffers.includes(po.id) && (
-                          <>
-                            <button onClick={()=>setViewingPODocs(viewingPODocs===po.id?null:po.id)}
-                              style={{fontSize:'13px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                              {viewingPODocs===po.id ? 'Hide docs' : '📋 PO & Quotation'}
-                            </button>
-                          </>
+                          <button onClick={()=>setViewingPODocs(viewingPODocs===po.id?null:po.id)}
+                            style={{fontSize:'13px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                            {viewingPODocs===po.id ? 'Hide docs' : '📋 View all documents'}
+                          </button>
                         )}
                         {!submittedOffers.includes(po.id) && (
                           <button onClick={()=>setSelectedPO(selectedPO===po.id?null:po.id)}
@@ -342,7 +350,7 @@ export default function FunderDashboard() {
                         </div>
 
                         <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#633806'}}>
-                          🔒 Submitting this offer will unlock the full PO document, supplier quotation and all contact details.
+                          🔒 Submitting this offer will unlock the full PO document, supplier quotation, business verification documents and all contact details.
                         </div>
 
                         <button onClick={()=>handleSubmitOffer(po.id)}
@@ -352,12 +360,14 @@ export default function FunderDashboard() {
                       </div>
                     )}
 
-                    {/* FULL PO DOCUMENTS — after offer */}
+                    {/* ALL DOCUMENTS — after offer */}
                     {viewingPODocs === po.id && (
                       <div style={{marginTop:'1rem',padding:'1.25rem',background:'#EEF4FB',borderRadius:'10px',border:'1px solid #B8D4F0'}}>
                         <p style={{fontSize:'13px',fontWeight:'500',color:'#0C447C',marginBottom:'1rem'}}>
-                          📋 Full PO Documents & Contact Details
+                          📋 Full Documents & Contact Details
                         </p>
+
+                        {/* CLIENT CONTACT */}
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>👤 Client Contact Details</p>
                           {[
@@ -373,6 +383,8 @@ export default function FunderDashboard() {
                             </div>
                           ))}
                         </div>
+
+                        {/* SUPPLIER CONTACT */}
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>🏭 Supplier Contact Details</p>
                           {[
@@ -388,6 +400,8 @@ export default function FunderDashboard() {
                             </div>
                           ))}
                         </div>
+
+                        {/* PROFIT MARGIN */}
                         <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>📊 Profit Margin Analysis</p>
                           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',textAlign:'center'}}>
@@ -397,42 +411,52 @@ export default function FunderDashboard() {
                           </div>
                           <p style={{marginTop:'.75rem',textAlign:'center',fontSize:'13px',color:'#085041',fontWeight:'500'}}>Estimated profit: R {profit.toLocaleString()} ✅</p>
                         </div>
-<div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
-  <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Download Documents</p>
-  {[
-    { name:'Purchase Order Document', path:`${po.user_id}/po-${po.id}` },
-    { name:'Supplier Quotation', path:`${po.user_id}/quotation-${po.id}` },
-  ].map(doc=>(
-    <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
-      <div>
-        <p style={{fontSize:'13px',fontWeight:'500'}}>📄 {doc.name}</p>
-      </div>
-      <button
-        onClick={async()=>{
-          const { createBrowserClient } = await import('@supabase/ssr')
-          const supabase = createBrowserClient(
-            'https://efzszombcfxyyobqehyp.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
-          )
-          const extensions = ['pdf', 'jpg', 'jpeg', 'png']
-          let url = null
-          for (const ext of extensions) {
-            const { data } = await supabase.storage
-              .from('verification-docs')
-              .createSignedUrl(`${doc.path}.${ext}`, 3600)
-            if (data?.signedUrl) { url = data.signedUrl; break }
-          }
-          if (url) window.open(url, '_blank')
-          else alert('Document not found. Please contact support.')
-        }}
-        style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
-        Download ↓
-      </button>
-    </div>
-  ))}
-</div>
+
+                        {/* PO & QUOTATION DOCUMENTS */}
+                        <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 PO & Quotation Documents</p>
+                          {[
+                            { name:'Purchase Order Document', path:`po-${po.id}` },
+                            { name:'Supplier Quotation', path:`quotation-${po.id}` },
+                          ].map(doc=>(
+                            <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
+                              <p style={{fontSize:'13px',fontWeight:'500'}}>📄 {doc.name}</p>
+                              <button
+                                onClick={()=>downloadDoc(po.user_id, doc.path)}
+                                style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                                Download ↓
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* VERIFICATION DOCUMENTS */}
+                        <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Business Verification Documents</p>
+                          {[
+                            { name:'Company Registration Certificate', path:'company-certificate' },
+                            { name:'ID Copy of Director', path:'id-document' },
+                            { name:'CSD Full Registration Report', path:'csd-report' },
+                            { name:'Tax Clearance Certificate', path:'tax-clearance' },
+                            { name:'BBB-EE Certificate', path:'bbbee-certificate' },
+                          ].map(doc=>(
+                            <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
+                              <p style={{fontSize:'13px',fontWeight:'500'}}>📄 {doc.name}</p>
+                              <button
+                                onClick={()=>downloadDoc(po.user_id, doc.path)}
+                                style={{fontSize:'12px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                                Download ↓
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'10px',fontSize:'12px',color:'#633806'}}>
+                          ⚠️ These documents are confidential. Use the contact details above to verify the PO and quotation directly with the client and supplier before making a funding decision.
+                        </div>
                       </div>
                     )}
+
                   </div>
                 )
               })}
@@ -440,6 +464,7 @@ export default function FunderDashboard() {
           </div>
         )}
 
+        {/* MY OFFERS */}
         {activeTab === 'offers' && (
           <div>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>My Submitted Offers</h2>
@@ -454,6 +479,7 @@ export default function FunderDashboard() {
           </div>
         )}
 
+        {/* PROFILE */}
         {activeTab === 'profile' && (
           <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1.5rem'}}>Funder Profile</h2>
