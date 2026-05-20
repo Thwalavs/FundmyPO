@@ -12,18 +12,19 @@ export async function POST(request: Request) {
       html = '<div style="font-family:sans-serif;padding:2rem"><h2 style="color:#085041">New Funding Offer!</h2><p>You have a new funding offer for <strong>' + data.poNumber + '</strong></p><p>Funder: ' + data.funderName + '<br>Amount: ' + data.amount + '<br>Rate: ' + data.rate + '</p><a href="https://fundmy-po.vercel.app/dashboard" style="background:#0F6E56;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">View offer</a></div>'
     } else if (type === 'account_approved') {
       subject = 'Your FundMyPO account has been approved!'
-      html = '<div style="font-family:sans-serif;padding:2rem"><h2 style="color:#085041">Account Approved!</h2><p>Hi ' + data.name + ', your account for <strong>' + data.businessName + '</strong> has been verified and approved.</p><a href="https://fundmy-po.vercel.app/register" style="background:#0F6E56;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Log in now</a></div>'
+      html = '<div style="font-family:sans-serif;padding:2rem"><h2 style="color:#085041">Account Approved!</h2><p>Hi ' + data.name + ', your account has been verified.</p><a href="https://fundmy-po.vercel.app/register" style="background:#0F6E56;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Log in now</a></div>'
     } else if (type === 'offer_accepted') {
       subject = 'Your funding offer has been accepted — FundMyPO'
-      html = '<div style="font-family:sans-serif;padding:2rem"><h2 style="color:#085041">Offer Accepted!</h2><p>Your offer for <strong>' + data.poNumber + '</strong> has been accepted by ' + data.businessName + '!</p><p>Amount: ' + data.amount + '<br>Rate: ' + data.rate + '<br>Commission: ' + data.commission + '</p><a href="https://fundmy-po.vercel.app/funder" style="background:#0F6E56;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">View details</a></div>'
+      html = '<div style="font-family:sans-serif;padding:2rem"><h2 style="color:#085041">Offer Accepted!</h2><p>Your offer for <strong>' + data.poNumber + '</strong> has been accepted!</p><a href="https://fundmy-po.vercel.app/funder" style="background:#0F6E56;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">View details</a></div>'
     } else if (type === 'new_po_submitted') {
       subject = 'New PO submitted — FundMyPO Admin'
-      html = '<div style="font-family:sans-serif;padding:2rem"><h2 style="color:#085041">New PO Submitted</h2><p>A new purchase order has been submitted by <strong>' + data.businessName + '</strong></p><p>PO: ' + data.poNumber + '<br>Client: ' + data.clientName + '<br>Value: ' + data.poValue + '</p><a href="https://fundmy-po.vercel.app/admin" style="background:#085041;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Review in admin</a></div>'
+      html = '<div style="font-family:sans-serif;padding:2rem"><h2 style="color:#085041">New PO Submitted</h2><p>A new PO has been submitted by <strong>' + data.businessName + '</strong></p><a href="https://fundmy-po.vercel.app/admin" style="background:#085041;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Review in admin</a></div>'
     }
-    const { data: emailData, error } = await resend.emails.send({ from: 'FundMyPO <onboarding@resend.dev>', to: [to], subject, html })
+    const sendTo = 'vsiphoesihle@gmail.com'
+    const { data: emailData, error } = await resend.emails.send({ from: 'FundMyPO <onboarding@resend.dev>', to: [sendTo], subject, html })
     if (error) return NextResponse.json({ error }, { status: 400 })
     return NextResponse.json({ success: true, data: emailData })
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
