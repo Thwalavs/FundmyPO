@@ -397,9 +397,40 @@ export default function FunderDashboard() {
                           </div>
                           <p style={{marginTop:'.75rem',textAlign:'center',fontSize:'13px',color:'#085041',fontWeight:'500'}}>Estimated profit: R {profit.toLocaleString()} ✅</p>
                         </div>
-                        <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'10px',fontSize:'12px',color:'#633806'}}>
-                          ⚠️ These documents are confidential. Use the contact details above to verify the PO and quotation directly with the client and supplier before making a funding decision.
-                        </div>
+<div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+  <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Download Documents</p>
+  {[
+    { name:'Purchase Order Document', path:`${po.user_id}/po-${po.id}` },
+    { name:'Supplier Quotation', path:`${po.user_id}/quotation-${po.id}` },
+  ].map(doc=>(
+    <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
+      <div>
+        <p style={{fontSize:'13px',fontWeight:'500'}}>📄 {doc.name}</p>
+      </div>
+      <button
+        onClick={async()=>{
+          const { createBrowserClient } = await import('@supabase/ssr')
+          const supabase = createBrowserClient(
+            'https://efzszombcfxyyobqehyp.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
+          )
+          const extensions = ['pdf', 'jpg', 'jpeg', 'png']
+          let url = null
+          for (const ext of extensions) {
+            const { data } = await supabase.storage
+              .from('verification-docs')
+              .createSignedUrl(`${doc.path}.${ext}`, 3600)
+            if (data?.signedUrl) { url = data.signedUrl; break }
+          }
+          if (url) window.open(url, '_blank')
+          else alert('Document not found. Please contact support.')
+        }}
+        style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+        Download ↓
+      </button>
+    </div>
+  ))}
+</div>
                       </div>
                     )}
                   </div>
