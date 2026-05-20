@@ -31,9 +31,28 @@ export default function UploadPage() {
 
   useEffect(()=>{ setMounted(true) },[])
 
-  function handleSubmit() {
+async function handleSubmit() {
     setLoading(true)
-    setTimeout(()=>{ setLoading(false); setSubmitted(true) }, 1500)
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'new_po_submitted',
+          to: 'vsiphoesihle@gmail.com',
+          data: {
+            businessName: clientName || 'A business',
+            poNumber: poNumber || 'New PO',
+            clientName: clientName || 'Client',
+            poValue: `R ${parseFloat(poValue||'0').toLocaleString()}`,
+          }
+        })
+      })
+    } catch(e) {
+      console.log('Email failed:', e)
+    }
+    setLoading(false)
+    setSubmitted(true)
   }
 
   if (!mounted) return null
