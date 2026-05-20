@@ -52,6 +52,89 @@ async function downloadDoc(userId: string, docPath: string) {
   alert('Document not found. The business may not have uploaded this document yet.')
 }
 
+function RealOffers() {
+  const [myOffers, setMyOffers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(()=>{
+    async function load() {
+      try {
+        const { createBrowserClient } = await import('@supabase/ssr')
+        const supabase = createBrowserClient(
+          'https://efzszombcfxyyobqehyp.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
+        )
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data: offers } = await supabase
+          .from('funding_offers')
+          .select('*, purchase_orders(*)')
+          .eq('funder_id', user.id)
+          .order('created_at', { ascending: false })
+        setMyOffers(offers || [])
+      } catch(e) { console.log(e) }
+      finally { setLoading(false) }
+    }
+    load()
+  },[])
+
+  if (loading) return <p style={{fontSize:'14px',color:'#888'}}>Loading your offers...</p>
+
+  if (myOffers.length === 0) return (
+    <div style={{textAlign:'center',padding:'3rem',background:'#fff',borderRadius:'12px',border:'1px solid #e5e5e5'}}>
+      <p style={{fontSize:'16px',color:'#666',marginBottom:'.5rem'}}>No offers submitted yet</p>
+      <p style={{fontSize:'13px',color:'#888'}}>Go to the marketplace to find POs and submit offers.</p>
+    </div>
+  )
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+      {myOffers.map((offer: any)=>{
+        const po = offer.purchase_orders
+        const isAccepted = offer.status === 'accepted'
+        return (
+          <div key={offer.id} style={{background:'#fff',border:isAccepted?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
+              <div>
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
+                  <span style={{fontSize:'15px',fontWeight:'500'}}>{po?.po_number || 'PO'}</span>
+                  <span style={{
+                    background:isAccepted?'#E1F5EE':'#FAEEDA',
+                    color:isAccepted?'#085041':'#633806',
+                    padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'
+                  }}>
+                    {isAccepted ? '✅ Accepted' : '⏳ Pending'}
+                  </span>
+                </div>
+                <p style={{fontSize:'13px',color:'#666'}}>{po?.client_name}</p>
+                <p style={{fontSize:'12px',color:'#888'}}>📅 {new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
+              </div>
+              <div style={{textAlign:'right'}}>
+                <p style={{fontSize:'18px',fontWeight:'500',color:'#0F6E56'}}>R {offer.amount.toLocaleString()}</p>
+                <p style={{fontSize:'12px',color:'#888'}}>at {offer.interest_rate}% • {offer.term_days} days</p>
+              </div>
+            </div>
+            {isAccepted && (
+              <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginTop:'.5rem'}}>
+                <p style={{fontSize:'13px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>🎉 Your offer was accepted!</p>
+                <p style={{fontSize:'12px',color:'#0F6E56',lineHeight:'1.6'}}>
+                  Please proceed with the funding disbursement of <strong>R {offer.amount.toLocaleString()}</strong> to {po?.client_name}.
+                  FundMyPO commission of <strong>R {(offer.amount * 0.02).toLocaleString()}</strong> (2%) will be deducted.
+                </p>
+              </div>
+            )}
+            {!isAccepted && (
+              <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginTop:'.5rem',fontSize:'12px',color:'#666'}}>
+                ⏳ Waiting for the business to review and accept your offer.
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function FunderDashboard() {
   const [activeTab, setActiveTab] = useState<'marketplace'|'offers'|'profile'>('marketplace')
   const [marketplace, setMarketplace] = useState<PO[]>([])
@@ -209,7 +292,6 @@ export default function FunderDashboard() {
                 return (
                   <div key={po.id} style={{background:'#fff',border:selectedPO===po.id?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
 
-                    {/* HEADER */}
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
                       <div>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
@@ -229,7 +311,6 @@ export default function FunderDashboard() {
                       </div>
                     </div>
 
-                    {/* ACTION BUTTONS */}
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
                       <span style={{fontSize:'12px',color:'#888'}}>📅 {new Date(po.created_at).toLocaleDateString('en-ZA')}</span>
                       <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
@@ -360,14 +441,13 @@ export default function FunderDashboard() {
                       </div>
                     )}
 
-                    {/* ALL DOCUMENTS — after offer */}
+                    {/* ALL DOCUMENTS */}
                     {viewingPODocs === po.id && (
                       <div style={{marginTop:'1rem',padding:'1.25rem',background:'#EEF4FB',borderRadius:'10px',border:'1px solid #B8D4F0'}}>
                         <p style={{fontSize:'13px',fontWeight:'500',color:'#0C447C',marginBottom:'1rem'}}>
                           📋 Full Documents & Contact Details
                         </p>
 
-                        {/* CLIENT CONTACT */}
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>👤 Client Contact Details</p>
                           {[
@@ -384,7 +464,6 @@ export default function FunderDashboard() {
                           ))}
                         </div>
 
-                        {/* SUPPLIER CONTACT */}
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.5rem'}}>🏭 Supplier Contact Details</p>
                           {[
@@ -401,7 +480,6 @@ export default function FunderDashboard() {
                           ))}
                         </div>
 
-                        {/* PROFIT MARGIN */}
                         <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>📊 Profit Margin Analysis</p>
                           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',textAlign:'center'}}>
@@ -412,7 +490,6 @@ export default function FunderDashboard() {
                           <p style={{marginTop:'.75rem',textAlign:'center',fontSize:'13px',color:'#085041',fontWeight:'500'}}>Estimated profit: R {profit.toLocaleString()} ✅</p>
                         </div>
 
-                        {/* PO & QUOTATION DOCUMENTS */}
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 PO & Quotation Documents</p>
                           {[
@@ -421,8 +498,7 @@ export default function FunderDashboard() {
                           ].map(doc=>(
                             <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
                               <p style={{fontSize:'13px',fontWeight:'500'}}>📄 {doc.name}</p>
-                              <button
-                                onClick={()=>downloadDoc(po.user_id, doc.path)}
+                              <button onClick={()=>downloadDoc(po.user_id, doc.path)}
                                 style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
                                 Download ↓
                               </button>
@@ -430,7 +506,6 @@ export default function FunderDashboard() {
                           ))}
                         </div>
 
-                        {/* VERIFICATION DOCUMENTS */}
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                           <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Business Verification Documents</p>
                           {[
@@ -442,8 +517,7 @@ export default function FunderDashboard() {
                           ].map(doc=>(
                             <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
                               <p style={{fontSize:'13px',fontWeight:'500'}}>📄 {doc.name}</p>
-                              <button
-                                onClick={()=>downloadDoc(po.user_id, doc.path)}
+                              <button onClick={()=>downloadDoc(po.user_id, doc.path)}
                                 style={{fontSize:'12px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
                                 Download ↓
                               </button>
@@ -468,14 +542,7 @@ export default function FunderDashboard() {
         {activeTab === 'offers' && (
           <div>
             <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>My Submitted Offers</h2>
-            {submittedOffers.length === 0 ? (
-              <div style={{textAlign:'center',padding:'3rem',background:'#fff',borderRadius:'12px',border:'1px solid #e5e5e5'}}>
-                <p style={{fontSize:'16px',color:'#666',marginBottom:'.5rem'}}>No offers submitted yet</p>
-                <p style={{fontSize:'13px',color:'#888'}}>Go to the marketplace to find POs and submit offers.</p>
-              </div>
-            ) : (
-              <p style={{fontSize:'14px',color:'#666'}}>{submittedOffers.length} offer{submittedOffers.length>1?'s':''} submitted this session.</p>
-            )}
+            <RealOffers/>
           </div>
         )}
 
