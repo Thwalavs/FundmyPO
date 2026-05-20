@@ -8,6 +8,7 @@ export default function UploadPage() {
   const [quotationFile, setQuotationFile] = useState<File|null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const [clientName, setClientName] = useState('')
   const [clientContact, setClientContact] = useState('')
@@ -31,28 +32,82 @@ export default function UploadPage() {
 
   useEffect(()=>{ setMounted(true) },[])
 
-async function handleSubmit() {
+  async function handleSubmit() {
     setLoading(true)
+    setError('')
     try {
-      await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'new_po_submitted',
-          to: 'vsiphoesihle@gmail.com',
-          data: {
-            businessName: clientName || 'A business',
-            poNumber: poNumber || 'New PO',
-            clientName: clientName || 'Client',
-            poValue: `R ${parseFloat(poValue||'0').toLocaleString()}`,
-          }
+      const { createBrowserClient } = await import('@supabase/ssr')
+      const supabase = createBrowserClient(
+        'https://efzszombcfxyyobqehyp.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
+      )
+
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setError('Please log in first'); setLoading(false); return }
+
+      const { data: po, error: poError } = await supabase
+        .from('purchase_orders')
+        .insert({
+          user_id: user.id,
+          po_number: poNumber,
+          client_name: clientName,
+          client_contact: clientContact,
+          client_phone: clientPhone,
+          client_email: clientEmail,
+          client_department: clientDepartment,
+          po_value: parseFloat(poValue) || 0,
+          funding_needed: parseFloat(fundingNeeded) || 0,
+          quotation_value: parseFloat(quotationValue) || 0,
+          quotation_number: quotationNumber,
+          supplier_name: supplierName,
+          supplier_phone: supplierPhone,
+          supplier_email: supplierEmail,
+          sector: sector,
+          description: description,
+          issue_date: issueDate,
+          expiry_date: expiryDate,
+          status: 'reviewing'
         })
-      })
-    } catch(e) {
-      console.log('Email failed:', e)
+        .select()
+        .single()
+
+      if (poError) { setError('Error saving PO: ' + poError.message); setLoading(false); return }
+
+      if (poFile && po) {
+        const ext = poFile.name.split('.').pop()
+        await supabase.storage.from('verification-docs')
+          .upload(`${user.id}/po-${po.id}.${ext}`, poFile, { upsert: true })
+      }
+
+      if (quotationFile && po) {
+        const ext = quotationFile.name.split('.').pop()
+        await supabase.storage.from('verification-docs')
+          .upload(`${user.id}/quotation-${po.id}.${ext}`, quotationFile, { upsert: true })
+      }
+
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'new_po_submitted',
+            to: 'vsiphoesihle@gmail.com',
+            data: {
+              businessName: clientName || 'A business',
+              poNumber: poNumber || 'New PO',
+              clientName: clientName || 'Client',
+              poValue: `R ${parseFloat(poValue||'0').toLocaleString()}`,
+            }
+          })
+        })
+      } catch(e) { console.log('Email failed:', e) }
+
+      setLoading(false)
+      setSubmitted(true)
+    } catch(e: any) {
+      setError('Error: ' + e.message)
+      setLoading(false)
     }
-    setLoading(false)
-    setSubmitted(true)
   }
 
   if (!mounted) return null
@@ -104,7 +159,6 @@ async function handleSubmit() {
         </a>
       </nav>
 
-      {/* PROGRESS STEPS */}
       <div style={{maxWidth:'700px',margin:'0 auto 2rem',display:'flex',alignItems:'center'}}>
         {['Client Info','PO & Supplier Details','Upload Documents','Review & Submit'].map((label,i)=>{
           const num = i + 1
@@ -126,13 +180,18 @@ async function handleSubmit() {
 
       <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',maxWidth:'700px',margin:'0 auto'}}>
 
-        {/* SUCCESS */}
+        {error && (
+          <div style={{background:'#FEE2E2',border:'1px solid #FCA5A5',borderRadius:'8px',padding:'10px 12px',marginBottom:'1rem',fontSize:'13px',color:'#DC2626'}}>
+            {error}
+          </div>
+        )}
+
         {submitted && (
           <div style={{textAlign:'center',padding:'2rem 0'}}>
             <div style={{width:'64px',height:'64px',borderRadius:'50%',background:'#E1F5EE',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 1rem',fontSize:'28px'}}>✓</div>
             <h2 style={{fontSize:'22px',fontWeight:'500',marginBottom:'.5rem',color:'#085041'}}>Application Submitted!</h2>
             <p style={{fontSize:'15px',color:'#666',marginBottom:'2rem',lineHeight:'1.7',maxWidth:'480px',margin:'0 auto 2rem'}}>
-              Your purchase order and supplier quotation have been submitted. Funders will review and contact your client and supplier to verify before making offers.
+              Your purchase order has been submitted to the marketplace. Funders will review and contact your client and supplier to verify before making offers.
             </p>
             <div style={{background:'#f5f5f5',borderRadius:'12px',padding:'1.25rem',marginBottom:'2rem',textAlign:'left',maxWidth:'400px',margin:'0 auto 2rem'}}>
               <p style={{fontSize:'13px',color:'#888',marginBottom:'.75rem',fontWeight:'500'}}>What happens next:</p>
@@ -140,7 +199,6 @@ async function handleSubmit() {
                 'Funders review your PO and supplier quotation',
                 'Funders contact your client to verify the PO',
                 'Funders contact your supplier to verify the quote',
-                'Funders calculate profit margin and risk',
                 'You receive competitive funding offers',
                 'You compare and accept the best offer',
               ].map((item,i)=>(
@@ -155,12 +213,10 @@ async function handleSubmit() {
           </div>
         )}
 
-        {/* STEP 1 — CLIENT INFORMATION */}
         {!submitted && step === 1 && (
           <div>
             <h2 style={{fontSize:'20px',fontWeight:'500',marginBottom:'.25rem'}}>Client Information</h2>
             <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Fill in the details of the client who issued the purchase order.</p>
-
             <div style={fieldStyle}>
               <label style={labelStyle}>Client / Company name</label>
               <input type="text" placeholder="e.g. Eskom Holdings SOC Ltd" value={clientName} onChange={e=>setClientName(e.target.value)} style={inputStyle}/>
@@ -185,21 +241,17 @@ async function handleSubmit() {
                 <input type="email" placeholder="procurement@client.co.za" value={clientEmail} onChange={e=>setClientEmail(e.target.value)} style={inputStyle}/>
               </div>
             </div>
-
-            <button onClick={()=>setStep(2)}
-              style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
+            <button onClick={()=>setStep(2)} style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
               Continue to PO & Supplier details →
             </button>
           </div>
         )}
 
-        {/* STEP 2 — PO & SUPPLIER DETAILS */}
         {!submitted && step === 2 && (
           <div>
             <h2 style={{fontSize:'20px',fontWeight:'500',marginBottom:'.25rem'}}>PO & Supplier Details</h2>
             <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Fill in your purchase order and supplier quotation details.</p>
 
-            {/* PO DETAILS */}
             <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem'}}>
               <p style={{fontSize:'14px',fontWeight:'500',color:'#1a1a1a',marginBottom:'1rem'}}>📋 Purchase Order Details</p>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
@@ -245,13 +297,10 @@ async function handleSubmit() {
               </div>
               <div>
                 <label style={labelStyle}>Description of goods / services</label>
-                <textarea placeholder="e.g. Supply of electrical equipment to Eskom substation in Gauteng..."
-                  value={description} onChange={e=>setDescription(e.target.value)}
-                  style={{...inputStyle,minHeight:'80px',resize:'vertical'}}/>
+                <textarea placeholder="e.g. Supply of electrical equipment..." value={description} onChange={e=>setDescription(e.target.value)} style={{...inputStyle,minHeight:'80px',resize:'vertical'}}/>
               </div>
             </div>
 
-            {/* SUPPLIER DETAILS */}
             <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem'}}>
               <p style={{fontSize:'14px',fontWeight:'500',color:'#1a1a1a',marginBottom:'1rem'}}>🏭 Supplier Details</p>
               <div style={fieldStyle}>
@@ -280,7 +329,6 @@ async function handleSubmit() {
               </div>
             </div>
 
-            {/* PROFIT MARGIN */}
             {po > 0 && quote > 0 && (
               <div style={{background:profit>0?'#E1F5EE':'#FEE2E2',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:`1px solid ${profit>0?'#5DCAA5':'#FCA5A5'}`}}>
                 <p style={{fontSize:'13px',fontWeight:'500',color:profit>0?'#085041':'#DC2626',marginBottom:'.75rem'}}>📊 Profit Margin Calculator</p>
@@ -300,165 +348,101 @@ async function handleSubmit() {
                 </div>
                 <div style={{padding:'.75rem',background:'rgba(255,255,255,0.6)',borderRadius:'8px',textAlign:'center'}}>
                   <p style={{fontSize:'13px',color:profit>0?'#085041':'#DC2626',fontWeight:'500'}}>
-                    {profit>0 ? `Estimated profit: R ${profit.toLocaleString()} — Funders will see this is a viable deal ✅` : `Warning: Supplier cost exceeds PO value. Please check your figures.`}
+                    {profit>0 ? `Estimated profit: R ${profit.toLocaleString()} ✅` : `Warning: Supplier cost exceeds PO value.`}
                   </p>
                 </div>
               </div>
             )}
 
             <div style={{display:'flex',gap:'12px'}}>
-              <button onClick={()=>setStep(1)}
-                style={{flex:1,padding:'11px',background:'transparent',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>
-                ← Back
-              </button>
-              <button onClick={()=>setStep(3)}
-                style={{flex:2,padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
-                Continue to upload documents →
-              </button>
+              <button onClick={()=>setStep(1)} style={{flex:1,padding:'11px',background:'transparent',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>← Back</button>
+              <button onClick={()=>setStep(3)} style={{flex:2,padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>Continue to upload documents →</button>
             </div>
           </div>
         )}
 
-        {/* STEP 3 — UPLOAD BOTH DOCUMENTS */}
         {!submitted && step === 3 && (
           <div>
             <h2 style={{fontSize:'20px',fontWeight:'500',marginBottom:'.25rem'}}>Upload Documents</h2>
-            <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Upload both your purchase order and supplier quotation on this page.</p>
-
+            <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Upload both your purchase order and supplier quotation.</p>
             <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
               <p style={{fontSize:'13px',color:'#085041',fontWeight:'500',marginBottom:'3px'}}>🔒 Document security</p>
-              <p style={{fontSize:'12px',color:'#0F6E56',lineHeight:'1.6'}}>
-                Both documents will only be shared with verified funders who submit an offer. Funders will use the contact details in these documents to verify with your client and supplier directly.
-              </p>
+              <p style={{fontSize:'12px',color:'#0F6E56',lineHeight:'1.6'}}>Both documents will only be shared with verified funders who submit an offer.</p>
             </div>
-
-            <UploadBox
-              label="Purchase Order Document"
-              file={poFile}
-              onChange={setPoFile}
-              hint="Upload the official PO from your client. Must include client contact details and department."
-            />
-
-            <UploadBox
-              label="Supplier Quotation"
-              file={quotationFile}
-              onChange={setQuotationFile}
-              hint="Upload the quotation from your supplier. Must include supplier contact details and pricing."
-            />
-
+            <UploadBox label="Purchase Order Document" file={poFile} onChange={setPoFile} hint="Upload the official PO from your client."/>
+            <UploadBox label="Supplier Quotation" file={quotationFile} onChange={setQuotationFile} hint="Upload the quotation from your supplier."/>
             <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
               <p style={{fontSize:'13px',color:'#633806',fontWeight:'500',marginBottom:'3px'}}>⚠️ Important reminder</p>
-              <p style={{fontSize:'12px',color:'#633806',lineHeight:'1.6'}}>
-                Make sure both documents contain valid contact details. Funders will call your client and supplier directly to verify before making any funding offer. Submitting fraudulent documents is a criminal offence.
-              </p>
+              <p style={{fontSize:'12px',color:'#633806',lineHeight:'1.6'}}>Submitting fraudulent documents is a criminal offence.</p>
             </div>
-
             <div style={{display:'flex',gap:'12px'}}>
-              <button onClick={()=>setStep(2)}
-                style={{flex:1,padding:'11px',background:'transparent',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>
-                ← Back
-              </button>
-              <button onClick={()=>setStep(4)}
-                style={{flex:2,padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
-                Continue to review →
-              </button>
+              <button onClick={()=>setStep(2)} style={{flex:1,padding:'11px',background:'transparent',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>← Back</button>
+              <button onClick={()=>setStep(4)} style={{flex:2,padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>Continue to review →</button>
             </div>
           </div>
         )}
 
-        {/* STEP 4 — REVIEW & SUBMIT */}
         {!submitted && step === 4 && (
           <div>
             <h2 style={{fontSize:'20px',fontWeight:'500',marginBottom:'.25rem'}}>Review & Submit</h2>
-            <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Please review everything before submitting to the marketplace.</p>
+            <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Please review everything before submitting.</p>
 
             <div style={{background:'#f5f5f5',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem'}}>
               <p style={{fontSize:'13px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>👤 Client Information</p>
-              {[
-                ['Company', clientName||'Eskom Holdings SOC Ltd'],
-                ['Contact person', clientContact||'John Smith'],
-                ['Department', clientDepartment||'Supply Chain'],
-                ['Phone', clientPhone||'+27 11 000 0000'],
-                ['Email', clientEmail||'procurement@client.co.za'],
-              ].map(([label,value])=>(
-                <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
-                  <span style={{color:'#888'}}>{label}</span>
-                  <span style={{color:'#1a1a1a',fontWeight:'500'}}>{value}</span>
+              {[['Company',clientName],['Contact',clientContact],['Department',clientDepartment],['Phone',clientPhone],['Email',clientEmail]].map(([l,v])=>(
+                <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
+                  <span style={{color:'#888'}}>{l}</span>
+                  <span style={{color:'#1a1a1a',fontWeight:'500'}}>{v}</span>
                 </div>
               ))}
             </div>
 
             <div style={{background:'#f5f5f5',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem'}}>
               <p style={{fontSize:'13px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📋 Purchase Order</p>
-              {[
-                ['PO Number', poNumber||'PO-2025-00123'],
-                ['PO Value', `R ${parseFloat(poValue||'500000').toLocaleString()}`],
-                ['Funding needed', `R ${parseFloat(fundingNeeded||'400000').toLocaleString()}`],
-                ['Sector', sector||'Construction'],
-              ].map(([label,value])=>(
-                <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
-                  <span style={{color:'#888'}}>{label}</span>
-                  <span style={{color:'#1a1a1a',fontWeight:'500'}}>{value}</span>
+              {[['PO Number',poNumber],['PO Value',`R ${parseFloat(poValue||'0').toLocaleString()}`],['Funding needed',`R ${parseFloat(fundingNeeded||'0').toLocaleString()}`],['Sector',sector]].map(([l,v])=>(
+                <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
+                  <span style={{color:'#888'}}>{l}</span>
+                  <span style={{color:'#1a1a1a',fontWeight:'500'}}>{v}</span>
                 </div>
               ))}
             </div>
 
             <div style={{background:'#f5f5f5',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem'}}>
               <p style={{fontSize:'13px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>🏭 Supplier</p>
-              {[
-                ['Supplier', supplierName||'ABC Electrical Supplies'],
-                ['Phone', supplierPhone||'+27 11 000 0000'],
-                ['Quotation number', quotationNumber||'QT-2025-00456'],
-                ['Quotation value', `R ${parseFloat(quotationValue||'350000').toLocaleString()}`],
-              ].map(([label,value])=>(
-                <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
-                  <span style={{color:'#888'}}>{label}</span>
-                  <span style={{color:'#1a1a1a',fontWeight:'500'}}>{value}</span>
+              {[['Supplier',supplierName],['Phone',supplierPhone],['Quotation No.',quotationNumber],['Quotation Value',`R ${parseFloat(quotationValue||'0').toLocaleString()}`]].map(([l,v])=>(
+                <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
+                  <span style={{color:'#888'}}>{l}</span>
+                  <span style={{color:'#1a1a1a',fontWeight:'500'}}>{v}</span>
                 </div>
               ))}
             </div>
-
-            {po > 0 && quote > 0 && (
-              <div style={{background:'#E1F5EE',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem'}}>
-                <p style={{fontSize:'13px',fontWeight:'500',color:'#085041',marginBottom:'.5rem'}}>📊 Profit Margin</p>
-                <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}>
-                  <span style={{color:'#666'}}>Estimated profit</span>
-                  <span style={{fontWeight:'500',color:'#085041'}}>R {profit.toLocaleString()} ({margin}%)</span>
-                </div>
-              </div>
-            )}
 
             <div style={{background:'#f5f5f5',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem'}}>
               <p style={{fontSize:'13px',fontWeight:'500',color:'#444',marginBottom:'.75rem'}}>📄 Documents</p>
               <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
                 <span style={{color:'#888'}}>Purchase Order</span>
-                <span style={{color:poFile?'#0F6E56':'#DC2626',fontWeight:'500'}}>{poFile?'✓ '+poFile.name:'❌ Not uploaded'}</span>
+                <span style={{color:poFile?'#0F6E56':'#DC2626',fontWeight:'500'}}>{poFile?'✓ '+poFile.name:'Not uploaded'}</span>
               </div>
               <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0',fontSize:'14px'}}>
                 <span style={{color:'#888'}}>Supplier Quotation</span>
-                <span style={{color:quotationFile?'#0F6E56':'#DC2626',fontWeight:'500'}}>{quotationFile?'✓ '+quotationFile.name:'❌ Not uploaded'}</span>
+                <span style={{color:quotationFile?'#0F6E56':'#DC2626',fontWeight:'500'}}>{quotationFile?'✓ '+quotationFile.name:'Not uploaded'}</span>
               </div>
             </div>
 
             <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
               <p style={{fontSize:'13px',color:'#085041',lineHeight:'1.6'}}>
-                By submitting, your PO will be listed on the FundMyPO marketplace. Verified funders will review your documents, contact your client and supplier to verify, then submit competitive funding offers.
+                By submitting, your PO will be listed on the FundMyPO marketplace for verified funders to review and submit offers.
               </p>
             </div>
 
             <div style={{display:'flex',gap:'12px'}}>
-              <button onClick={()=>setStep(3)}
-                style={{flex:1,padding:'11px',background:'transparent',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>
-                ← Back
-              </button>
-              <button onClick={handleSubmit} disabled={loading}
-                style={{flex:2,padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
+              <button onClick={()=>setStep(3)} style={{flex:1,padding:'11px',background:'transparent',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>← Back</button>
+              <button onClick={handleSubmit} disabled={loading} style={{flex:2,padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
                 {loading ? 'Submitting...' : 'Submit to marketplace ✓'}
               </button>
             </div>
           </div>
         )}
-
       </div>
     </main>
   )
