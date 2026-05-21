@@ -53,7 +53,7 @@ export default function RegisterPage() {
     try {
       const supabase = await getSupabase()
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://fundmy-po.vercel.app/reset-password'
+        redirectTo: 'https://fundmy-po.vercel.co.za/reset-password'
       })
       setLoading(false)
       if (error) { setError(error.message); return }
