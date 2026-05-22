@@ -1,66 +1,213 @@
-export default function Home() {
-  return (
-    <main style={{fontFamily:'sans-serif',margin:0,padding:0}}>
+'use client'
+import { useState } from 'react'
 
-      {/* NAVBAR */}
-      <nav style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'1rem',borderBottom:'1px solid #e5e5e5'}}>
-        <div style={{fontSize:'20px',fontWeight:'500'}}>
-          Fund<span style={{color:'#0F6E56'}}>MyPO</span>
+export default function LandingPage() {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  return (
+    <main style={{fontFamily:'Inter, sans-serif',background:'#fff',color:'#1B2B4B'}}>
+
+      {/* NAV */}
+      <nav style={{background:'#fff',borderBottom:'1px solid #e5e5e5',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,zIndex:100,height:'70px'}}>
+        <a href="/" style={{display:'flex',alignItems:'center',gap:'10px',textDecoration:'none'}}>
+          <img src="/logo.png" alt="FundMyPO" style={{height:'40px',width:'auto'}}/>
+        </a>
+        <div style={{display:'flex',alignItems:'center',gap:'2rem'}}>
+          {[['For SMEs','#smes'],['For Funders','#funders'],['How It Works','#howitworks'],['About Us','#about'],['Contact','#contact']].map(([label,href])=>(
+            <a key={label} href={href} style={{fontSize:'14px',color:'#1B2B4B',textDecoration:'none',fontWeight:'500'}}>{label}</a>
+          ))}
         </div>
-        <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
-          <a href="/register" style={{background:'#0F6E56',color:'#fff',padding:'10px 18px',borderRadius:'8px',fontSize:'14px',textDecoration:'none',fontWeight:'500',whiteSpace:'nowrap'}}>
-            Get started
-          </a>
-        </div>
+        <a href="/register" style={{background:'#4DBFB0',color:'#fff',padding:'10px 24px',borderRadius:'8px',textDecoration:'none',fontSize:'14px',fontWeight:'600'}}>
+          Get Funded Now
+        </a>
       </nav>
 
       {/* HERO */}
-      <section style={{textAlign:'center',padding:'3rem 1.5rem',maxWidth:'760px',margin:'0 auto'}}>
-        <div style={{display:'inline-block',background:'#E1F5EE',color:'#0F6E56',fontSize:'12px',padding:'5px 14px',borderRadius:'99px',marginBottom:'1.5rem',fontWeight:'500'}}>
-          Africa's PO funding marketplace
+      <section style={{background:'linear-gradient(135deg, #1B2B4B 0%, #0F6E56 100%)',padding:'5rem 2rem',display:'flex',alignItems:'center',justifyContent:'center',gap:'4rem',flexWrap:'wrap'}}>
+        <div style={{flex:1,minWidth:'300px',maxWidth:'600px'}}>
+          <p style={{fontSize:'13px',color:'#4DBFB0',fontWeight:'600',letterSpacing:'2px',marginBottom:'1rem',textTransform:'uppercase'}}>Purchase Order Funding Platform</p>
+          <h1 style={{fontSize:'48px',fontWeight:'700',color:'#fff',lineHeight:'1.2',marginBottom:'1.5rem'}}>
+            "Funding Your Growth,<br/>
+            <span style={{color:'#4DBFB0'}}>Securing Your Future."</span>
+          </h1>
+          <p style={{fontSize:'18px',color:'#a8c4d4',lineHeight:'1.8',marginBottom:'2rem'}}>
+            Revolutionizing Purchase Order and Working Capital Solutions for South African SMEs.
+          </p>
+          <div style={{display:'flex',gap:'1rem',flexWrap:'wrap'}}>
+            <a href="/register" style={{background:'#4DBFB0',color:'#fff',padding:'14px 32px',borderRadius:'8px',textDecoration:'none',fontSize:'15px',fontWeight:'600'}}>
+              Apply for Funding →
+            </a>
+            <a href="/register?role=funder" style={{background:'rgba(255,255,255,0.1)',color:'#fff',padding:'14px 32px',borderRadius:'8px',textDecoration:'none',fontSize:'15px',fontWeight:'600',border:'1px solid rgba(255,255,255,0.3)'}}>
+              Become a Funder
+            </a>
+          </div>
+          <div style={{display:'flex',gap:'2rem',marginTop:'2.5rem',flexWrap:'wrap'}}>
+            {[['R50M+','Funded to date'],['200+','SMEs helped'],['48hrs','Average approval']].map(([val,label])=>(
+              <div key={label}>
+                <p style={{fontSize:'24px',fontWeight:'700',color:'#4DBFB0',marginBottom:'4px'}}>{val}</p>
+                <p style={{fontSize:'12px',color:'#a8c4d4'}}>{label}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <h1 style={{fontSize:'clamp(28px,6vw,42px)',fontWeight:'500',lineHeight:'1.2',marginBottom:'1rem'}}>
-          Turn your purchase orders into{' '}
-          <span style={{color:'#0F6E56'}}>working capital</span>
-        </h1>
-        <p style={{fontSize:'clamp(14px,3vw,17px)',color:'#666',lineHeight:'1.7',marginBottom:'2rem'}}>
-          FundMyPO connects businesses holding confirmed purchase orders with a network of competitive funders — so you can fulfill contracts without waiting for cash.
-        </p>
-        <div style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-          <a href="/register" style={{background:'#0F6E56',color:'#fff',padding:'12px 28px',borderRadius:'8px',fontSize:'15px',textDecoration:'none',fontWeight:'500'}}>
-            Supplier
-          </a>
-          <a href="/register?role=funder" style={{background:'transparent',color:'#0F6E56',border:'1.5px solid #0F6E56',padding:'12px 28px',borderRadius:'8px',fontSize:'15px',textDecoration:'none',fontWeight:'500'}}>
-            Funder
-          </a>
+        <div style={{flex:1,minWidth:'280px',maxWidth:'400px',display:'flex',justifyContent:'center'}}>
+          <img src="/logo.png" alt="FundMyPO" style={{width:'100%',maxWidth:'320px',filter:'brightness(0) invert(1)',opacity:0.15,position:'absolute'}}/>
+          <div style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'20px',padding:'2rem',width:'100%',backdropFilter:'blur(10px)'}}>
+            <p style={{fontSize:'13px',color:'#4DBFB0',fontWeight:'600',marginBottom:'1rem'}}>🚀 How it works</p>
+            {[
+              { step:'01', title:'Submit your PO', desc:'Upload your purchase order and supplier quotation' },
+              { step:'02', title:'Get verified', desc:'Our team reviews and verifies your documents' },
+              { step:'03', title:'Receive offers', desc:'Funders compete to give you the best rate' },
+              { step:'04', title:'Access funds', desc:'Accept the best offer and get funded fast' },
+            ].map(({step,title,desc})=>(
+              <div key={step} style={{display:'flex',gap:'12px',marginBottom:'1.25rem',alignItems:'flex-start'}}>
+                <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#4DBFB0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:'700',color:'#fff',flexShrink:0}}>
+                  {step}
+                </div>
+                <div>
+                  <p style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'2px'}}>{title}</p>
+                  <p style={{fontSize:'12px',color:'#a8c4d4'}}>{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* STATS */}
-      <section style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',maxWidth:'640px',margin:'0 auto 3rem',padding:'0 1.5rem'}}>
-        {[['342','POs funded'],['28','Active funders'],['48h','Avg. turnaround']].map(([num,label])=>(
-          <div key={label} style={{background:'#f9f9f9',borderRadius:'12px',padding:'1rem',textAlign:'center'}}>
-            <div style={{fontSize:'clamp(18px,4vw,24px)',fontWeight:'500',color:'#0F6E56'}}>{num}</div>
-            <div style={{fontSize:'clamp(10px,2vw,12px)',color:'#888',marginTop:'4px'}}>{label}</div>
+      {/* SME JOURNEY */}
+      <section id="smes" style={{padding:'5rem 2rem',background:'#f8fafc'}}>
+        <div style={{maxWidth:'1100px',margin:'0 auto'}}>
+          <div style={{textAlign:'center',marginBottom:'3rem'}}>
+            <p style={{fontSize:'13px',color:'#4DBFB0',fontWeight:'600',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'.5rem'}}>For SMEs</p>
+            <h2 style={{fontSize:'36px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>The SME Journey</h2>
+            <p style={{fontSize:'16px',color:'#666',maxWidth:'600px',margin:'0 auto'}}>Get the working capital you need to fulfil your purchase orders without giving up equity.</p>
           </div>
-        ))}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:'2rem'}}>
+            {[
+              { icon:'📋', step:'Step 1', title:'Submit PO', desc:'Upload your confirmed purchase order and supplier quotation to our secure platform.' },
+              { icon:'🔍', step:'Step 2', title:'Get Vetted', desc:'Our team verifies your documents and lists your PO on the funding marketplace.' },
+              { icon:'💰', step:'Step 3', title:'Receive Offers', desc:'Verified funders review your PO and submit competitive funding offers.' },
+              { icon:'🚀', step:'Step 4', title:'Access Funds', desc:'Accept the best offer, supplier gets paid and you fulfil your order.' },
+            ].map(({icon,step,title,desc})=>(
+              <div key={step} style={{background:'#fff',borderRadius:'16px',padding:'2rem',border:'1px solid #e5e5e5',textAlign:'center',boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}}>
+                <div style={{fontSize:'40px',marginBottom:'1rem'}}>{icon}</div>
+                <p style={{fontSize:'12px',color:'#4DBFB0',fontWeight:'600',marginBottom:'.5rem'}}>{step}</p>
+                <h3 style={{fontSize:'18px',fontWeight:'600',color:'#1B2B4B',marginBottom:'.75rem'}}>{title}</h3>
+                <p style={{fontSize:'14px',color:'#666',lineHeight:'1.7'}}>{desc}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{textAlign:'center',marginTop:'2.5rem'}}>
+            <a href="/register" style={{background:'#1B2B4B',color:'#fff',padding:'14px 32px',borderRadius:'8px',textDecoration:'none',fontSize:'15px',fontWeight:'600',display:'inline-block'}}>
+              Apply for funding today →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* FUNDER ADVANTAGE */}
+      <section id="funders" style={{padding:'5rem 2rem',background:'#1B2B4B'}}>
+        <div style={{maxWidth:'1100px',margin:'0 auto',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4rem',alignItems:'center',flexWrap:'wrap'}}>
+          <div>
+            <p style={{fontSize:'13px',color:'#4DBFB0',fontWeight:'600',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'.5rem'}}>For Funders</p>
+            <h2 style={{fontSize:'36px',fontWeight:'700',color:'#fff',marginBottom:'1.5rem'}}>The Funder Advantage</h2>
+            <p style={{fontSize:'16px',color:'#a8c4d4',lineHeight:'1.8',marginBottom:'2rem'}}>
+              Deploy your capital into verified, low-risk purchase order deals and earn competitive returns.
+            </p>
+            {[
+              { title:'Verified deals only', desc:'Every PO and supplier is verified before listing on our marketplace.' },
+              { title:'Competitive returns', desc:'Earn 3-8% per deal with repayment terms of 30-90 days.' },
+              { title:'Full transparency', desc:'Access all documents, contact details and margin analysis before funding.' },
+              { title:'2% platform fee', desc:'FundMyPO charges a simple 2% commission on funded deals only.' },
+            ].map(({title,desc})=>(
+              <div key={title} style={{display:'flex',gap:'12px',marginBottom:'1.25rem',alignItems:'flex-start'}}>
+                <div style={{width:'20px',height:'20px',borderRadius:'50%',background:'#4DBFB0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:'#fff',flexShrink:0,marginTop:'2px'}}>✓</div>
+                <div>
+                  <p style={{fontSize:'15px',fontWeight:'600',color:'#fff',marginBottom:'2px'}}>{title}</p>
+                  <p style={{fontSize:'13px',color:'#a8c4d4'}}>{desc}</p>
+                </div>
+              </div>
+            ))}
+            <a href="/register?role=funder" style={{background:'#4DBFB0',color:'#fff',padding:'14px 32px',borderRadius:'8px',textDecoration:'none',fontSize:'15px',fontWeight:'600',display:'inline-block',marginTop:'1rem'}}>
+              Become a funder →
+            </a>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem'}}>
+            {[
+              { value:'3-8%', label:'Returns per deal', color:'#4DBFB0' },
+              { value:'30-90', label:'Day terms', color:'#fff' },
+              { value:'100%', label:'Verified deals', color:'#4DBFB0' },
+              { value:'2%', label:'Platform fee only', color:'#fff' },
+            ].map(({value,label,color})=>(
+              <div key={label} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'16px',padding:'1.5rem',textAlign:'center'}}>
+                <p style={{fontSize:'32px',fontWeight:'700',color,marginBottom:'4px'}}>{value}</p>
+                <p style={{fontSize:'13px',color:'#a8c4d4'}}>{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how" style={{padding:'2.5rem 1.5rem',borderTop:'1px solid #e5e5e5'}}>
-        <div style={{maxWidth:'760px',margin:'0 auto'}}>
-          <p style={{fontSize:'12px',fontWeight:'500',color:'#0F6E56',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:'.5rem'}}>How it works</p>
-          <h2 style={{fontSize:'clamp(20px,4vw,28px)',fontWeight:'500',marginBottom:'1.5rem'}}>From PO to funding in days, not weeks</h2>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:'12px'}}>
+      <section id="howitworks" style={{padding:'5rem 2rem',background:'#fff'}}>
+        <div style={{maxWidth:'900px',margin:'0 auto',textAlign:'center'}}>
+          <p style={{fontSize:'13px',color:'#4DBFB0',fontWeight:'600',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'.5rem'}}>Simple Process</p>
+          <h2 style={{fontSize:'36px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>How It Works</h2>
+          <p style={{fontSize:'16px',color:'#666',marginBottom:'3rem'}}>From PO submission to funding in as little as 48 hours.</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:'1.5rem'}}>
             {[
-              ['1','Upload your PO','Submit your verified purchase order through our secure portal.'],
-              ['2','Funders compete','Multiple funders review your PO and submit competitive offers.'],
-              ['3','Compare & choose','Review all offers side by side and select the best fit.'],
-              ['4','Get funded','Accept an offer and receive capital to fulfill your contract.'],
-            ].map(([num,title,desc])=>(
-              <div key={num} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
-                <div style={{width:'32px',height:'32px',borderRadius:'50%',background:'#E1F5EE',color:'#0F6E56',fontWeight:'500',fontSize:'14px',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'.75rem'}}>{num}</div>
-                <h3 style={{fontSize:'14px',fontWeight:'500',marginBottom:'.4rem'}}>{title}</h3>
+              { num:'1', title:'Register', desc:'Create your account and upload your verification documents.' },
+              { num:'2', title:'Submit PO', desc:'Upload your purchase order and supplier quotation.' },
+              { num:'3', title:'Get reviewed', desc:'Our team verifies your documents within 24 hours.' },
+              { num:'4', title:'Receive offers', desc:'Funders submit competitive funding offers.' },
+              { num:'5', title:'Get funded', desc:'Accept the best offer and access your funds.' },
+            ].map(({num,title,desc})=>(
+              <div key={num} style={{position:'relative'}}>
+                <div style={{width:'48px',height:'48px',borderRadius:'50%',background:'#1B2B4B',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'18px',fontWeight:'700',color:'#fff',margin:'0 auto 1rem'}}>
+                  {num}
+                </div>
+                <h3 style={{fontSize:'16px',fontWeight:'600',color:'#1B2B4B',marginBottom:'.5rem'}}>{title}</h3>
+                <p style={{fontSize:'13px',color:'#666',lineHeight:'1.7'}}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ABOUT US */}
+      <section id="about" style={{padding:'5rem 2rem',background:'#f8fafc'}}>
+        <div style={{maxWidth:'1100px',margin:'0 auto',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4rem',alignItems:'center'}}>
+          <div>
+            <p style={{fontSize:'13px',color:'#4DBFB0',fontWeight:'600',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'.5rem'}}>About Us</p>
+            <h2 style={{fontSize:'36px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1.5rem'}}>Who We Are</h2>
+            <p style={{fontSize:'16px',color:'#666',lineHeight:'1.8',marginBottom:'1.5rem'}}>
+              FundMyPO is a South African fintech platform built to bridge the funding gap for SMEs with confirmed purchase orders. We connect businesses that need working capital with verified funders who want competitive returns.
+            </p>
+            <p style={{fontSize:'16px',color:'#666',lineHeight:'1.8',marginBottom:'1.5rem'}}>
+              Our platform is built on transparency, trust and speed. We believe every South African SME with a confirmed order deserves access to funding — regardless of their credit history or size.
+            </p>
+            <p style={{fontSize:'16px',color:'#666',lineHeight:'1.8',marginBottom:'2rem'}}>
+              We are proudly South African, built by entrepreneurs for entrepreneurs.
+            </p>
+            <div style={{display:'flex',gap:'2rem',flexWrap:'wrap'}}>
+              {[['🇿🇦','Proudly South African'],['🔒','Secure & verified'],['⚡','Fast approvals']].map(([icon,label])=>(
+                <div key={label} style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                  <span style={{fontSize:'20px'}}>{icon}</span>
+                  <span style={{fontSize:'14px',fontWeight:'500',color:'#1B2B4B'}}>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem'}}>
+            {[
+              { icon:'🎯', title:'Our Mission', desc:'To empower South African SMEs with fast, transparent purchase order funding.' },
+              { icon:'👁️', title:'Our Vision', desc:'To become the leading PO funding marketplace in Africa.' },
+              { icon:'💎', title:'Our Values', desc:'Transparency, integrity and speed in everything we do.' },
+              { icon:'🤝', title:'Our Promise', desc:'Fair rates, fast decisions and full support throughout your journey.' },
+            ].map(({icon,title,desc})=>(
+              <div key={title} style={{background:'#fff',borderRadius:'12px',padding:'1.5rem',border:'1px solid #e5e5e5'}}>
+                <div style={{fontSize:'28px',marginBottom:'.75rem'}}>{icon}</div>
+                <h3 style={{fontSize:'15px',fontWeight:'600',color:'#1B2B4B',marginBottom:'.5rem'}}>{title}</h3>
                 <p style={{fontSize:'13px',color:'#666',lineHeight:'1.6'}}>{desc}</p>
               </div>
             ))}
@@ -68,53 +215,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="features" style={{padding:'2.5rem 1.5rem',borderTop:'1px solid #e5e5e5'}}>
-        <div style={{maxWidth:'760px',margin:'0 auto'}}>
-          <p style={{fontSize:'12px',fontWeight:'500',color:'#0F6E56',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:'.5rem'}}>Features</p>
-          <h2 style={{fontSize:'clamp(20px,4vw,28px)',fontWeight:'500',marginBottom:'1.5rem'}}>Built for SMEs, contractors & suppliers</h2>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:'12px'}}>
+      {/* PLATFORM TRUST */}
+      <section style={{padding:'4rem 2rem',background:'#1B2B4B'}}>
+        <div style={{maxWidth:'900px',margin:'0 auto',textAlign:'center'}}>
+          <h2 style={{fontSize:'32px',fontWeight:'700',color:'#fff',marginBottom:'1rem'}}>Platform Trust & Security</h2>
+          <p style={{fontSize:'16px',color:'#a8c4d4',marginBottom:'3rem'}}>Your data and documents are safe with us.</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:'1.5rem'}}>
             {[
-              ['🔒','Secure PO verification','Documents are validated and risk-assessed before listing.'],
-              ['⚡','Competitive marketplace','Multiple funders bid on your PO for the best rate.'],
-              ['📊','Offer comparison','Side-by-side comparison of rates, terms and fees.'],
-              ['🌍','Pan-African reach','Starting in South Africa, expanding across the continent.'],
-            ].map(([icon,title,desc])=>(
-              <div key={title as string} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
-                <div style={{fontSize:'20px',marginBottom:'.6rem'}}>{icon}</div>
-                <h3 style={{fontSize:'14px',fontWeight:'500',marginBottom:'.3rem'}}>{title}</h3>
-                <p style={{fontSize:'13px',color:'#666',lineHeight:'1.6'}}>{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section id="pricing" style={{padding:'2.5rem 1.5rem',borderTop:'1px solid #e5e5e5'}}>
-        <div style={{maxWidth:'760px',margin:'0 auto'}}>
-          <p style={{fontSize:'12px',fontWeight:'500',color:'#0F6E56',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:'.5rem'}}>Pricing</p>
-          <h2 style={{fontSize:'clamp(20px,4vw,28px)',fontWeight:'500',marginBottom:'1.5rem'}}>Simple, transparent plans</h2>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:'16px'}}>
-            {[
-              {name:'Starter',price:'Free',sub:'to list',features:['1 active PO listing','Access to all funders','Basic offer comparison','Transaction fee on funding'],featured:false},
-              {name:'Growth',price:'R499',sub:'/month',features:['Up to 5 active listings','Priority funder visibility','Advanced offer analytics','Reduced transaction fee'],featured:true},
-              {name:'Enterprise',price:'Custom',sub:'',features:['Unlimited PO listings','Dedicated account manager','API access','Risk assessment suite'],featured:false},
-            ].map(({name,price,sub,features,featured})=>(
-              <div key={name} style={{background:'#fff',border:featured?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
-                {featured && <div style={{display:'inline-block',background:'#E1F5EE',color:'#0F6E56',fontSize:'11px',padding:'3px 10px',borderRadius:'99px',marginBottom:'.5rem',fontWeight:'500'}}>Most popular</div>}
-                <h3 style={{fontSize:'16px',fontWeight:'500'}}>{name}</h3>
-                <div style={{fontSize:'22px',fontWeight:'500',margin:'.5rem 0'}}>{price} <span style={{fontSize:'13px',color:'#888',fontWeight:'400'}}>{sub}</span></div>
-                <ul style={{listStyle:'none',padding:0,marginTop:'.75rem'}}>
-                  {features.map(f=>(
-                    <li key={f} style={{fontSize:'13px',color:'#666',padding:'4px 0',display:'flex',gap:'6px'}}>
-                      <span style={{color:'#0F6E56',fontWeight:'500'}}>✓</span>{f}
-                    </li>
-                  ))}
-                </ul>
-                <a href="/register" style={{display:'block',textAlign:'center',marginTop:'1rem',padding:'10px',background:featured?'#0F6E56':'transparent',color:featured?'#fff':'#0F6E56',border:featured?'none':'1.5px solid #0F6E56',borderRadius:'8px',fontSize:'14px',textDecoration:'none',fontWeight:'500'}}>
-                  Get started ↗
-                </a>
+              { icon:'🔒', title:'256-bit encryption', desc:'All documents encrypted in transit and at rest' },
+              { icon:'✅', title:'Verified users only', desc:'Every user is manually verified by our team' },
+              { icon:'📋', title:'POPIA compliant', desc:'Full compliance with South African privacy laws' },
+              { icon:'🛡️', title:'Secure storage', desc:'Documents stored on enterprise-grade cloud infrastructure' },
+            ].map(({icon,title,desc})=>(
+              <div key={title} style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'12px',padding:'1.5rem',textAlign:'center'}}>
+                <div style={{fontSize:'32px',marginBottom:'.75rem'}}>{icon}</div>
+                <h3 style={{fontSize:'15px',fontWeight:'600',color:'#fff',marginBottom:'.5rem'}}>{title}</h3>
+                <p style={{fontSize:'13px',color:'#a8c4d4',lineHeight:'1.6'}}>{desc}</p>
               </div>
             ))}
           </div>
@@ -122,22 +238,93 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section style={{background:'#E1F5EE',borderRadius:'12px',padding:'2.5rem 1.5rem',textAlign:'center',margin:'1.5rem'}}>
-        <h2 style={{fontSize:'clamp(20px,4vw,28px)',fontWeight:'500',marginBottom:'.75rem',color:'#085041'}}>Ready to unlock your purchase orders?</h2>
-        <p style={{fontSize:'clamp(13px,3vw,15px)',color:'#0F6E56',marginBottom:'1.5rem'}}>Join hundreds of businesses already accessing fast, competitive PO funding.</p>
-        <a href="/register" style={{background:'#0F6E56',color:'#fff',padding:'12px 28px',borderRadius:'8px',fontSize:'15px',textDecoration:'none',fontWeight:'500'}}>
-          Create your free account ↗
-        </a>
+      <section style={{padding:'5rem 2rem',background:'linear-gradient(135deg, #4DBFB0 0%, #0F6E56 100%)',textAlign:'center'}}>
+        <h2 style={{fontSize:'40px',fontWeight:'700',color:'#fff',marginBottom:'1rem'}}>Ready to get funded?</h2>
+        <p style={{fontSize:'18px',color:'rgba(255,255,255,0.85)',marginBottom:'2.5rem',maxWidth:'600px',margin:'0 auto 2.5rem'}}>
+          Join hundreds of South African SMEs who have used FundMyPO to grow their businesses.
+        </p>
+        <div style={{display:'flex',gap:'1rem',justifyContent:'center',flexWrap:'wrap'}}>
+          <a href="/register" style={{background:'#fff',color:'#0F6E56',padding:'16px 40px',borderRadius:'8px',textDecoration:'none',fontSize:'16px',fontWeight:'700'}}>
+            Apply for Funding →
+          </a>
+          <a href="/register?role=funder" style={{background:'rgba(255,255,255,0.15)',color:'#fff',padding:'16px 40px',borderRadius:'8px',textDecoration:'none',fontSize:'16px',fontWeight:'600',border:'1px solid rgba(255,255,255,0.4)'}}>
+            Become a Funder
+          </a>
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section id="contact" style={{padding:'5rem 2rem',background:'#f8fafc'}}>
+        <div style={{maxWidth:'900px',margin:'0 auto',textAlign:'center'}}>
+          <p style={{fontSize:'13px',color:'#4DBFB0',fontWeight:'600',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'.5rem'}}>Get In Touch</p>
+          <h2 style={{fontSize:'36px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>Contact Us</h2>
+          <p style={{fontSize:'16px',color:'#666',marginBottom:'3rem'}}>Have questions? We are here to help.</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:'1.5rem',marginBottom:'3rem'}}>
+            {[
+              { icon:'📧', title:'Email', value:'info@fundmypo.co.za' },
+              { icon:'📱', title:'WhatsApp', value:'+27 XX XXX XXXX' },
+              { icon:'🌍', title:'Website', value:'fundmypo.co.za' },
+              { icon:'📍', title:'Location', value:'South Africa' },
+            ].map(({icon,title,value})=>(
+              <div key={title} style={{background:'#fff',borderRadius:'12px',padding:'1.5rem',border:'1px solid #e5e5e5'}}>
+                <div style={{fontSize:'28px',marginBottom:'.75rem'}}>{icon}</div>
+                <h3 style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B',marginBottom:'.25rem'}}>{title}</h3>
+                <p style={{fontSize:'13px',color:'#666'}}>{value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* FOOTER */}
-      <footer style={{padding:'1.5rem',borderTop:'1px solid #e5e5e5',display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',textAlign:'center'}}>
-        <div style={{fontSize:'16px',fontWeight:'500'}}>Fund<span style={{color:'#0F6E56'}}>MyPO</span></div>
-        <p style={{fontSize:'13px',color:'#888'}}>© 2025 Project Pulse Innovation. All rights reserved.</p>
-        <div style={{display:'flex',gap:'1rem'}}>
-          <a href="/privacy" style={{fontSize:'13px',color:'#888',textDecoration:'none'}}>Privacy</a>
-          <a href="/terms" style={{fontSize:'13px',color:'#888',textDecoration:'none'}}>Terms</a>
-          <a href="#" style={{fontSize:'13px',color:'#888',textDecoration:'none'}}>Contact</a>
+      <footer style={{background:'#1B2B4B',padding:'3rem 2rem 1.5rem'}}>
+        <div style={{maxWidth:'1100px',margin:'0 auto'}}>
+          <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',gap:'2rem',marginBottom:'2rem',flexWrap:'wrap'}}>
+            <div>
+              <img src="/logo.png" alt="FundMyPO" style={{height:'36px',marginBottom:'1rem',filter:'brightness(0) invert(1)'}}/>
+              <p style={{fontSize:'13px',color:'#a8c4d4',lineHeight:'1.8',maxWidth:'280px'}}>
+                South Africa's leading purchase order funding marketplace connecting SMEs with verified funders.
+              </p>
+              <div style={{display:'flex',gap:'12px',marginTop:'1.5rem'}}>
+                {[
+                  { icon:'W', label:'WhatsApp', color:'#25D366', href:'https://wa.me/27XXXXXXXXX' },
+                  { icon:'X', label:'X', color:'#000', href:'https://x.com/fundmypo' },
+                  { icon:'f', label:'Facebook', color:'#1877F2', href:'https://facebook.com/fundmypo' },
+                  { icon:'📷', label:'Instagram', color:'#E4405F', href:'https://instagram.com/fundmypo' },
+                ].map(({icon,label,color,href})=>(
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                    style={{width:'36px',height:'36px',borderRadius:'50%',background:color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',fontWeight:'700',color:'#fff',textDecoration:'none'}}>
+                    {icon}
+                  </a>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h4 style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'1rem'}}>Platform</h4>
+              {[['For SMEs','/register'],['For Funders','/register?role=funder'],['How It Works','#howitworks'],['Pricing','#']].map(([label,href])=>(
+                <a key={label} href={href} style={{display:'block',fontSize:'13px',color:'#a8c4d4',textDecoration:'none',marginBottom:'.5rem'}}>{label}</a>
+              ))}
+            </div>
+            <div>
+              <h4 style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'1rem'}}>Company</h4>
+              {[['About Us','#about'],['Contact','#contact'],['Blog','#'],['Careers','#']].map(([label,href])=>(
+                <a key={label} href={href} style={{display:'block',fontSize:'13px',color:'#a8c4d4',textDecoration:'none',marginBottom:'.5rem'}}>{label}</a>
+              ))}
+            </div>
+            <div>
+              <h4 style={{fontSize:'14px',fontWeight:'600',color:'#fff',marginBottom:'1rem'}}>Legal</h4>
+              {[['Privacy Policy','/privacy'],['Terms & Conditions','/terms'],['POPIA Compliance','#'],['Cookie Policy','#']].map(([label,href])=>(
+                <a key={label} href={href} style={{display:'block',fontSize:'13px',color:'#a8c4d4',textDecoration:'none',marginBottom:'.5rem'}}>{label}</a>
+              ))}
+            </div>
+          </div>
+          <div style={{borderTop:'1px solid rgba(255,255,255,0.1)',paddingTop:'1.5rem',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'1rem'}}>
+            <p style={{fontSize:'13px',color:'#a8c4d4'}}>© 2025 FundMyPO. All rights reserved. Proudly South African 🇿🇦</p>
+            <div style={{display:'flex',gap:'1.5rem'}}>
+              <a href="/privacy" style={{fontSize:'13px',color:'#a8c4d4',textDecoration:'none'}}>Privacy</a>
+              <a href="/terms" style={{fontSize:'13px',color:'#a8c4d4',textDecoration:'none'}}>Terms</a>
+            </div>
+          </div>
         </div>
       </footer>
 
