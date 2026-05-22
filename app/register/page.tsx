@@ -46,6 +46,13 @@ export default function RegisterPage() {
     )
   }
 
+  const passwordChecks = [
+    { label: 'At least 8 characters', met: password.length >= 8 },
+    { label: 'At least one uppercase letter', met: /[A-Z]/.test(password) },
+    { label: 'At least one number', met: /[0-9]/.test(password) },
+  ]
+  const passwordValid = passwordChecks.every(c => c.met)
+
   async function handleForgotPassword() {
     if (!email) { setError('Please enter your email address first.'); return }
     setLoading(true)
@@ -53,7 +60,7 @@ export default function RegisterPage() {
     try {
       const supabase = await getSupabase()
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://fundmy-po.vercel.co.za/reset-password'
+        redirectTo: 'https://fundmypo.co.za/reset-password'
       })
       setLoading(false)
       if (error) { setError(error.message); return }
@@ -315,11 +322,23 @@ export default function RegisterPage() {
                       <input type="text" placeholder={role==='business'?'2021/123456/07':'FSP 12345'}
                         value={companyReg} onChange={e=>setCompanyReg(e.target.value)} style={inputFilled(companyReg)}/>
                     </div>
+
                     <div style={fieldStyle}>
                       <label style={labelStyle}>Password <span style={{color:'#DC2626'}}>*</span></label>
-                      <input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)} style={inputFilled(password)}/>
-                      {password.length > 0 && password.length < 8 && (
-                        <p style={{fontSize:'12px',color:'#DC2626',marginTop:'4px'}}>Password must be at least 8 characters</p>
+                      <input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}
+                        style={{...inputStyle, borderColor: password.length === 0 ? '#e5e5e5' : passwordValid ? '#0F6E56' : '#DC2626'}}/>
+                      {password.length > 0 && (
+                        <div style={{marginTop:'8px',padding:'10px',background:'#f9f9f9',borderRadius:'8px',border:'1px solid #e5e5e5'}}>
+                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'6px'}}>Password requirements:</p>
+                          <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
+                            {passwordChecks.map(({label,met})=>(
+                              <div key={label} style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                <span style={{fontSize:'14px',color:met?'#0F6E56':'#DC2626'}}>{met?'✓':'✗'}</span>
+                                <span style={{fontSize:'12px',color:met?'#0F6E56':'#DC2626'}}>{label}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
 
@@ -332,8 +351,8 @@ export default function RegisterPage() {
                         setError('Please fill in all required fields before continuing.')
                         return
                       }
-                      if (password.length < 8) {
-                        setError('Password must be at least 8 characters.')
+                      if (!passwordValid) {
+                        setError('Password does not meet all requirements.')
                         return
                       }
                       if (!email.includes('@')) {
@@ -342,7 +361,7 @@ export default function RegisterPage() {
                       }
                       setError('')
                       setStep(2)
-                    }} style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
+                    }} style={{width:'100%',padding:'11px',background: passwordValid && firstName && lastName && businessName && email && phone && companyReg ? '#0F6E56' : '#9CA3AF',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
                       Continue to verification →
                     </button>
                   </div>
