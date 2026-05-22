@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState, useEffect } from 'react'
 
 const SUPABASE_URL = 'https://efzszombcfxyyobqehyp.supabase.co'
@@ -205,22 +205,22 @@ export default function AdminDashboard() {
             {/* PENDING APPROVALS */}
             {pendingUsers.length > 0 && (
               <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem',marginBottom:'1.5rem'}}>
-                <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>⏳ Pending User Approvals ({pendingUsers.length})</h2>
+                <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>? Pending User Approvals ({pendingUsers.length})</h2>
                 {pendingUsers.map(user=>(
                   <div key={user.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:'1px solid #f0f0f0',flexWrap:'wrap',gap:'8px'}}>
                     <div>
                       <p style={{fontSize:'14px',fontWeight:'500'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name+' '+user.user_metadata?.last_name}</p>
                       <p style={{fontSize:'12px',color:'#666'}}>{user.email}</p>
-                      <p style={{fontSize:'12px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '💰 Funder' : '🏢 Business'} — Joined {new Date(user.created_at).toLocaleDateString('en-ZA')}</p>
+                      <p style={{fontSize:'12px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '?? Funder' : '?? Business'} � Joined {new Date(user.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
                     <div style={{display:'flex',gap:'8px'}}>
                       <button onClick={()=>handleApprove(user.id)}
                         style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'7px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                        Approve ✓
+                        Approve ?
                       </button>
                       <button onClick={()=>handleReject(user.id)}
                         style={{fontSize:'13px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'7px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
-                        Reject ✗
+                        Reject ?
                       </button>
                     </div>
                   </div>
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
                       <span style={{fontSize:'14px',fontWeight:'500'}}>{po.po_number || 'PO-'+po.id.slice(0,8)}</span>
                       <StatusBadge status={po.status}/>
                     </div>
-                    <p style={{fontSize:'12px',color:'#666'}}>{po.client_name} • {po.sector}</p>
+                    <p style={{fontSize:'12px',color:'#666'}}>{po.client_name} � {po.sector}</p>
                   </div>
                   <div style={{textAlign:'right'}}>
                     <p style={{fontSize:'14px',fontWeight:'500',color:'#0F6E56'}}>R {po.po_value?.toLocaleString()}</p>
@@ -259,7 +259,7 @@ export default function AdminDashboard() {
                   <div>
                     <p style={{fontSize:'14px',fontWeight:'500'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name+' '+user.user_metadata?.last_name || user.email}</p>
                     <p style={{fontSize:'12px',color:'#666'}}>{user.email}</p>
-                    <p style={{fontSize:'11px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '💰 Funder' : '🏢 Business'}</p>
+                    <p style={{fontSize:'11px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '?? Funder' : '?? Business'}</p>
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                     <StatusBadge status={userStatuses[user.id] || 'pending'}/>
@@ -295,7 +295,7 @@ export default function AdminDashboard() {
                           <span style={{fontSize:'15px',fontWeight:'500'}}>{user.user_metadata?.business_name || (user.user_metadata?.first_name+' '+user.user_metadata?.last_name) || 'Unknown'}</span>
                           <StatusBadge status={currentStatus}/>
                           <span style={{fontSize:'12px',color:'#666',background:'#f5f5f5',padding:'2px 8px',borderRadius:'99px'}}>
-                            {role === 'funder' ? '💰 Funder' : '🏢 Business'}
+                            {role === 'funder' ? '?? Funder' : '?? Business'}
                           </span>
                         </div>
                         <p style={{fontSize:'13px',color:'#666'}}>{user.email}</p>
@@ -320,16 +320,16 @@ export default function AdminDashboard() {
                           <>
                             <button onClick={()=>handleApprove(user.id)}
                               style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
-                              Approve ✓
+                              Approve ?
                             </button>
                             <button onClick={()=>handleReject(user.id)}
                               style={{fontSize:'12px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
-                              Reject ✗
+                              Reject ?
                             </button>
                           </>
                         )}
                         {currentStatus === 'approved' && (
-                          <span style={{fontSize:'12px',color:'#085041',background:'#E1F5EE',padding:'6px 12px',borderRadius:'6px',fontWeight:'500'}}>✓ Approved</span>
+                          <span style={{fontSize:'12px',color:'#085041',background:'#E1F5EE',padding:'6px 12px',borderRadius:'6px',fontWeight:'500'}}>? Approved</span>
                         )}
                         {currentStatus === 'rejected' && (
                           <button onClick={()=>handleApprove(user.id)}
@@ -372,9 +372,9 @@ export default function AdminDashboard() {
                         <StatusBadge status={po.status}/>
                       </div>
                       <p style={{fontSize:'13px',color:'#666'}}>{po.client_name}</p>
-                      <p style={{fontSize:'12px',color:'#888'}}>{po.sector} • {po.client_department}</p>
+                      <p style={{fontSize:'12px',color:'#888'}}>{po.sector} � {po.client_department}</p>
                       <p style={{fontSize:'12px',color:'#888'}}>Supplier: {po.supplier_name}</p>
-                      <p style={{fontSize:'11px',color:'#888'}}>📅 {new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
+                      <p style={{fontSize:'11px',color:'#888'}}>?? {new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
                     <div style={{textAlign:'right'}}>
                       <p style={{fontSize:'16px',fontWeight:'500',color:'#0F6E56'}}>R {po.po_value?.toLocaleString()}</p>
@@ -411,7 +411,7 @@ export default function AdminDashboard() {
                         await supabase.from('purchase_orders').update({ status: 'active' }).eq('id', po.id)
                         loadData()
                       }} style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
-                        Approve PO ✓
+                        Approve PO ?
                       </button>
                     )}
                   </div>
@@ -441,8 +441,8 @@ export default function AdminDashboard() {
                         <StatusBadge status={offer.status}/>
                       </div>
                       <p style={{fontSize:'13px',color:'#666'}}>Client: {offer.purchase_orders?.client_name}</p>
-                      <p style={{fontSize:'12px',color:'#888'}}>Rate: {offer.interest_rate}% • Term: {offer.term_days} days</p>
-                      <p style={{fontSize:'11px',color:'#888'}}>📅 {new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
+                      <p style={{fontSize:'12px',color:'#888'}}>Rate: {offer.interest_rate}% � Term: {offer.term_days} days</p>
+                      <p style={{fontSize:'11px',color:'#888'}}>?? {new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
                     <div style={{textAlign:'right'}}>
                       <p style={{fontSize:'16px',fontWeight:'500',color:'#0F6E56'}}>R {offer.amount?.toLocaleString()}</p>
@@ -488,7 +488,7 @@ export default function AdminDashboard() {
                         <StatusBadge status={offer.status}/>
                       </div>
                       <p style={{fontSize:'13px',color:'#666'}}>{offer.purchase_orders?.client_name}</p>
-                      <p style={{fontSize:'12px',color:'#888'}}>📅 {new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
+                      <p style={{fontSize:'12px',color:'#888'}}>?? {new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
                     <div style={{textAlign:'right'}}>
                       <p style={{fontSize:'18px',fontWeight:'500',color:'#0F6E56'}}>R {(offer.amount * 0.02).toLocaleString()}</p>

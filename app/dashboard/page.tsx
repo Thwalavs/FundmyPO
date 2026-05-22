@@ -125,7 +125,7 @@ export default function DashboardPage() {
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
         <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',filter:'brightness(0) invert(1)'}}/>
+          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',filter:'none'}}/>
         </a>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
           <span style={{fontSize:'13px',background:'rgba(255,255,255,0.1)',color:'#fff',padding:'4px 12px',borderRadius:'99px'}}>🏢 Supplier Portal</span>
