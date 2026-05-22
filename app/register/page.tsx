@@ -140,6 +140,41 @@ export default function RegisterPage() {
           if (proofFunds) { setUploadProgress('Uploading proof of funds...'); await uploadFile(supabase, proofFunds, userId, 'proof-of-funds') }
         }
       }
+
+      // Send welcome email
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'welcome',
+            to: email,
+            data: {
+              name: firstName || businessName,
+              role: role,
+            }
+          })
+        })
+      } catch(e) { console.log('Welcome email failed:', e) }
+
+      // Send admin notification
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'new_po_submitted',
+            to: 'vsiphoesihle@gmail.com',
+            data: {
+              businessName: businessName || firstName,
+              poNumber: 'New Registration',
+              clientName: email,
+              poValue: role === 'funder' ? 'Funder' : 'Supplier',
+            }
+          })
+        })
+      } catch(e) { console.log('Admin email failed:', e) }
+
       setUploadProgress('')
       setSuccess(true)
       setLoading(false)
@@ -207,7 +242,6 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* LOGIN */}
         {tab === 'login' && (
           <div>
             <p style={{fontSize:'13px',color:'#666',marginBottom:'1rem'}}>
@@ -247,7 +281,6 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* REGISTER */}
         {tab === 'register' && (
           <div>
             {success ? (
@@ -280,7 +313,6 @@ export default function RegisterPage() {
                   })}
                 </div>
 
-                {/* STEP 1 */}
                 {step === 1 && (
                   <div>
                     <p style={{fontSize:'13px',color:'#666666',marginBottom:'1rem'}}>I am registering as a:</p>
@@ -322,7 +354,6 @@ export default function RegisterPage() {
                       <input type="text" placeholder={role==='business'?'2021/123456/07':'FSP 12345'}
                         value={companyReg} onChange={e=>setCompanyReg(e.target.value)} style={inputFilled(companyReg)}/>
                     </div>
-
                     <div style={fieldStyle}>
                       <label style={labelStyle}>Password <span style={{color:'#DC2626'}}>*</span></label>
                       <input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}
@@ -341,11 +372,9 @@ export default function RegisterPage() {
                         </div>
                       )}
                     </div>
-
                     <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
                       <span style={{color:'#DC2626'}}>*</span> All fields are required
                     </div>
-
                     <button onClick={()=>{
                       if (!firstName || !lastName || !businessName || !email || !phone || !companyReg || !password) {
                         setError('Please fill in all required fields before continuing.')
@@ -361,24 +390,21 @@ export default function RegisterPage() {
                       }
                       setError('')
                       setStep(2)
-                    }} style={{width:'100%',padding:'11px',background: passwordValid && firstName && lastName && businessName && email && phone && companyReg ? '#0F6E56' : '#9CA3AF',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
+                    }} style={{width:'100%',padding:'11px',background:passwordValid&&firstName&&lastName&&businessName&&email&&phone&&companyReg?'#0F6E56':'#9CA3AF',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
                       Continue to verification →
                     </button>
                   </div>
                 )}
 
-                {/* STEP 2 */}
                 {step === 2 && (
                   <div>
                     <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
                       <p style={{fontSize:'13px',color:'#085041',fontWeight:'500',marginBottom:'3px'}}>🔒 Your documents are secure</p>
                       <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and stored securely. Only verified parties can access them.</p>
                     </div>
-
                     <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
                       <span style={{color:'#DC2626'}}>*</span> All documents are required before submitting
                     </div>
-
                     {role === 'business' ? (
                       <div>
                         <UploadBox label="Company Registration Certificate" file={companyDoc} onChange={setCompanyDoc} required/>
@@ -394,25 +420,21 @@ export default function RegisterPage() {
                         <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds} required/>
                       </div>
                     )}
-
                     {uploadProgress && (
                       <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'13px',color:'#085041',textAlign:'center'}}>
                         ⏳ {uploadProgress}
                       </div>
                     )}
-
                     <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                       <p style={{fontSize:'13px',color:'#633806',fontWeight:'500',marginBottom:'3px'}}>⏱ Review process</p>
                       <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
                     </div>
-
                     <p style={{fontSize:'12px',color:'#888',marginBottom:'1rem',textAlign:'center'}}>
                       By creating an account you agree to our{' '}
                       <a href="/terms" target="_blank" style={{color:'#0F6E56'}}>Terms & Conditions</a>
                       {' '}and{' '}
                       <a href="/privacy" target="_blank" style={{color:'#0F6E56'}}>Privacy Policy</a>
                     </p>
-
                     <div style={{display:'flex',gap:'12px'}}>
                       <button onClick={()=>{ setError(''); setStep(1) }}
                         style={{flex:1,padding:'11px',background:'transparent',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>
