@@ -141,7 +141,6 @@ export default function RegisterPage() {
         }
       }
 
-      // Send welcome email
       try {
         await fetch('/api/send-email', {
           method: 'POST',
@@ -149,15 +148,11 @@ export default function RegisterPage() {
           body: JSON.stringify({
             type: 'welcome',
             to: email,
-            data: {
-              name: firstName || businessName,
-              role: role,
-            }
+            data: { name: firstName || businessName, role }
           })
         })
       } catch(e) { console.log('Welcome email failed:', e) }
 
-      // Send admin notification
       try {
         await fetch('/api/send-email', {
           method: 'POST',
@@ -191,7 +186,7 @@ export default function RegisterPage() {
   function UploadBox({ label, file, onChange, required }: { label: string, file: File|null, onChange: (f: File|null) => void, required?: boolean }) {
     return (
       <div style={fieldStyle}>
-        <label style={labelStyle}>{label} {required && <span style={{color:'#DC2626'}}>*</span>}</label>
+        <label style={labelStyle}>{label} {required && <span style={{color:'#DC2626'}}>*</span>}{!required && <span style={{fontSize:'11px',color:'#888'}}> (optional)</span>}</label>
         <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative'}}>
           {file ? (
             <div>
@@ -350,9 +345,10 @@ export default function RegisterPage() {
                       <input type="tel" placeholder="+27 82 000 0000" value={phone} onChange={e=>setPhone(e.target.value)} style={inputFilled(phone)}/>
                     </div>
                     <div style={fieldStyle}>
-                      <label style={labelStyle}>{role==='business'?'Company registration number':'FSCA registration number'} <span style={{color:'#DC2626'}}>*</span></label>
-                      <input type="text" placeholder={role==='business'?'2021/123456/07':'FSP 12345'}
-                        value={companyReg} onChange={e=>setCompanyReg(e.target.value)} style={inputFilled(companyReg)}/>
+                      <label style={labelStyle}>{role==='business'?'Company registration number':'FSCA registration number (optional)'}</label>
+                      <input type="text" placeholder={role==='business'?'2021/123456/07':'FSP 12345 (if applicable)'}
+                        value={companyReg} onChange={e=>setCompanyReg(e.target.value)}
+                        style={{...inputStyle, borderColor: companyReg ? '#0F6E56' : '#e5e5e5'}}/>
                     </div>
                     <div style={fieldStyle}>
                       <label style={labelStyle}>Password <span style={{color:'#DC2626'}}>*</span></label>
@@ -373,11 +369,15 @@ export default function RegisterPage() {
                       )}
                     </div>
                     <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
-                      <span style={{color:'#DC2626'}}>*</span> All fields are required
+                      <span style={{color:'#DC2626'}}>*</span> Required fields
                     </div>
                     <button onClick={()=>{
-                      if (!firstName || !lastName || !businessName || !email || !phone || !companyReg || !password) {
+                      if (!firstName || !lastName || !businessName || !email || !phone || !password) {
                         setError('Please fill in all required fields before continuing.')
+                        return
+                      }
+                      if (role === 'business' && !companyReg) {
+                        setError('Please enter your company registration number.')
                         return
                       }
                       if (!passwordValid) {
@@ -390,7 +390,7 @@ export default function RegisterPage() {
                       }
                       setError('')
                       setStep(2)
-                    }} style={{width:'100%',padding:'11px',background:passwordValid&&firstName&&lastName&&businessName&&email&&phone&&companyReg?'#0F6E56':'#9CA3AF',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
+                    }} style={{width:'100%',padding:'11px',background:passwordValid&&firstName&&lastName&&businessName&&email&&phone?'#0F6E56':'#9CA3AF',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
                       Continue to verification →
                     </button>
                   </div>
@@ -402,9 +402,19 @@ export default function RegisterPage() {
                       <p style={{fontSize:'13px',color:'#085041',fontWeight:'500',marginBottom:'3px'}}>🔒 Your documents are secure</p>
                       <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and stored securely. Only verified parties can access them.</p>
                     </div>
-                    <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
-                      <span style={{color:'#DC2626'}}>*</span> All documents are required before submitting
-                    </div>
+
+                    {role === 'business' && (
+                      <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
+                        <span style={{color:'#DC2626'}}>*</span> All 5 documents are required for suppliers
+                      </div>
+                    )}
+
+                    {role === 'funder' && (
+                      <div style={{background:'#E6F1FB',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#0C447C'}}>
+                        💡 Upload as many documents as you have available. FSCA license is optional.
+                      </div>
+                    )}
+
                     {role === 'business' ? (
                       <div>
                         <UploadBox label="Company Registration Certificate" file={companyDoc} onChange={setCompanyDoc} required/>
@@ -415,26 +425,30 @@ export default function RegisterPage() {
                       </div>
                     ) : (
                       <div>
-                        <UploadBox label="FSCA License" file={fscaDoc} onChange={setFscaDoc} required/>
-                        <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc} required/>
-                        <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds} required/>
+                        <UploadBox label="FSCA License" file={fscaDoc} onChange={setFscaDoc}/>
+                        <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc}/>
+                        <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds}/>
                       </div>
                     )}
+
                     {uploadProgress && (
                       <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'13px',color:'#085041',textAlign:'center'}}>
                         ⏳ {uploadProgress}
                       </div>
                     )}
+
                     <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                       <p style={{fontSize:'13px',color:'#633806',fontWeight:'500',marginBottom:'3px'}}>⏱ Review process</p>
                       <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
                     </div>
+
                     <p style={{fontSize:'12px',color:'#888',marginBottom:'1rem',textAlign:'center'}}>
                       By creating an account you agree to our{' '}
                       <a href="/terms" target="_blank" style={{color:'#0F6E56'}}>Terms & Conditions</a>
                       {' '}and{' '}
                       <a href="/privacy" target="_blank" style={{color:'#0F6E56'}}>Privacy Policy</a>
                     </p>
+
                     <div style={{display:'flex',gap:'12px'}}>
                       <button onClick={()=>{ setError(''); setStep(1) }}
                         style={{flex:1,padding:'11px',background:'transparent',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>
@@ -444,11 +458,6 @@ export default function RegisterPage() {
                         if (role === 'business') {
                           if (!companyDoc || !idDoc || !csdDoc || !taxDoc || !bbbeeDoc) {
                             setError('Please upload all 5 required documents before submitting.')
-                            return
-                          }
-                        } else {
-                          if (!fscaDoc || !idDoc || !proofFunds) {
-                            setError('Please upload all 3 required documents before submitting.')
                             return
                           }
                         }
