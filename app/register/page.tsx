@@ -27,6 +27,7 @@ export default function RegisterPage() {
   const [fscaDoc, setFscaDoc] = useState<File|null>(null)
   const [proofFunds, setProofFunds] = useState<File|null>(null)
   const [uploadProgress, setUploadProgress] = useState('')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -88,13 +89,9 @@ export default function RegisterPage() {
         setLoading(false)
         return
       }
-      if (userRole === 'admin') {
-        router.push('/admin')
-      } else if (userRole === 'funder') {
-        router.push('/funder')
-      } else {
-        router.push('/dashboard')
-      }
+      if (userRole === 'admin') { router.push('/admin') }
+      else if (userRole === 'funder') { router.push('/funder') }
+      else { router.push('/dashboard') }
     } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
   }
 
@@ -112,18 +109,8 @@ export default function RegisterPage() {
     try {
       const supabase = await getSupabase()
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            role,
-            first_name: firstName,
-            last_name: lastName,
-            business_name: businessName,
-            phone,
-            company_reg: companyReg,
-          }
-        }
+        email, password,
+        options: { data: { role, first_name: firstName, last_name: lastName, business_name: businessName, phone, company_reg: companyReg } }
       })
       if (error) { setError(error.message); setLoading(false); return }
       const userId = data.user?.id
@@ -140,36 +127,18 @@ export default function RegisterPage() {
           if (proofFunds) { setUploadProgress('Uploading proof of funds...'); await uploadFile(supabase, proofFunds, userId, 'proof-of-funds') }
         }
       }
-
       try {
         await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'welcome',
-            to: email,
-            data: { name: firstName || businessName, role }
-          })
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'welcome', to: email, data: { name: firstName || businessName, role } })
         })
       } catch(e) { console.log('Welcome email failed:', e) }
-
       try {
         await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'new_po_submitted',
-            to: 'vsiphoesihle@gmail.com',
-            data: {
-              businessName: businessName || firstName,
-              poNumber: 'New Registration',
-              clientName: email,
-              poValue: role === 'funder' ? 'Funder' : 'Supplier',
-            }
-          })
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'new_po_submitted', to: 'vsiphoesihle@gmail.com', data: { businessName: businessName || firstName, poNumber: 'New Registration', clientName: email, poValue: role === 'funder' ? 'Funder' : 'Supplier' } })
         })
       } catch(e) { console.log('Admin email failed:', e) }
-
       setUploadProgress('')
       setSuccess(true)
       setLoading(false)
@@ -178,16 +147,20 @@ export default function RegisterPage() {
 
   if (!mounted) return null
 
-  const inputStyle = {width:'100%',padding:'9px 12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}
+  const inputStyle = {width:'100%',padding:'10px 14px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none',background:'#fff'}
   const inputFilled = (val: string) => ({...inputStyle, borderColor: val ? '#0F6E56' : '#e5e5e5'})
-  const labelStyle = {display:'block' as const,fontSize:'13px',color:'#666666',marginBottom:'5px'}
+  const labelStyle = {display:'block' as const,fontSize:'13px',color:'#555',marginBottom:'6px',fontWeight:'500'}
   const fieldStyle = {marginBottom:'1rem'}
 
   function UploadBox({ label, file, onChange, required }: { label: string, file: File|null, onChange: (f: File|null) => void, required?: boolean }) {
     return (
       <div style={fieldStyle}>
-        <label style={labelStyle}>{label} {required && <span style={{color:'#DC2626'}}>*</span>}{!required && <span style={{fontSize:'11px',color:'#888'}}> (optional)</span>}</label>
-        <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative'}}>
+        <label style={labelStyle}>
+          {label}{' '}
+          {required && <span style={{color:'#DC2626'}}>*</span>}
+          {!required && <span style={{fontSize:'11px',color:'#888'}}> (optional)</span>}
+        </label>
+        <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative',cursor:'pointer'}}>
           {file ? (
             <div>
               <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'500'}}>✓ {file.name}</p>
@@ -195,285 +168,301 @@ export default function RegisterPage() {
             </div>
           ) : (
             <div>
-              <p style={{fontSize:'13px',color:'#666'}}>📎 Click to upload {label}</p>
+              <p style={{fontSize:'24px',marginBottom:'.25rem'}}>📎</p>
+              <p style={{fontSize:'13px',color:'#666'}}>Click to upload {label}</p>
               <p style={{fontSize:'12px',color:'#aaa',marginTop:'2px'}}>PDF, JPG or PNG — max 5MB</p>
             </div>
           )}
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png"
-            onChange={e=>onChange(e.target.files?.[0]||null)}
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e=>onChange(e.target.files?.[0]||null)}
             style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',opacity:0,cursor:'pointer'}}/>
         </div>
       </div>
     )
   }
 
+  const isFunder = portalRole === 'funder'
+
   return (
-    <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem'}}>
+    <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
 
-      <a href="/" style={{fontSize:'22px',fontWeight:'500',marginBottom:'1.5rem',textDecoration:'none',color:'#1a1a1a'}}>
-        Fund<span style={{color:'#0F6E56'}}>MyPO</span>
-      </a>
-
-      <div style={{background:portalRole==='funder'?'#0C447C':'#085041',borderRadius:'8px',padding:'8px 20px',marginBottom:'1.5rem',fontSize:'13px',color:'#fff',fontWeight:'500'}}>
-        {portalRole === 'funder' ? '💰 Funder Portal' : '🏢 Supplier Portal'}
-      </div>
-
-      <div style={{background:'#ffffff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'460px'}}>
-
-        <div style={{display:'flex',border:'1px solid #e5e5e5',borderRadius:'8px',overflow:'hidden',marginBottom:'1.5rem'}}>
-          <button onClick={()=>{setTab('login');setStep(1);setError('')}}
-            style={{flex:1,padding:'9px',fontSize:'14px',fontWeight:'500',border:'none',cursor:'pointer',background:tab==='login'?'#0F6E56':'transparent',color:tab==='login'?'#ffffff':'#666666'}}>
-            Sign in
-          </button>
-          <button onClick={()=>{setTab('register');setStep(1);setError('')}}
-            style={{flex:1,padding:'9px',fontSize:'14px',fontWeight:'500',border:'none',cursor:'pointer',background:tab==='register'?'#0F6E56':'transparent',color:tab==='register'?'#ffffff':'#666666'}}>
-            Create account
-          </button>
+      {/* NAV */}
+      <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
+        <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
+          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',filter:'brightness(0) invert(1)'}}/>
+        </a>
+        <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
+          <span style={{fontSize:'13px',background:isFunder?'rgba(77,191,176,0.2)':'rgba(255,255,255,0.1)',color:isFunder?'#4DBFB0':'#fff',padding:'4px 12px',borderRadius:'99px',fontWeight:'500'}}>
+            {isFunder ? '💰 Funder Portal' : '🏢 Supplier Portal'}
+          </span>
+          <a href="/" style={{fontSize:'13px',color:'rgba(255,255,255,0.7)',textDecoration:'none'}}>← Back to home</a>
         </div>
+      </nav>
 
-        {error && (
-          <div style={{background:'#FEE2E2',border:'1px solid #FCA5A5',borderRadius:'8px',padding:'10px 12px',marginBottom:'1rem',fontSize:'13px',color:'#DC2626'}}>
-            {error}
-          </div>
-        )}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'2rem',minHeight:'calc(100vh - 65px)'}}>
+        <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'480px',boxShadow:'0 4px 24px rgba(0,0,0,0.06)'}}>
 
-        {tab === 'login' && (
-          <div>
-            <p style={{fontSize:'13px',color:'#666',marginBottom:'1rem'}}>
-              {portalRole === 'funder' ? 'Sign in to your funder account' : 'Sign in to your supplier account'}
+          <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
+            <h1 style={{fontSize:'22px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>
+              {tab === 'login' ? (isFunder ? 'Funder Sign In' : 'Supplier Sign In') : (isFunder ? 'Create Funder Account' : 'Create Supplier Account')}
+            </h1>
+            <p style={{fontSize:'13px',color:'#888'}}>
+              {tab === 'login' ? 'Welcome back to FundMyPO' : 'Join South Africa\'s leading PO funding platform'}
             </p>
-            <div style={fieldStyle}>
-              <label style={labelStyle}>Email address</label>
-              <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)} style={inputStyle}/>
-            </div>
-            <div style={fieldStyle}>
-              <label style={labelStyle}>Password</label>
-              <input type="password" placeholder="Your password" value={password} onChange={e=>setPassword(e.target.value)} style={inputStyle}/>
-            </div>
-            <div style={{textAlign:'right',marginBottom:'1rem'}}>
-              <button onClick={handleForgotPassword} disabled={loading}
-                style={{fontSize:'13px',color:'#0F6E56',background:'none',border:'none',cursor:'pointer',padding:0}}>
-                Forgot password?
-              </button>
-            </div>
-            <button onClick={()=>handleLogin(portalRole)} disabled={loading}
-              style={{width:'100%',padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
-              {loading ? 'Signing in...' : 'Sign in'}
+          </div>
+
+          <div style={{display:'flex',border:'1px solid #e5e5e5',borderRadius:'10px',overflow:'hidden',marginBottom:'1.5rem'}}>
+            <button onClick={()=>{setTab('login');setStep(1);setError('')}}
+              style={{flex:1,padding:'10px',fontSize:'14px',fontWeight:'600',border:'none',cursor:'pointer',background:tab==='login'?'#0F6E56':'transparent',color:tab==='login'?'#fff':'#666'}}>
+              Sign in
             </button>
-            <p style={{textAlign:'center',fontSize:'13px',color:'#666666',marginTop:'1rem'}}>
-              No account?{' '}
-              <button onClick={()=>setTab('register')} style={{color:'#0F6E56',background:'none',border:'none',cursor:'pointer',fontSize:'13px'}}>
-                Create one free
-              </button>
-            </p>
-            <p style={{textAlign:'center',fontSize:'12px',color:'#888',marginTop:'.5rem'}}>
-              {portalRole === 'funder' ? (
-                <>Wrong portal? <a href="/register" style={{color:'#0F6E56'}}>Go to supplier login</a></>
-              ) : (
-                <>Are you a funder? <a href="/register?role=funder" style={{color:'#0F6E56'}}>Go to funder login</a></>
-              )}
-            </p>
+            <button onClick={()=>{setTab('register');setStep(1);setError('')}}
+              style={{flex:1,padding:'10px',fontSize:'14px',fontWeight:'600',border:'none',cursor:'pointer',background:tab==='register'?'#0F6E56':'transparent',color:tab==='register'?'#fff':'#666'}}>
+              Create account
+            </button>
           </div>
-        )}
 
-        {tab === 'register' && (
-          <div>
-            {success ? (
-              <div style={{background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'8px',padding:'1.5rem',textAlign:'center'}}>
-                <div style={{fontSize:'32px',marginBottom:'.5rem'}}>🎉</div>
-                <p style={{color:'#085041',fontSize:'15px',fontWeight:'500',marginBottom:'.5rem'}}>Account created successfully!</p>
-                <p style={{color:'#0F6E56',fontSize:'13px',marginBottom:'1rem'}}>Your documents are under review. You will be notified within 24-48 hours.</p>
-                <button onClick={()=>{ setTab('login'); setSuccess(false) }} style={{padding:'8px 20px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'13px',cursor:'pointer'}}>
-                  Go to Sign in
+          {error && (
+            <div style={{background:'#FEE2E2',border:'1px solid #FCA5A5',borderRadius:'8px',padding:'10px 14px',marginBottom:'1rem',fontSize:'13px',color:'#DC2626'}}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          {/* LOGIN */}
+          {tab === 'login' && (
+            <div>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Email address</label>
+                <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)} style={inputStyle}/>
+              </div>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Password</label>
+                <input type="password" placeholder="Your password" value={password} onChange={e=>setPassword(e.target.value)} style={inputStyle}/>
+              </div>
+              <div style={{textAlign:'right',marginBottom:'1.25rem'}}>
+                <button onClick={handleForgotPassword} disabled={loading}
+                  style={{fontSize:'13px',color:'#0F6E56',background:'none',border:'none',cursor:'pointer',padding:0,fontWeight:'500'}}>
+                  Forgot password?
                 </button>
               </div>
-            ) : (
-              <div>
-                <div style={{display:'flex',alignItems:'center',marginBottom:'1.5rem'}}>
-                  {['Account details','Verification docs'].map((s,i)=>{
-                    const num = i + 1
-                    const active = step === num
-                    const done = step > num
-                    return (
-                      <div key={s} style={{display:'flex',alignItems:'center',flex:1}}>
-                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'3px'}}>
-                          <div style={{width:'28px',height:'28px',borderRadius:'50%',background:done||active?'#0F6E56':'#e5e5e5',color:done||active?'#fff':'#888',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',fontWeight:'500'}}>
-                            {done ? '✓' : num}
-                          </div>
-                          <span style={{fontSize:'11px',color:active?'#0F6E56':'#888',whiteSpace:'nowrap'}}>{s}</span>
-                        </div>
-                        {i < 1 && <div style={{flex:1,height:'1px',background:done?'#0F6E56':'#e5e5e5',margin:'0 4px',marginBottom:'14px'}}></div>}
-                      </div>
-                    )
-                  })}
-                </div>
+              <button onClick={()=>handleLogin(portalRole)} disabled={loading}
+                style={{width:'100%',padding:'12px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+                {loading ? 'Signing in...' : 'Sign in →'}
+              </button>
+              <p style={{textAlign:'center',fontSize:'13px',color:'#666',marginTop:'1.25rem'}}>
+                No account?{' '}
+                <button onClick={()=>setTab('register')} style={{color:'#0F6E56',background:'none',border:'none',cursor:'pointer',fontSize:'13px',fontWeight:'600'}}>
+                  Create one free
+                </button>
+              </p>
+              <p style={{textAlign:'center',fontSize:'12px',color:'#888',marginTop:'.5rem'}}>
+                {isFunder ? (
+                  <>Wrong portal? <a href="/register" style={{color:'#0F6E56',fontWeight:'500'}}>Go to supplier login</a></>
+                ) : (
+                  <>Are you a funder? <a href="/register?role=funder" style={{color:'#0F6E56',fontWeight:'500'}}>Go to funder login</a></>
+                )}
+              </p>
+            </div>
+          )}
 
-                {step === 1 && (
-                  <div>
-                    <p style={{fontSize:'13px',color:'#666666',marginBottom:'1rem'}}>I am registering as a:</p>
-                    <div style={{display:'flex',gap:'8px',marginBottom:'1rem'}}>
-                      <button onClick={()=>setRole('business')}
-                        style={{flex:1,padding:'9px',border:role==='business'?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',background:role==='business'?'#E1F5EE':'transparent',color:role==='business'?'#085041':'#666666',fontWeight:'500'}}>
-                        Supplier / SME
-                      </button>
-                      <button onClick={()=>setRole('funder')}
-                        style={{flex:1,padding:'9px',border:role==='funder'?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',background:role==='funder'?'#E1F5EE':'transparent',color:role==='funder'?'#085041':'#666666',fontWeight:'500'}}>
-                        Funder
-                      </button>
-                    </div>
-                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
-                      <div>
-                        <label style={labelStyle}>First name <span style={{color:'#DC2626'}}>*</span></label>
-                        <input type="text" placeholder="Sipho" value={firstName} onChange={e=>setFirstName(e.target.value)} style={inputFilled(firstName)}/>
+          {/* REGISTER */}
+          {tab === 'register' && (
+            <div>
+              {success ? (
+                <div style={{background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'12px',padding:'2rem',textAlign:'center'}}>
+                  <div style={{fontSize:'40px',marginBottom:'1rem'}}>🎉</div>
+                  <p style={{color:'#085041',fontSize:'16px',fontWeight:'600',marginBottom:'.5rem'}}>Account created successfully!</p>
+                  <p style={{color:'#0F6E56',fontSize:'13px',marginBottom:'1.5rem',lineHeight:'1.6'}}>Your documents are under review. You will be notified within 24-48 hours.</p>
+                  <button onClick={()=>{ setTab('login'); setSuccess(false) }}
+                    style={{padding:'10px 24px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                    Go to Sign in →
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div style={{display:'flex',alignItems:'center',marginBottom:'1.5rem'}}>
+                    {['Account details','Verification docs'].map((s,i)=>{
+                      const num = i + 1
+                      const active = step === num
+                      const done = step > num
+                      return (
+                        <div key={s} style={{display:'flex',alignItems:'center',flex:1}}>
+                          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px'}}>
+                            <div style={{width:'30px',height:'30px',borderRadius:'50%',background:done?'#0F6E56':active?'#0F6E56':'#e5e5e5',color:done||active?'#fff':'#888',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600'}}>
+                              {done ? '✓' : num}
+                            </div>
+                            <span style={{fontSize:'11px',color:active?'#0F6E56':'#888',whiteSpace:'nowrap',fontWeight:active?'600':'400'}}>{s}</span>
+                          </div>
+                          {i < 1 && <div style={{flex:1,height:'2px',background:done?'#0F6E56':'#e5e5e5',margin:'0 6px',marginBottom:'18px'}}></div>}
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {step === 1 && (
+                    <div>
+                      <p style={{fontSize:'13px',color:'#666',marginBottom:'1rem',fontWeight:'500'}}>I am registering as a:</p>
+                      <div style={{display:'flex',gap:'8px',marginBottom:'1.25rem'}}>
+                        <button onClick={()=>setRole('business')}
+                          style={{flex:1,padding:'10px',border:role==='business'?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',background:role==='business'?'#E1F5EE':'#fff',color:role==='business'?'#085041':'#666',fontWeight:'600'}}>
+                          🏢 Supplier / SME
+                        </button>
+                        <button onClick={()=>setRole('funder')}
+                          style={{flex:1,padding:'10px',border:role==='funder'?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',background:role==='funder'?'#E1F5EE':'#fff',color:role==='funder'?'#085041':'#666',fontWeight:'600'}}>
+                          💰 Funder
+                        </button>
                       </div>
-                      <div>
-                        <label style={labelStyle}>Last name <span style={{color:'#DC2626'}}>*</span></label>
-                        <input type="text" placeholder="Dlamini" value={lastName} onChange={e=>setLastName(e.target.value)} style={inputFilled(lastName)}/>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
+                        <div>
+                          <label style={labelStyle}>First name <span style={{color:'#DC2626'}}>*</span></label>
+                          <input type="text" placeholder="Sipho" value={firstName} onChange={e=>setFirstName(e.target.value)} style={inputFilled(firstName)}/>
+                        </div>
+                        <div>
+                          <label style={labelStyle}>Last name <span style={{color:'#DC2626'}}>*</span></label>
+                          <input type="text" placeholder="Dlamini" value={lastName} onChange={e=>setLastName(e.target.value)} style={inputFilled(lastName)}/>
+                        </div>
                       </div>
-                    </div>
-                    <div style={fieldStyle}>
-                      <label style={labelStyle}>{role==='business'?'Business name':'Institution name'} <span style={{color:'#DC2626'}}>*</span></label>
-                      <input type="text" placeholder={role==='business'?'Dlamini Suppliers (Pty) Ltd':'Nkosi Capital (Pty) Ltd'}
-                        value={businessName} onChange={e=>setBusinessName(e.target.value)} style={inputFilled(businessName)}/>
-                    </div>
-                    <div style={fieldStyle}>
-                      <label style={labelStyle}>Email address <span style={{color:'#DC2626'}}>*</span></label>
-                      <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)} style={inputFilled(email)}/>
-                    </div>
-                    <div style={fieldStyle}>
-                      <label style={labelStyle}>Phone number <span style={{color:'#DC2626'}}>*</span></label>
-                      <input type="tel" placeholder="+27 82 000 0000" value={phone} onChange={e=>setPhone(e.target.value)} style={inputFilled(phone)}/>
-                    </div>
-                    <div style={fieldStyle}>
-                      <label style={labelStyle}>{role==='business'?'Company registration number':'FSCA registration number (optional)'}</label>
-                      <input type="text" placeholder={role==='business'?'2021/123456/07':'FSP 12345 (if applicable)'}
-                        value={companyReg} onChange={e=>setCompanyReg(e.target.value)}
-                        style={{...inputStyle, borderColor: companyReg ? '#0F6E56' : '#e5e5e5'}}/>
-                    </div>
-                    <div style={fieldStyle}>
-                      <label style={labelStyle}>Password <span style={{color:'#DC2626'}}>*</span></label>
-                      <input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}
-                        style={{...inputStyle, borderColor: password.length === 0 ? '#e5e5e5' : passwordValid ? '#0F6E56' : '#DC2626'}}/>
-                      {password.length > 0 && (
-                        <div style={{marginTop:'8px',padding:'10px',background:'#f9f9f9',borderRadius:'8px',border:'1px solid #e5e5e5'}}>
-                          <p style={{fontSize:'12px',fontWeight:'500',color:'#444',marginBottom:'6px'}}>Password requirements:</p>
-                          <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
+                      <div style={fieldStyle}>
+                        <label style={labelStyle}>{role==='business'?'Business name':'Institution name'} <span style={{color:'#DC2626'}}>*</span></label>
+                        <input type="text" placeholder={role==='business'?'Dlamini Suppliers (Pty) Ltd':'Nkosi Capital (Pty) Ltd'}
+                          value={businessName} onChange={e=>setBusinessName(e.target.value)} style={inputFilled(businessName)}/>
+                      </div>
+                      <div style={fieldStyle}>
+                        <label style={labelStyle}>Email address <span style={{color:'#DC2626'}}>*</span></label>
+                        <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)} style={inputFilled(email)}/>
+                      </div>
+                      <div style={fieldStyle}>
+                        <label style={labelStyle}>Phone number <span style={{color:'#DC2626'}}>*</span></label>
+                        <input type="tel" placeholder="+27 82 000 0000" value={phone} onChange={e=>setPhone(e.target.value)} style={inputFilled(phone)}/>
+                      </div>
+                      <div style={fieldStyle}>
+                        <label style={labelStyle}>
+                          {role==='business'?'Company registration number':'FSCA registration number'}
+                          {role==='business'&&<span style={{color:'#DC2626'}}> *</span>}
+                          {role==='funder'&&<span style={{fontSize:'11px',color:'#888'}}> (optional)</span>}
+                        </label>
+                        <input type="text" placeholder={role==='business'?'2021/123456/07':'FSP 12345 (if applicable)'}
+                          value={companyReg} onChange={e=>setCompanyReg(e.target.value)}
+                          style={{...inputStyle, borderColor: companyReg ? '#0F6E56' : '#e5e5e5'}}/>
+                      </div>
+                      <div style={fieldStyle}>
+                        <label style={labelStyle}>Password <span style={{color:'#DC2626'}}>*</span></label>
+                        <input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}
+                          style={{...inputStyle, borderColor: password.length === 0 ? '#e5e5e5' : passwordValid ? '#0F6E56' : '#DC2626'}}/>
+                        {password.length > 0 && (
+                          <div style={{marginTop:'8px',padding:'10px',background:'#f9f9f9',borderRadius:'8px',border:'1px solid #e5e5e5'}}>
+                            <p style={{fontSize:'12px',fontWeight:'600',color:'#444',marginBottom:'6px'}}>Password requirements:</p>
                             {passwordChecks.map(({label,met})=>(
-                              <div key={label} style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                                <span style={{fontSize:'14px',color:met?'#0F6E56':'#DC2626'}}>{met?'✓':'✗'}</span>
+                              <div key={label} style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}>
+                                <span style={{fontSize:'13px',color:met?'#0F6E56':'#DC2626'}}>{met?'✓':'✗'}</span>
                                 <span style={{fontSize:'12px',color:met?'#0F6E56':'#DC2626'}}>{label}</span>
                               </div>
                             ))}
                           </div>
+                        )}
+                      </div>
+                      <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
+                        <span style={{color:'#DC2626'}}>*</span> Required fields
+                      </div>
+                      <button onClick={()=>{
+                        if (!firstName || !lastName || !businessName || !email || !phone || !password) { setError('Please fill in all required fields.'); return }
+                        if (role === 'business' && !companyReg) { setError('Please enter your company registration number.'); return }
+                        if (!passwordValid) { setError('Password does not meet all requirements.'); return }
+                        if (!email.includes('@')) { setError('Please enter a valid email address.'); return }
+                        setError(''); setStep(2)
+                      }} style={{width:'100%',padding:'12px',background:passwordValid&&firstName&&lastName&&businessName&&email&&phone?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+                        Continue to verification →
+                      </button>
+                    </div>
+                  )}
+
+                  {step === 2 && (
+                    <div>
+                      <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.25rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
+                        <span style={{fontSize:'18px'}}>🔒</span>
+                        <div>
+                          <p style={{fontSize:'13px',color:'#085041',fontWeight:'600',marginBottom:'2px'}}>Your documents are secure</p>
+                          <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and only shared with verified parties.</p>
+                        </div>
+                      </div>
+
+                      {role === 'business' && (
+                        <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
+                          <span style={{color:'#DC2626'}}>*</span> All 5 documents required for suppliers
                         </div>
                       )}
-                    </div>
-                    <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
-                      <span style={{color:'#DC2626'}}>*</span> Required fields
-                    </div>
-                    <button onClick={()=>{
-                      if (!firstName || !lastName || !businessName || !email || !phone || !password) {
-                        setError('Please fill in all required fields before continuing.')
-                        return
-                      }
-                      if (role === 'business' && !companyReg) {
-                        setError('Please enter your company registration number.')
-                        return
-                      }
-                      if (!passwordValid) {
-                        setError('Password does not meet all requirements.')
-                        return
-                      }
-                      if (!email.includes('@')) {
-                        setError('Please enter a valid email address.')
-                        return
-                      }
-                      setError('')
-                      setStep(2)
-                    }} style={{width:'100%',padding:'11px',background:passwordValid&&firstName&&lastName&&businessName&&email&&phone?'#0F6E56':'#9CA3AF',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
-                      Continue to verification →
-                    </button>
-                  </div>
-                )}
+                      {role === 'funder' && (
+                        <div style={{background:'#E6F1FB',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#0C447C'}}>
+                          💡 All documents are optional for funders. Upload what you have available.
+                        </div>
+                      )}
 
-                {step === 2 && (
-                  <div>
-                    <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem'}}>
-                      <p style={{fontSize:'13px',color:'#085041',fontWeight:'500',marginBottom:'3px'}}>🔒 Your documents are secure</p>
-                      <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and stored securely. Only verified parties can access them.</p>
-                    </div>
+                      {role === 'business' ? (
+                        <div>
+                          <UploadBox label="Company Registration Certificate" file={companyDoc} onChange={setCompanyDoc} required/>
+                          <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc} required/>
+                          <UploadBox label="CSD Full Registration Report" file={csdDoc} onChange={setCsdDoc} required/>
+                          <UploadBox label="Tax Clearance Certificate" file={taxDoc} onChange={setTaxDoc} required/>
+                          <UploadBox label="BBB-EE Certificate or Sworn Affidavit" file={bbbeeDoc} onChange={setBbbeeDoc} required/>
+                        </div>
+                      ) : (
+                        <div>
+                          <UploadBox label="FSCA License" file={fscaDoc} onChange={setFscaDoc}/>
+                          <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc}/>
+                          <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds}/>
+                        </div>
+                      )}
 
-                    {role === 'business' && (
-                      <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
-                        <span style={{color:'#DC2626'}}>*</span> All 5 documents are required for suppliers
+                      {uploadProgress && (
+                        <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'13px',color:'#085041',textAlign:'center'}}>
+                          ⏳ {uploadProgress}
+                        </div>
+                      )}
+
+                      <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
+                        <span style={{fontSize:'18px'}}>⏱</span>
+                        <div>
+                          <p style={{fontSize:'13px',color:'#633806',fontWeight:'600',marginBottom:'2px'}}>Review process</p>
+                          <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
+                        </div>
                       </div>
-                    )}
 
-                    {role === 'funder' && (
-                      <div style={{background:'#E6F1FB',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#0C447C'}}>
-                        💡 Upload as many documents as you have available. FSCA license is optional.
+                      <div style={{display:'flex',alignItems:'flex-start',gap:'10px',marginBottom:'1rem',padding:'12px',background:'#f9f9f9',borderRadius:'8px',border:`1px solid ${agreedToTerms?'#0F6E56':'#e5e5e5'}`}}>
+                        <input type="checkbox" checked={agreedToTerms} onChange={e=>setAgreedToTerms(e.target.checked)}
+                          style={{marginTop:'2px',width:'16px',height:'16px',cursor:'pointer',accentColor:'#0F6E56'}}/>
+                        <p style={{fontSize:'12px',color:'#666',margin:0,lineHeight:'1.6'}}>
+                          I agree to the{' '}
+                          <a href="/terms" target="_blank" style={{color:'#0F6E56',fontWeight:'600'}}>Terms & Conditions</a>
+                          {' '}and{' '}
+                          <a href="/privacy" target="_blank" style={{color:'#0F6E56',fontWeight:'600'}}>Privacy Policy</a>
+                          . I confirm all documents submitted are authentic and accurate.
+                        </p>
                       </div>
-                    )}
 
-                    {role === 'business' ? (
-                      <div>
-                        <UploadBox label="Company Registration Certificate" file={companyDoc} onChange={setCompanyDoc} required/>
-                        <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc} required/>
-                        <UploadBox label="CSD Full Registration Report" file={csdDoc} onChange={setCsdDoc} required/>
-                        <UploadBox label="Tax Clearance Certificate" file={taxDoc} onChange={setTaxDoc} required/>
-                        <UploadBox label="BBB-EE Certificate or Sworn Affidavit" file={bbbeeDoc} onChange={setBbbeeDoc} required/>
-                      </div>
-                    ) : (
-                      <div>
-                        <UploadBox label="FSCA License" file={fscaDoc} onChange={setFscaDoc}/>
-                        <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc}/>
-                        <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds}/>
-                      </div>
-                    )}
-
-                    {uploadProgress && (
-                      <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'13px',color:'#085041',textAlign:'center'}}>
-                        ⏳ {uploadProgress}
-                      </div>
-                    )}
-
-                    <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
-                      <p style={{fontSize:'13px',color:'#633806',fontWeight:'500',marginBottom:'3px'}}>⏱ Review process</p>
-                      <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
-                    </div>
-
-                    <p style={{fontSize:'12px',color:'#888',marginBottom:'1rem',textAlign:'center'}}>
-                      By creating an account you agree to our{' '}
-                      <a href="/terms" target="_blank" style={{color:'#0F6E56'}}>Terms & Conditions</a>
-                      {' '}and{' '}
-                      <a href="/privacy" target="_blank" style={{color:'#0F6E56'}}>Privacy Policy</a>
-                    </p>
-
-                    <div style={{display:'flex',gap:'12px'}}>
-                      <button onClick={()=>{ setError(''); setStep(1) }}
-                        style={{flex:1,padding:'11px',background:'transparent',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',cursor:'pointer'}}>
-                        ← Back
-                      </button>
-                      <button onClick={()=>{
-                        if (role === 'business') {
-                          if (!companyDoc || !idDoc || !csdDoc || !taxDoc || !bbbeeDoc) {
-                            setError('Please upload all 5 required documents before submitting.')
+                      <div style={{display:'flex',gap:'10px'}}>
+                        <button onClick={()=>{ setError(''); setStep(1) }}
+                          style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                          ← Back
+                        </button>
+                        <button onClick={()=>{
+                          if (role === 'business' && (!companyDoc || !idDoc || !csdDoc || !taxDoc || !bbbeeDoc)) {
+                            setError('Please upload all 5 required documents.')
                             return
                           }
-                        }
-                        setError('')
-                        handleRegister()
-                      }} disabled={loading}
-                        style={{flex:2,padding:'11px',background:'#0F6E56',color:'#ffffff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'500',cursor:'pointer'}}>
-                        {loading ? 'Creating account...' : 'Submit & Create account'}
-                      </button>
+                          if (!agreedToTerms) { setError('Please agree to the Terms & Conditions.'); return }
+                          setError('')
+                          handleRegister()
+                        }} disabled={loading}
+                          style={{flex:2,padding:'12px',background:agreedToTerms?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+                          {loading ? 'Creating account...' : 'Submit & Create account ✓'}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </main>
   )
