@@ -316,7 +316,7 @@ export default function LandingPage() {
         <div style={{maxWidth:'1100px',margin:'0 auto'}}>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:'2rem',marginBottom:'2rem'}}>
             <div>
-              <img src="/logo.png" alt="FundMyPO" style={{height:'50px',marginBottom:'1rem',filter:'brightness(0) invert(1)'}}/>
+              <img src="/logo.png" alt="FundMyPO" style={{height:'50px',marginBottom:'1rem'}}/>
               <p style={{fontSize:'13px',color:'#a8c4d4',lineHeight:'1.8',maxWidth:'280px'}}>
                 South Africa's leading purchase order funding marketplace connecting SMEs with verified funders.
               </p>
