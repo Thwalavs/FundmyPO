@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         'Authorization': 'Bearer ' + RESEND_API_KEY
       },
       body: JSON.stringify({
-        from: 'FundMyPO <onboarding@resend.dev>',
+        from: 'FundMyPO <noreply@fundmypo.co.za>',
         to: [to],
         subject,
         html
