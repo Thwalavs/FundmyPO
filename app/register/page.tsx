@@ -170,7 +170,7 @@ export default function RegisterPage() {
             <div>
               <p style={{fontSize:'24px',marginBottom:'.25rem'}}>??</p>
               <p style={{fontSize:'13px',color:'#666'}}>Click to upload {label}</p>
-              <p style={{fontSize:'12px',color:'#aaa',marginTop:'2px'}}>PDF, JPG or PNG — max 5MB</p>
+              <p style={{fontSize:'12px',color:'#aaa',marginTop:'2px'}}>PDF, JPG or PNG ? max 5MB</p>
             </div>
           )}
           <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e=>onChange(e.target.files?.[0]||null)}
@@ -188,7 +188,7 @@ export default function RegisterPage() {
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
         <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',filter:'none'}}/>
+          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',background:'#fff',borderRadius:'6px',padding:'2px'}}/>
         </a>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
           <span style={{fontSize:'13px',background:isFunder?'rgba(77,191,176,0.2)':'rgba(255,255,255,0.1)',color:isFunder?'#4DBFB0':'#fff',padding:'4px 12px',borderRadius:'99px',fontWeight:'500'}}>

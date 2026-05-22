@@ -196,7 +196,7 @@ export default function FunderDashboard() {
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
         <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',filter:'none'}}/>
+          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',background:'#fff',borderRadius:'6px',padding:'2px'}}/>
         </a>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
           <span style={{fontSize:'13px',background:'rgba(77,191,176,0.2)',color:'#4DBFB0',padding:'4px 12px',borderRadius:'99px',fontWeight:'600'}}>💰 Funder Portal</span>
