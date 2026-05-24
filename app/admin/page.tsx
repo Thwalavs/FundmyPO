@@ -17,13 +17,12 @@ function StatusBadge({ status }: { status: string }) {
     active:    { bg:'#E1F5EE', color:'#085041', label:'Active' },
     reviewing: { bg:'#FAEEDA', color:'#633806', label:'Under review' },
     funded:    { bg:'#E6F1FB', color:'#0C447C', label:'Funded' },
-    paid:      { bg:'#E1F5EE', color:'#085041', label:'Paid' },
     rejected:  { bg:'#FEE2E2', color:'#DC2626', label:'Rejected' },
     accepted:  { bg:'#E1F5EE', color:'#085041', label:'Accepted' },
   }
   const s = styles[status] || styles.pending
   return (
-    <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'500'}}>
+    <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'600'}}>
       {s.label}
     </span>
   )
@@ -43,18 +42,14 @@ export default function AdminDashboard() {
   const [loadingPos, setLoadingPos] = useState(true)
   const [loadingOffers, setLoadingOffers] = useState(true)
 
-  useEffect(()=>{
-    setMounted(true)
-    checkAdmin()
-  },[])
+  useEffect(()=>{ setMounted(true); checkAdmin() },[])
 
   async function checkAdmin() {
     try {
       const supabase = await getSupabase()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { window.location.href = '/register'; return }
-      const userRole = user.user_metadata?.role
-      if (userRole !== 'admin') { window.location.href = '/'; return }
+      if (user.user_metadata?.role !== 'admin') { window.location.href = '/'; return }
       setAdminName(user.email || 'Admin')
       setAuthorized(true)
       setChecking(false)
@@ -65,15 +60,12 @@ export default function AdminDashboard() {
   async function loadData() {
     const supabase = await getSupabase()
 
-    // Load users
     try {
       const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       })
       const data = await res.json()
       setUsers(data.users || [])
-
-      // Load profile statuses
       const { data: profiles } = await supabase.from('profiles').select('id, status')
       if (profiles) {
         const statusMap: Record<string,string> = {}
@@ -83,18 +75,16 @@ export default function AdminDashboard() {
     } catch(e) { console.log('Error loading users:', e) }
     finally { setLoadingUsers(false) }
 
-    // Load POs
     try {
       const { data } = await supabase.from('purchase_orders').select('*').order('created_at', { ascending: false })
       setPos(data || [])
-    } catch(e) { console.log('Error loading POs:', e) }
+    } catch(e) { console.log(e) }
     finally { setLoadingPos(false) }
 
-    // Load offers
     try {
       const { data } = await supabase.from('funding_offers').select('*, purchase_orders(po_number, client_name)').order('created_at', { ascending: false })
       setOffers(data || [])
-    } catch(e) { console.log('Error loading offers:', e) }
+    } catch(e) { console.log(e) }
     finally { setLoadingOffers(false) }
   }
 
@@ -147,19 +137,18 @@ export default function AdminDashboard() {
   return (
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
 
-      <nav style={{background:'#085041',padding:'1rem 2rem',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div>
-          <span style={{fontSize:'20px',fontWeight:'500',color:'#fff'}}>
-            Fund<span style={{color:'#5DCAA5'}}>MyPO</span>
-          </span>
-          <span style={{fontSize:'12px',color:'#a8dfc9',marginLeft:'12px',background:'rgba(255,255,255,0.15)',padding:'3px 10px',borderRadius:'99px'}}>
-            Admin Portal
-          </span>
-        </div>
+      {/* NAV */}
+      <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
+        <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
+          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',}}/>
+        </a>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
-          <span style={{fontSize:'13px',color:'#a8dfc9'}}>{adminName}</span>
+          <span style={{fontSize:'12px',color:'#a8c4d4',background:'rgba(255,255,255,0.1)',padding:'4px 12px',borderRadius:'99px'}}>
+            ????? Admin Portal
+          </span>
+          <span style={{fontSize:'13px',color:'#a8c4d4'}}>{adminName}</span>
           <button onClick={handleSignOut}
-            style={{fontSize:'13px',color:'#fff',background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.3)',padding:'8px 16px',borderRadius:'8px',cursor:'pointer'}}>
+            style={{fontSize:'13px',color:'rgba(255,255,255,0.8)',background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',padding:'7px 14px',borderRadius:'8px',cursor:'pointer'}}>
             Sign out
           </button>
         </div>
@@ -168,14 +157,15 @@ export default function AdminDashboard() {
       <div style={{maxWidth:'1100px',margin:'0 auto',padding:'2rem'}}>
 
         <div style={{marginBottom:'2rem'}}>
-          <h1 style={{fontSize:'24px',fontWeight:'500',marginBottom:'.25rem'}}>Admin Dashboard</h1>
+          <h1 style={{fontSize:'24px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Admin Dashboard</h1>
           <p style={{fontSize:'14px',color:'#666'}}>Manage users, POs and commissions for FundMyPO</p>
         </div>
 
+        {/* TABS */}
         <div style={{display:'flex',gap:'4px',background:'#fff',border:'1px solid #e5e5e5',borderRadius:'10px',padding:'4px',marginBottom:'2rem',flexWrap:'wrap'}}>
           {(['overview','users','pos','offers','commissions'] as const).map(t=>(
             <button key={t} onClick={()=>setActiveTab(t)}
-              style={{padding:'8px 16px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'13px',fontWeight:'500',background:activeTab===t?'#085041':'transparent',color:activeTab===t?'#fff':'#666'}}>
+              style={{padding:'8px 16px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'13px',fontWeight:'600',background:activeTab===t?'#1B2B4B':'transparent',color:activeTab===t?'#fff':'#666'}}>
               {t==='overview'?'Overview':t==='users'?`Users (${users.filter(u=>u.user_metadata?.role!=='admin').length})`:t==='pos'?`POs (${pos.length})`:t==='offers'?`Offers (${offers.length})`:'Commissions'}
             </button>
           ))}
@@ -186,7 +176,7 @@ export default function AdminDashboard() {
           <div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:'12px',marginBottom:'2rem'}}>
               {[
-                { label:'Total users', value:users.filter(u=>u.user_metadata?.role!=='admin').length.toString(), color:'#085041' },
+                { label:'Total users', value:users.filter(u=>u.user_metadata?.role!=='admin').length.toString(), color:'#1B2B4B' },
                 { label:'Businesses', value:businessUsers.length.toString(), color:'#0F6E56' },
                 { label:'Funders', value:funderUsers.length.toString(), color:'#0C447C' },
                 { label:'Pending approvals', value:pendingUsers.length.toString(), color:'#633806' },
@@ -196,8 +186,8 @@ export default function AdminDashboard() {
                 { label:'Commission earned', value:`R ${totalCommission.toLocaleString()}`, color:'#0F6E56' },
               ].map(({label,value,color})=>(
                 <div key={label} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
-                  <div style={{fontSize:'20px',fontWeight:'500',color}}>{value}</div>
-                  <div style={{fontSize:'12px',color:'#888',marginTop:'4px'}}>{label}</div>
+                  <div style={{fontSize:'20px',fontWeight:'700',color,marginBottom:'4px'}}>{value}</div>
+                  <div style={{fontSize:'12px',color:'#888'}}>{label}</div>
                 </div>
               ))}
             </div>
@@ -205,21 +195,21 @@ export default function AdminDashboard() {
             {/* PENDING APPROVALS */}
             {pendingUsers.length > 0 && (
               <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem',marginBottom:'1.5rem'}}>
-                <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>? Pending User Approvals ({pendingUsers.length})</h2>
+                <h2 style={{fontSize:'16px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>? Pending User Approvals ({pendingUsers.length})</h2>
                 {pendingUsers.map(user=>(
                   <div key={user.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:'1px solid #f0f0f0',flexWrap:'wrap',gap:'8px'}}>
                     <div>
-                      <p style={{fontSize:'14px',fontWeight:'500'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name+' '+user.user_metadata?.last_name}</p>
+                      <p style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name+' '+user.user_metadata?.last_name}</p>
                       <p style={{fontSize:'12px',color:'#666'}}>{user.email}</p>
                       <p style={{fontSize:'12px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '?? Funder' : '?? Business'} — Joined {new Date(user.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
                     <div style={{display:'flex',gap:'8px'}}>
                       <button onClick={()=>handleApprove(user.id)}
-                        style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'7px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                        style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'7px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'600'}}>
                         Approve ?
                       </button>
                       <button onClick={()=>handleReject(user.id)}
-                        style={{fontSize:'13px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'7px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                        style={{fontSize:'13px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'7px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'600'}}>
                         Reject ?
                       </button>
                     </div>
@@ -230,20 +220,20 @@ export default function AdminDashboard() {
 
             {/* RECENT POs */}
             <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem',marginBottom:'1.5rem'}}>
-              <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>Recent PO Submissions</h2>
+              <h2 style={{fontSize:'16px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>Recent PO Submissions</h2>
               {loadingPos && <p style={{fontSize:'14px',color:'#888'}}>Loading...</p>}
               {!loadingPos && pos.length === 0 && <p style={{fontSize:'14px',color:'#888'}}>No POs submitted yet</p>}
               {pos.slice(0,5).map(po=>(
                 <div key={po.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #f0f0f0',flexWrap:'wrap',gap:'8px'}}>
                   <div>
                     <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'3px'}}>
-                      <span style={{fontSize:'14px',fontWeight:'500'}}>{po.po_number || 'PO-'+po.id.slice(0,8)}</span>
+                      <span style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B'}}>{po.po_number || 'PO-'+po.id.slice(0,8)}</span>
                       <StatusBadge status={po.status}/>
                     </div>
                     <p style={{fontSize:'12px',color:'#666'}}>{po.client_name} • {po.sector}</p>
                   </div>
                   <div style={{textAlign:'right'}}>
-                    <p style={{fontSize:'14px',fontWeight:'500',color:'#0F6E56'}}>R {po.po_value?.toLocaleString()}</p>
+                    <p style={{fontSize:'14px',fontWeight:'600',color:'#0F6E56'}}>R {po.po_value?.toLocaleString()}</p>
                     <p style={{fontSize:'12px',color:'#888'}}>{new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
                   </div>
                 </div>
@@ -252,12 +242,12 @@ export default function AdminDashboard() {
 
             {/* RECENT USERS */}
             <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
-              <h2 style={{fontSize:'16px',fontWeight:'500',marginBottom:'1rem'}}>Recent Registrations</h2>
+              <h2 style={{fontSize:'16px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>Recent Registrations</h2>
               {loadingUsers && <p style={{fontSize:'14px',color:'#888'}}>Loading...</p>}
               {users.filter(u=>u.user_metadata?.role!=='admin').slice(0,5).map(user=>(
                 <div key={user.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #f0f0f0',flexWrap:'wrap',gap:'8px'}}>
                   <div>
-                    <p style={{fontSize:'14px',fontWeight:'500'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name+' '+user.user_metadata?.last_name || user.email}</p>
+                    <p style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name+' '+user.user_metadata?.last_name || user.email}</p>
                     <p style={{fontSize:'12px',color:'#666'}}>{user.email}</p>
                     <p style={{fontSize:'11px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '?? Funder' : '?? Business'}</p>
                   </div>
@@ -275,11 +265,11 @@ export default function AdminDashboard() {
         {activeTab === 'users' && (
           <div>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:'8px'}}>
-              <h2 style={{fontSize:'18px',fontWeight:'500'}}>All Users</h2>
+              <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B'}}>All Users</h2>
               <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                <span style={{fontSize:'13px',background:'#E1F5EE',color:'#085041',padding:'4px 12px',borderRadius:'99px'}}>{businessUsers.length} businesses</span>
-                <span style={{fontSize:'13px',background:'#E6F1FB',color:'#0C447C',padding:'4px 12px',borderRadius:'99px'}}>{funderUsers.length} funders</span>
-                <span style={{fontSize:'13px',background:'#FAEEDA',color:'#633806',padding:'4px 12px',borderRadius:'99px'}}>{pendingUsers.length} pending</span>
+                <span style={{fontSize:'13px',background:'#E1F5EE',color:'#085041',padding:'4px 12px',borderRadius:'99px',fontWeight:'600'}}>{businessUsers.length} businesses</span>
+                <span style={{fontSize:'13px',background:'#E6F1FB',color:'#0C447C',padding:'4px 12px',borderRadius:'99px',fontWeight:'600'}}>{funderUsers.length} funders</span>
+                <span style={{fontSize:'13px',background:'#FAEEDA',color:'#633806',padding:'4px 12px',borderRadius:'99px',fontWeight:'600'}}>{pendingUsers.length} pending</span>
               </div>
             </div>
             {loadingUsers && <p style={{fontSize:'14px',color:'#888'}}>Loading users...</p>}
@@ -292,7 +282,7 @@ export default function AdminDashboard() {
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px'}}>
                       <div>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
-                          <span style={{fontSize:'15px',fontWeight:'500'}}>{user.user_metadata?.business_name || (user.user_metadata?.first_name+' '+user.user_metadata?.last_name) || 'Unknown'}</span>
+                          <span style={{fontSize:'15px',fontWeight:'700',color:'#1B2B4B'}}>{user.user_metadata?.business_name || (user.user_metadata?.first_name+' '+user.user_metadata?.last_name) || 'Unknown'}</span>
                           <StatusBadge status={currentStatus}/>
                           <span style={{fontSize:'12px',color:'#666',background:'#f5f5f5',padding:'2px 8px',borderRadius:'99px'}}>
                             {role === 'funder' ? '?? Funder' : '?? Business'}
@@ -304,36 +294,34 @@ export default function AdminDashboard() {
                         <p style={{fontSize:'12px',color:'#888'}}>Joined: {new Date(user.created_at).toLocaleDateString('en-ZA')}</p>
                       </div>
                       <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                        <button
-                          onClick={async()=>{
-                            const supabase = await getSupabase()
-                            const { data: files } = await supabase.storage.from('verification-docs').list(user.id)
-                            if (!files || files.length === 0) { alert('No documents uploaded yet.'); return }
-                            const file = files[0]
-                            const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${user.id}/${file.name}`, 3600)
-                            if (data?.signedUrl) window.open(data.signedUrl, '_blank')
-                          }}
-                          style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                        <button onClick={async()=>{
+                          const supabase = await getSupabase()
+                          const { data: files } = await supabase.storage.from('verification-docs').list(user.id)
+                          if (!files || files.length === 0) { alert('No documents uploaded yet.'); return }
+                          const file = files[0]
+                          const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${user.id}/${file.name}`, 3600)
+                          if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+                        }} style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
                           View docs
                         </button>
                         {currentStatus === 'pending' && (
                           <>
                             <button onClick={()=>handleApprove(user.id)}
-                              style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                              style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
                               Approve ?
                             </button>
                             <button onClick={()=>handleReject(user.id)}
-                              style={{fontSize:'12px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                              style={{fontSize:'12px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
                               Reject ?
                             </button>
                           </>
                         )}
                         {currentStatus === 'approved' && (
-                          <span style={{fontSize:'12px',color:'#085041',background:'#E1F5EE',padding:'6px 12px',borderRadius:'6px',fontWeight:'500'}}>? Approved</span>
+                          <span style={{fontSize:'12px',color:'#085041',background:'#E1F5EE',padding:'6px 12px',borderRadius:'6px',fontWeight:'600'}}>? Approved</span>
                         )}
                         {currentStatus === 'rejected' && (
                           <button onClick={()=>handleApprove(user.id)}
-                            style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                            style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
                             Re-approve
                           </button>
                         )}
@@ -350,10 +338,10 @@ export default function AdminDashboard() {
         {activeTab === 'pos' && (
           <div>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:'8px'}}>
-              <h2 style={{fontSize:'18px',fontWeight:'500'}}>All Purchase Orders</h2>
+              <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B'}}>All Purchase Orders</h2>
               <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                <span style={{fontSize:'13px',background:'#FAEEDA',color:'#633806',padding:'4px 12px',borderRadius:'99px'}}>{activePOs.length} active</span>
-                <span style={{fontSize:'13px',background:'#E6F1FB',color:'#0C447C',padding:'4px 12px',borderRadius:'99px'}}>{fundedPOs.length} funded</span>
+                <span style={{fontSize:'13px',background:'#FAEEDA',color:'#633806',padding:'4px 12px',borderRadius:'99px',fontWeight:'600'}}>{activePOs.length} active</span>
+                <span style={{fontSize:'13px',background:'#E6F1FB',color:'#0C447C',padding:'4px 12px',borderRadius:'99px',fontWeight:'600'}}>{fundedPOs.length} funded</span>
               </div>
             </div>
             {loadingPos && <p style={{fontSize:'14px',color:'#888'}}>Loading POs...</p>}
@@ -368,7 +356,7 @@ export default function AdminDashboard() {
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
                     <div>
                       <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
-                        <span style={{fontSize:'15px',fontWeight:'500'}}>{po.po_number || 'PO-'+po.id.slice(0,8)}</span>
+                        <span style={{fontSize:'15px',fontWeight:'700',color:'#1B2B4B'}}>{po.po_number || 'PO-'+po.id.slice(0,8)}</span>
                         <StatusBadge status={po.status}/>
                       </div>
                       <p style={{fontSize:'13px',color:'#666'}}>{po.client_name}</p>
@@ -377,7 +365,7 @@ export default function AdminDashboard() {
                       <p style={{fontSize:'11px',color:'#888'}}>?? {new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
                     <div style={{textAlign:'right'}}>
-                      <p style={{fontSize:'16px',fontWeight:'500',color:'#0F6E56'}}>R {po.po_value?.toLocaleString()}</p>
+                      <p style={{fontSize:'16px',fontWeight:'700',color:'#0F6E56'}}>R {po.po_value?.toLocaleString()}</p>
                       <p style={{fontSize:'12px',color:'#888'}}>Funding: R {po.funding_needed?.toLocaleString()}</p>
                       <p style={{fontSize:'12px',color:'#888'}}>Quote: R {po.quotation_value?.toLocaleString()}</p>
                     </div>
@@ -391,7 +379,7 @@ export default function AdminDashboard() {
                       if (!poDoc) { alert('PO document not found.'); return }
                       const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${po.user_id}/${poDoc.name}`, 3600)
                       if (data?.signedUrl) window.open(data.signedUrl, '_blank')
-                    }} style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                    }} style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
                       View PO doc
                     </button>
                     <button onClick={async()=>{
@@ -402,7 +390,7 @@ export default function AdminDashboard() {
                       if (!quoteDoc) { alert('Quotation document not found.'); return }
                       const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${po.user_id}/${quoteDoc.name}`, 3600)
                       if (data?.signedUrl) window.open(data.signedUrl, '_blank')
-                    }} style={{fontSize:'12px',color:'#085041',background:'#E1F5EE',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                    }} style={{fontSize:'12px',color:'#085041',background:'#E1F5EE',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
                       View quotation
                     </button>
                     {po.status === 'reviewing' && (
@@ -410,7 +398,7 @@ export default function AdminDashboard() {
                         const supabase = await getSupabase()
                         await supabase.from('purchase_orders').update({ status: 'active' }).eq('id', po.id)
                         loadData()
-                      }} style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'500'}}>
+                      }} style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
                         Approve PO ?
                       </button>
                     )}
@@ -424,7 +412,7 @@ export default function AdminDashboard() {
         {/* OFFERS */}
         {activeTab === 'offers' && (
           <div>
-            <h2 style={{fontSize:'18px',fontWeight:'500',marginBottom:'1rem'}}>All Funding Offers</h2>
+            <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>All Funding Offers</h2>
             {loadingOffers && <p style={{fontSize:'14px',color:'#888'}}>Loading offers...</p>}
             {!loadingOffers && offers.length === 0 && (
               <div style={{textAlign:'center',padding:'3rem',background:'#fff',borderRadius:'12px',border:'1px solid #e5e5e5'}}>
@@ -437,7 +425,7 @@ export default function AdminDashboard() {
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px'}}>
                     <div>
                       <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
-                        <span style={{fontSize:'15px',fontWeight:'500'}}>{offer.purchase_orders?.po_number || 'PO'}</span>
+                        <span style={{fontSize:'15px',fontWeight:'700',color:'#1B2B4B'}}>{offer.purchase_orders?.po_number || 'PO'}</span>
                         <StatusBadge status={offer.status}/>
                       </div>
                       <p style={{fontSize:'13px',color:'#666'}}>Client: {offer.purchase_orders?.client_name}</p>
@@ -445,8 +433,8 @@ export default function AdminDashboard() {
                       <p style={{fontSize:'11px',color:'#888'}}>?? {new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
                     <div style={{textAlign:'right'}}>
-                      <p style={{fontSize:'16px',fontWeight:'500',color:'#0F6E56'}}>R {offer.amount?.toLocaleString()}</p>
-                      <p style={{fontSize:'12px',color:'#DC2626'}}>Commission: R {(offer.amount * 0.02).toLocaleString()}</p>
+                      <p style={{fontSize:'16px',fontWeight:'700',color:'#0F6E56'}}>R {offer.amount?.toLocaleString()}</p>
+                      <p style={{fontSize:'12px',color:'#DC2626',fontWeight:'600'}}>Commission: R {(offer.amount * 0.02).toLocaleString()}</p>
                     </div>
                   </div>
                 </div>
@@ -460,19 +448,19 @@ export default function AdminDashboard() {
           <div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'2rem'}}>
               <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem',textAlign:'center'}}>
-                <p style={{fontSize:'22px',fontWeight:'500',color:'#0F6E56'}}>R {totalCommission.toLocaleString()}</p>
+                <p style={{fontSize:'22px',fontWeight:'700',color:'#0F6E56'}}>R {totalCommission.toLocaleString()}</p>
                 <p style={{fontSize:'12px',color:'#888',marginTop:'4px'}}>Total commission (2%)</p>
               </div>
               <div style={{background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'12px',padding:'1.25rem',textAlign:'center'}}>
-                <p style={{fontSize:'22px',fontWeight:'500',color:'#085041'}}>{acceptedOffers.length}</p>
+                <p style={{fontSize:'22px',fontWeight:'700',color:'#085041'}}>{acceptedOffers.length}</p>
                 <p style={{fontSize:'12px',color:'#0F6E56',marginTop:'4px'}}>Accepted deals</p>
               </div>
               <div style={{background:'#FAEEDA',border:'1px solid #F5D87A',borderRadius:'12px',padding:'1.25rem',textAlign:'center'}}>
-                <p style={{fontSize:'22px',fontWeight:'500',color:'#633806'}}>{offers.filter(o=>o.status==='pending').length}</p>
+                <p style={{fontSize:'22px',fontWeight:'700',color:'#633806'}}>{offers.filter(o=>o.status==='pending').length}</p>
                 <p style={{fontSize:'12px',color:'#633806',marginTop:'4px'}}>Pending offers</p>
               </div>
             </div>
-            <h2 style={{fontSize:'18px',fontWeight:'500',marginBottom:'1rem'}}>Commission Breakdown</h2>
+            <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>Commission Breakdown</h2>
             {acceptedOffers.length === 0 && (
               <div style={{textAlign:'center',padding:'3rem',background:'#fff',borderRadius:'12px',border:'1px solid #e5e5e5'}}>
                 <p style={{fontSize:'16px',color:'#666'}}>No accepted offers yet</p>
@@ -484,14 +472,14 @@ export default function AdminDashboard() {
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px'}}>
                     <div>
                       <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
-                        <span style={{fontSize:'14px',fontWeight:'500'}}>{offer.purchase_orders?.po_number || 'PO'}</span>
+                        <span style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B'}}>{offer.purchase_orders?.po_number || 'PO'}</span>
                         <StatusBadge status={offer.status}/>
                       </div>
                       <p style={{fontSize:'13px',color:'#666'}}>{offer.purchase_orders?.client_name}</p>
                       <p style={{fontSize:'12px',color:'#888'}}>?? {new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
                     <div style={{textAlign:'right'}}>
-                      <p style={{fontSize:'18px',fontWeight:'500',color:'#0F6E56'}}>R {(offer.amount * 0.02).toLocaleString()}</p>
+                      <p style={{fontSize:'18px',fontWeight:'700',color:'#0F6E56'}}>R {(offer.amount * 0.02).toLocaleString()}</p>
                       <p style={{fontSize:'12px',color:'#888'}}>2% of R {offer.amount?.toLocaleString()}</p>
                     </div>
                   </div>

@@ -114,7 +114,7 @@ export default function UploadPage() {
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
         <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',background:'#fff',borderRadius:'6px',padding:'2px'}}/>
+          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',}}/>
         </a>
         <a href="/dashboard" style={{fontSize:'13px',color:'rgba(255,255,255,0.8)',textDecoration:'none',background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',padding:'7px 14px',borderRadius:'8px',fontWeight:'500'}}>
           ← Back to dashboard
