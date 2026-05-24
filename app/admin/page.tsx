@@ -201,7 +201,7 @@ export default function AdminDashboard() {
                     <div>
                       <p style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B'}}>{user.user_metadata?.business_name || user.user_metadata?.first_name+' '+user.user_metadata?.last_name}</p>
                       <p style={{fontSize:'12px',color:'#666'}}>{user.email}</p>
-                      <p style={{fontSize:'12px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '?? Funder' : '?? Business'} — Joined {new Date(user.created_at).toLocaleDateString('en-ZA')}</p>
+                      <p style={{fontSize:'12px',color:'#888'}}>{user.user_metadata?.role === 'funder' ? '?? Funder' : '?? Business'}  Joined {new Date(user.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
                     <div style={{display:'flex',gap:'8px'}}>
                       <button onClick={()=>handleApprove(user.id)}
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
                       <span style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B'}}>{po.po_number || 'PO-'+po.id.slice(0,8)}</span>
                       <StatusBadge status={po.status}/>
                     </div>
-                    <p style={{fontSize:'12px',color:'#666'}}>{po.client_name} • {po.sector}</p>
+                    <p style={{fontSize:'12px',color:'#666'}}>{po.client_name}  {po.sector}</p>
                   </div>
                   <div style={{textAlign:'right'}}>
                     <p style={{fontSize:'14px',fontWeight:'600',color:'#0F6E56'}}>R {po.po_value?.toLocaleString()}</p>
@@ -360,7 +360,7 @@ export default function AdminDashboard() {
                         <StatusBadge status={po.status}/>
                       </div>
                       <p style={{fontSize:'13px',color:'#666'}}>{po.client_name}</p>
-                      <p style={{fontSize:'12px',color:'#888'}}>{po.sector} • {po.client_department}</p>
+                      <p style={{fontSize:'12px',color:'#888'}}>{po.sector}  {po.client_department}</p>
                       <p style={{fontSize:'12px',color:'#888'}}>Supplier: {po.supplier_name}</p>
                       <p style={{fontSize:'11px',color:'#888'}}>?? {new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
                         <StatusBadge status={offer.status}/>
                       </div>
                       <p style={{fontSize:'13px',color:'#666'}}>Client: {offer.purchase_orders?.client_name}</p>
-                      <p style={{fontSize:'12px',color:'#888'}}>Rate: {offer.interest_rate}% • Term: {offer.term_days} days</p>
+                      <p style={{fontSize:'12px',color:'#888'}}>Rate: {offer.interest_rate}%  Term: {offer.term_days} days</p>
                       <p style={{fontSize:'11px',color:'#888'}}>?? {new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
                     </div>
                     <div style={{textAlign:'right'}}>
