@@ -292,8 +292,6 @@ export default function FunderDashboard() {
               {marketplace.map(po => {
                 const fundingAmount = po.funding_needed
                 const rate = parseFloat(rates[po.id] || '0')
-                const commission = fundingAmount * 0.02
-                const youReceive = fundingAmount - commission
                 const interestEarned = (fundingAmount * rate) / 100
                 const profit = po.po_value - po.quotation_value
                 const margin = po.po_value > 0 ? ((profit / po.po_value) * 100).toFixed(1) : '0'
@@ -455,24 +453,17 @@ export default function FunderDashboard() {
                           </div>
                         </div>
                         <div style={{ background: '#E1F5EE', borderRadius: '8px', padding: '12px', marginBottom: '1rem', border: '1px solid #c8ead8' }}>
-                          <p style={{ fontSize: '13px', fontWeight: '700', color: '#085041', marginBottom: '.75rem' }}>Fee & commission breakdown</p>
                           <div style={{ fontSize: '13px', color: '#085041' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #c8ead8' }}>
                               <span>Funding amount</span><span style={{ fontWeight: '700' }}>R {fundingAmount.toLocaleString()}</span>
                             </div>
                             {rate > 0 && (
-                              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #c8ead8' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
                                 <span>Your interest ({rates[po.id]}%)</span><span style={{ fontWeight: '700', color: '#0F6E56' }}>+ R {interestEarned.toLocaleString()}</span>
                               </div>
                             )}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #c8ead8' }}>
-                              <span>FundMyPO commission (2%)</span><span style={{ fontWeight: '700', color: '#DC2626' }}>- R {commission.toLocaleString()}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontWeight: '700', fontSize: '14px' }}>
-                              <span>You deploy</span><span style={{ color: '#085041' }}>R {youReceive.toLocaleString()}</span>
-                            </div>
                           </div>
-                          {!rates[po.id] && <p style={{ fontSize: '12px', color: '#0F6E56', marginTop: '.5rem' }}>Enter your interest rate above to see full breakdown.</p>}
+                          {!rates[po.id] && <p style={{ fontSize: '12px', color: '#0F6E56', marginTop: '.5rem' }}>Enter your interest rate above to see the breakdown.</p>}
                         </div>
                         <button onClick={() => handleSubmitOffer(po.id)}
                           style={{ width: '100%', padding: '12px', background: '#0F6E56', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
