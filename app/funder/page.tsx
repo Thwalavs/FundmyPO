@@ -39,13 +39,49 @@ function RiskBadge({ value }: { value: number }) {
 
 async function downloadDoc(userId: string, docPath: string) {
   const supabase = await getSupabase()
-  const { data: files } = await supabase.storage.from('verification-docs').list(userId)
-  if (!files || files.length === 0) { alert('No documents found for this business.'); return }
-  const matchedFile = files.find(f => f.name.startsWith(docPath))
-  if (!matchedFile) { alert('Document not found. The business may not have uploaded this document yet.'); return }
-  const { data } = await supabase.storage.from('verification-docs').createSignedUrl(`${userId}/${matchedFile.name}`, 3600)
-  if (data?.signedUrl) { window.open(data.signedUrl, '_blank') }
-  else { alert('Could not generate download link. Please try again.') }
+
+  // First try direct path with .pdf extension
+  const directPath = `${userId}/${docPath}.pdf`
+  const { data: directData } = await supabase.storage
+    .from('verification-docs')
+    .createSignedUrl(directPath, 3600)
+
+  if (directData?.signedUrl) {
+    window.open(directData.signedUrl, '_blank')
+    return
+  }
+
+  // Fallback: list files in the user's folder and find a match
+  const { data: files, error: listError } = await supabase.storage
+    .from('verification-docs')
+    .list(userId)
+
+  if (listError || !files || files.length === 0) {
+    alert('No documents found for this business. They may not have uploaded their documents yet.')
+    return
+  }
+
+  // Match by exact name, startsWith, or contains the docPath
+  const matchedFile = files.find(f =>
+    f.name === `${docPath}.pdf` ||
+    f.name.startsWith(docPath) ||
+    f.name.includes(docPath)
+  )
+
+  if (!matchedFile) {
+    alert(`Document not found: ${docPath}\n\nThe business may not have uploaded this document yet.`)
+    return
+  }
+
+  const { data: signedData } = await supabase.storage
+    .from('verification-docs')
+    .createSignedUrl(`${userId}/${matchedFile.name}`, 3600)
+
+  if (signedData?.signedUrl) {
+    window.open(signedData.signedUrl, '_blank')
+  } else {
+    alert('Could not generate download link. Please try again.')
+  }
 }
 
 function RealOffers() {
@@ -196,7 +232,7 @@ export default function FunderDashboard() {
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
         <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',}}/>
+          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto'}}/>
         </a>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
           <span style={{fontSize:'13px',background:'rgba(77,191,176,0.2)',color:'#4DBFB0',padding:'4px 12px',borderRadius:'99px',fontWeight:'600'}}>💰 Funder Portal</span>
@@ -435,10 +471,13 @@ export default function FunderDashboard() {
 
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
                           <p style={{fontSize:'12px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem'}}>📄 PO & Quotation Documents</p>
-                          {[{name:'Purchase Order Document',path:`po-${po.id}`},{name:'Supplier Quotation',path:`quotation-${po.id}`}].map(doc=>(
+                          {[
+                            {name:'Purchase Order Document', path:`po-${po.id}`},
+                            {name:'Supplier Quotation', path:`quotation-${po.id}`}
+                          ].map(doc=>(
                             <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
                               <p style={{fontSize:'13px',fontWeight:'600',color:'#1B2B4B'}}>📄 {doc.name}</p>
-                              <button onClick={()=>downloadDoc(po.user_id,doc.path)}
+                              <button onClick={()=>downloadDoc(po.user_id, doc.path)}
                                 style={{fontSize:'12px',color:'#fff',background:'#0F6E56',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
                                 Download ↓
                               </button>
@@ -449,15 +488,15 @@ export default function FunderDashboard() {
                         <div style={{background:'#fff',borderRadius:'8px',padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
                           <p style={{fontSize:'12px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem'}}>📄 Business Verification Documents</p>
                           {[
-                            {name:'Company Registration Certificate',path:'company-certificate'},
-                            {name:'ID Copy of Director',path:'id-document'},
-                            {name:'CSD Full Registration Report',path:'csd-report'},
-                            {name:'Tax Clearance Certificate',path:'tax-clearance'},
-                            {name:'BBB-EE Certificate',path:'bbbee-certificate'},
+                            {name:'Company Registration Certificate', path:'company-certificate'},
+                            {name:'ID Copy of Director', path:'id-document'},
+                            {name:'CSD Full Registration Report', path:'csd-report'},
+                            {name:'Tax Clearance Certificate', path:'tax-clearance'},
+                            {name:'BBB-EE Certificate', path:'bbbee-certificate'},
                           ].map(doc=>(
                             <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f0f0'}}>
                               <p style={{fontSize:'13px',fontWeight:'600',color:'#1B2B4B'}}>📄 {doc.name}</p>
-                              <button onClick={()=>downloadDoc(po.user_id,doc.path)}
+                              <button onClick={()=>downloadDoc(po.user_id, doc.path)}
                                 style={{fontSize:'12px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
                                 Download ↓
                               </button>
