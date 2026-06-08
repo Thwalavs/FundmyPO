@@ -76,7 +76,37 @@ export default function RegisterPage() {
       const supabase = await getSupabase()
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
+
       const userRole = data.user?.user_metadata?.role
+
+      // Admin always gets through
+      if (userRole === 'admin') {
+        router.push('/admin')
+        return
+      }
+
+      // Check approval status from profiles table
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('status, role')
+        .eq('id', data.user.id)
+        .single()
+
+      if (profile?.status === 'pending') {
+        await supabase.auth.signOut()
+        setError('Your account is pending approval. You will be notified by email once our team has reviewed your documents.')
+        setLoading(false)
+        return
+      }
+
+      if (profile?.status === 'declined') {
+        await supabase.auth.signOut()
+        setError('Your account application was declined. Please contact us at info@fundmypo.co.za for more information.')
+        setLoading(false)
+        return
+      }
+
+      // Portal role check
       if (currentPortalRole === 'funder' && userRole !== 'funder') {
         await supabase.auth.signOut()
         setError('This portal is for funders only. Please use the supplier login instead.')
@@ -89,8 +119,8 @@ export default function RegisterPage() {
         setLoading(false)
         return
       }
-      if (userRole === 'admin') { router.push('/admin') }
-      else if (userRole === 'funder') { router.push('/funder') }
+
+      if (userRole === 'funder') { router.push('/funder') }
       else { router.push('/dashboard') }
     } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
   }
@@ -113,8 +143,22 @@ export default function RegisterPage() {
         options: { data: { role, first_name: firstName, last_name: lastName, business_name: businessName, phone, company_reg: companyReg } }
       })
       if (error) { setError(error.message); setLoading(false); return }
+
       const userId = data.user?.id
       if (userId) {
+        // Save to profiles table with pending status
+        await supabase.from('profiles').insert({
+          id: userId,
+          email,
+          role,
+          first_name: firstName,
+          last_name: lastName,
+          business_name: businessName,
+          phone,
+          company_reg: companyReg,
+          status: 'pending',
+        })
+
         if (role === 'business') {
           if (companyDoc) { setUploadProgress('Uploading company certificate...'); await uploadFile(supabase, companyDoc, userId, 'company-certificate') }
           if (idDoc) { setUploadProgress('Uploading ID document...'); await uploadFile(supabase, idDoc, userId, 'id-document') }
@@ -127,18 +171,19 @@ export default function RegisterPage() {
           if (proofFunds) { setUploadProgress('Uploading proof of funds...'); await uploadFile(supabase, proofFunds, userId, 'proof-of-funds') }
         }
       }
+
+      // Notify admin of new registration
       try {
         await fetch('/api/send-email', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'welcome', to: email, data: { name: firstName || businessName, role } })
+          body: JSON.stringify({
+            type: 'new_registration',
+            to: 'admin@fundmypo.co.za',
+            data: { name: `${firstName} ${lastName}`, businessName, email, role }
+          })
         })
-      } catch(e) { console.log('Welcome email failed:', e) }
-      try {
-        await fetch('/api/send-email', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'new_po_submitted', to: 'vsiphoesihle@gmail.com', data: { businessName: businessName || firstName, poNumber: 'New Registration', clientName: email, poValue: role === 'funder' ? 'Funder' : 'Supplier' } })
-        })
-      } catch(e) { console.log('Admin email failed:', e) }
+      } catch(e) { console.log('Admin notification failed:', e) }
+
       setUploadProgress('')
       setSuccess(true)
       setLoading(false)
@@ -184,7 +229,6 @@ export default function RegisterPage() {
   return (
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
 
-      {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
         <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
           <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto'}}/>
@@ -226,7 +270,6 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* LOGIN */}
           {tab === 'login' && (
             <div>
               <div style={fieldStyle}>
@@ -263,16 +306,20 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* REGISTER */}
           {tab === 'register' && (
             <div>
               {success ? (
                 <div style={{background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'12px',padding:'2rem',textAlign:'center'}}>
-                  <p style={{color:'#085041',fontSize:'16px',fontWeight:'600',marginBottom:'.5rem'}}>Account created successfully!</p>
-                  <p style={{color:'#0F6E56',fontSize:'13px',marginBottom:'1.5rem',lineHeight:'1.6'}}>Your documents are under review. You will be notified within 24-48 hours.</p>
+                  <div style={{width:'56px',height:'56px',background:'#0F6E56',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 1rem'}}>
+                    <span style={{color:'#fff',fontSize:'24px',fontWeight:'700'}}>✓</span>
+                  </div>
+                  <p style={{color:'#085041',fontSize:'16px',fontWeight:'600',marginBottom:'.5rem'}}>Application submitted!</p>
+                  <p style={{color:'#0F6E56',fontSize:'13px',marginBottom:'1.5rem',lineHeight:'1.6'}}>
+                    Your account is <strong>pending approval</strong>. Our team will review your documents within 24-48 hours and notify you by email once approved.
+                  </p>
                   <button onClick={()=>{ setTab('login'); setSuccess(false) }}
                     style={{padding:'10px 24px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
-                    Go to Sign in
+                    Back to Sign in
                   </button>
                 </div>
               ) : (
@@ -379,7 +426,6 @@ export default function RegisterPage() {
                         <p style={{fontSize:'13px',color:'#085041',fontWeight:'600',marginBottom:'2px'}}>Your documents are secure</p>
                         <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and only shared with verified parties.</p>
                       </div>
-
                       {role === 'business' && (
                         <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
                           <span style={{color:'#DC2626'}}>*</span> All 5 documents required for suppliers
@@ -390,7 +436,6 @@ export default function RegisterPage() {
                           All documents are optional for funders. Upload what you have available.
                         </div>
                       )}
-
                       {role === 'business' ? (
                         <div>
                           <UploadBox label="Company Registration Certificate" file={companyDoc} onChange={setCompanyDoc} required/>
@@ -406,18 +451,15 @@ export default function RegisterPage() {
                           <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds}/>
                         </div>
                       )}
-
                       {uploadProgress && (
                         <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'13px',color:'#085041',textAlign:'center'}}>
                           {uploadProgress}
                         </div>
                       )}
-
                       <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
                         <p style={{fontSize:'13px',color:'#633806',fontWeight:'600',marginBottom:'2px'}}>Review process</p>
                         <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
                       </div>
-
                       <div style={{display:'flex',alignItems:'flex-start',gap:'10px',marginBottom:'1rem',padding:'12px',background:'#f9f9f9',borderRadius:'8px',border:`1px solid ${agreedToTerms?'#0F6E56':'#e5e5e5'}`}}>
                         <input type="checkbox" checked={agreedToTerms} onChange={e=>setAgreedToTerms(e.target.checked)}
                           style={{marginTop:'2px',width:'16px',height:'16px',cursor:'pointer',accentColor:'#0F6E56'}}/>
@@ -429,7 +471,6 @@ export default function RegisterPage() {
                           . I confirm all documents submitted are authentic and accurate.
                         </p>
                       </div>
-
                       <div style={{display:'flex',gap:'10px'}}>
                         <button onClick={()=>{ setError(''); setStep(1) }}
                           style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
