@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -163,14 +163,13 @@ export default function RegisterPage() {
         <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative',cursor:'pointer'}}>
           {file ? (
             <div>
-              <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'500'}}>&#x2705; {file.name}</p>
+              <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'500'}}>{file.name}</p>
               <p style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>Click to change</p>
             </div>
           ) : (
             <div>
-              <p style={{fontSize:'24px',marginBottom:'.25rem'}}>&#x1F4CE;</p>
-              <p style={{fontSize:'13px',color:'#666'}}>Click to upload {label}</p>
-              <p style={{fontSize:'12px',color:'#aaa',marginTop:'2px'}}>PDF, JPG or PNG &mdash; max 5MB</p>
+              <p style={{fontSize:'13px',color:'#666',marginBottom:'.25rem'}}>Click to upload {label}</p>
+              <p style={{fontSize:'12px',color:'#aaa'}}>PDF, JPG or PNG — max 5MB</p>
             </div>
           )}
           <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e=>onChange(e.target.files?.[0]||null)}
@@ -192,9 +191,9 @@ export default function RegisterPage() {
         </a>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
           <span style={{fontSize:'13px',background:isFunder?'rgba(77,191,176,0.2)':'rgba(255,255,255,0.1)',color:isFunder?'#4DBFB0':'#fff',padding:'4px 12px',borderRadius:'99px',fontWeight:'500'}}>
-            {isFunder ? '\uD83D\uDCB0 Funder Portal' : '\uD83C\uDFED Supplier Portal'}
+            {isFunder ? 'Funder Portal' : 'Supplier Portal'}
           </span>
-          <a href="/" style={{fontSize:'13px',color:'rgba(255,255,255,0.7)',textDecoration:'none'}}>&#x2190; Back to home</a>
+          <a href="/" style={{fontSize:'13px',color:'rgba(255,255,255,0.7)',textDecoration:'none'}}>Back to home</a>
         </div>
       </nav>
 
@@ -223,7 +222,7 @@ export default function RegisterPage() {
 
           {error && (
             <div style={{background:'#FEE2E2',border:'1px solid #FCA5A5',borderRadius:'8px',padding:'10px 14px',marginBottom:'1rem',fontSize:'13px',color:'#DC2626'}}>
-              &#x26A0;&#xFE0F; {error}
+              {error}
             </div>
           )}
 
@@ -246,7 +245,7 @@ export default function RegisterPage() {
               </div>
               <button onClick={()=>handleLogin(portalRole)} disabled={loading}
                 style={{width:'100%',padding:'12px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
-                {loading ? 'Signing in...' : 'Sign in \u2192'}
+                {loading ? 'Signing in...' : 'Sign in'}
               </button>
               <p style={{textAlign:'center',fontSize:'13px',color:'#666',marginTop:'1.25rem'}}>
                 No account?{' '}
@@ -269,12 +268,11 @@ export default function RegisterPage() {
             <div>
               {success ? (
                 <div style={{background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'12px',padding:'2rem',textAlign:'center'}}>
-                  <div style={{fontSize:'40px',marginBottom:'1rem'}}>&#x1F389;</div>
                   <p style={{color:'#085041',fontSize:'16px',fontWeight:'600',marginBottom:'.5rem'}}>Account created successfully!</p>
                   <p style={{color:'#0F6E56',fontSize:'13px',marginBottom:'1.5rem',lineHeight:'1.6'}}>Your documents are under review. You will be notified within 24-48 hours.</p>
                   <button onClick={()=>{ setTab('login'); setSuccess(false) }}
                     style={{padding:'10px 24px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
-                    Go to Sign in &#x2192;
+                    Go to Sign in
                   </button>
                 </div>
               ) : (
@@ -304,11 +302,11 @@ export default function RegisterPage() {
                       <div style={{display:'flex',gap:'8px',marginBottom:'1.25rem'}}>
                         <button onClick={()=>setRole('business')}
                           style={{flex:1,padding:'10px',border:role==='business'?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',background:role==='business'?'#E1F5EE':'#fff',color:role==='business'?'#085041':'#666',fontWeight:'600'}}>
-                          &#x1F3ED; Supplier / SME
+                          Supplier / SME
                         </button>
                         <button onClick={()=>setRole('funder')}
                           style={{flex:1,padding:'10px',border:role==='funder'?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',background:role==='funder'?'#E1F5EE':'#fff',color:role==='funder'?'#085041':'#666',fontWeight:'600'}}>
-                          &#x1F4B0; Funder
+                          Funder
                         </button>
                       </div>
                       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
@@ -353,7 +351,7 @@ export default function RegisterPage() {
                             <p style={{fontSize:'12px',fontWeight:'600',color:'#444',marginBottom:'6px'}}>Password requirements:</p>
                             {passwordChecks.map(({label,met})=>(
                               <div key={label} style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}>
-                                <span style={{fontSize:'13px',color:met?'#0F6E56':'#DC2626'}}>{met ? '\u2705' : '\u274C'}</span>
+                                <span style={{fontSize:'12px',fontWeight:'600',color:met?'#0F6E56':'#DC2626'}}>{met ? 'OK' : 'X'}</span>
                                 <span style={{fontSize:'12px',color:met?'#0F6E56':'#DC2626'}}>{label}</span>
                               </div>
                             ))}
@@ -370,19 +368,16 @@ export default function RegisterPage() {
                         if (!email.includes('@')) { setError('Please enter a valid email address.'); return }
                         setError(''); setStep(2)
                       }} style={{width:'100%',padding:'12px',background:passwordValid&&firstName&&lastName&&businessName&&email&&phone?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
-                        Continue to verification &#x2192;
+                        Continue to verification
                       </button>
                     </div>
                   )}
 
                   {step === 2 && (
                     <div>
-                      <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.25rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
-                        <span style={{fontSize:'18px'}}>&#x1F512;</span>
-                        <div>
-                          <p style={{fontSize:'13px',color:'#085041',fontWeight:'600',marginBottom:'2px'}}>Your documents are secure</p>
-                          <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and only shared with verified parties.</p>
-                        </div>
+                      <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.25rem'}}>
+                        <p style={{fontSize:'13px',color:'#085041',fontWeight:'600',marginBottom:'2px'}}>Your documents are secure</p>
+                        <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and only shared with verified parties.</p>
                       </div>
 
                       {role === 'business' && (
@@ -392,7 +387,7 @@ export default function RegisterPage() {
                       )}
                       {role === 'funder' && (
                         <div style={{background:'#E6F1FB',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#0C447C'}}>
-                          &#x2139;&#xFE0F; All documents are optional for funders. Upload what you have available.
+                          All documents are optional for funders. Upload what you have available.
                         </div>
                       )}
 
@@ -414,16 +409,13 @@ export default function RegisterPage() {
 
                       {uploadProgress && (
                         <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'13px',color:'#085041',textAlign:'center'}}>
-                          &#x23F3; {uploadProgress}
+                          {uploadProgress}
                         </div>
                       )}
 
-                      <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
-                        <span style={{fontSize:'18px'}}>&#x23F0;</span>
-                        <div>
-                          <p style={{fontSize:'13px',color:'#633806',fontWeight:'600',marginBottom:'2px'}}>Review process</p>
-                          <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
-                        </div>
+                      <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
+                        <p style={{fontSize:'13px',color:'#633806',fontWeight:'600',marginBottom:'2px'}}>Review process</p>
+                        <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
                       </div>
 
                       <div style={{display:'flex',alignItems:'flex-start',gap:'10px',marginBottom:'1rem',padding:'12px',background:'#f9f9f9',borderRadius:'8px',border:`1px solid ${agreedToTerms?'#0F6E56':'#e5e5e5'}`}}>
@@ -441,7 +433,7 @@ export default function RegisterPage() {
                       <div style={{display:'flex',gap:'10px'}}>
                         <button onClick={()=>{ setError(''); setStep(1) }}
                           style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
-                          &#x2190; Back
+                          Back
                         </button>
                         <button onClick={()=>{
                           if (role === 'business' && (!companyDoc || !idDoc || !csdDoc || !taxDoc || !bbbeeDoc)) {
@@ -453,7 +445,7 @@ export default function RegisterPage() {
                           handleRegister()
                         }} disabled={loading}
                           style={{flex:2,padding:'12px',background:agreedToTerms?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
-                          {loading ? 'Creating account...' : 'Submit & Create account \u2192'}
+                          {loading ? 'Creating account...' : 'Submit & Create account'}
                         </button>
                       </div>
                     </div>
