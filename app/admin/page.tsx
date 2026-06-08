@@ -289,21 +289,17 @@ export default function AdminPage() {
             <div style={{marginBottom:'1.5rem'}}>
               <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem'}}>Verification Documents</p>
               <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-                {selectedProfile.role === 'business' ? (
-                  [
+                {(selectedProfile.role === 'business' ? [
                     { name:'Company Registration Certificate', path:'company-certificate' },
                     { name:'ID Copy of Director', path:'id-document' },
                     { name:'CSD Full Registration Report', path:'csd-report' },
                     { name:'Tax Clearance Certificate', path:'tax-clearance' },
                     { name:'BBB-EE Certificate', path:'bbbee-certificate' },
-                  ]
-                ) : (
-                  [
+                  ] : [
                     { name:'FSCA License', path:'fsca-license' },
                     { name:'ID Copy of Director', path:'id-document' },
                     { name:'Proof of Funds', path:'proof-of-funds' },
-                  ]
-                )}.map(doc => (
+                  ]).map(doc => (
                   <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:'#f9fafb',borderRadius:'8px',border:'1px solid #e5e5e5'}}>
                     <p style={{fontSize:'13px',color:'#1B2B4B',fontWeight:'500'}}>{doc.name}</p>
                     <button onClick={()=>downloadDoc(selectedProfile.id, doc.path)}
