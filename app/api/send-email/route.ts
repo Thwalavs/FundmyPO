@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     if (type === 'welcome') {
       subject = 'Welcome to FundMyPO!'
       html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
-        <h2 style="color:#085041">Welcome to FundMyPO, ${data.name}! 🎉</h2>
+        <h2 style="color:#085041">Welcome to FundMyPO, ${data.name}!</h2>
         <p style="color:#444;line-height:1.8">Thank you for registering on FundMyPO. Your account is currently under review and will be verified within 24-48 hours.</p>
         <p style="color:#444;line-height:1.8">${data.role === 'funder' ? 'Once approved you will be able to browse purchase orders and submit funding offers.' : 'Once approved you will be able to submit purchase orders and receive competitive funding offers.'}</p>
         <div style="background:#E1F5EE;padding:1rem;border-radius:8px;margin:1rem 0">
@@ -18,8 +18,64 @@ export async function POST(req: NextRequest) {
           <p style="color:#0F6E56;font-size:14px;margin:.5rem 0 0">Our team will review your documents and verify your account. You will receive another email once approved.</p>
         </div>
         <a href="https://fundmypo.co.za/register" style="display:inline-block;background:#0F6E56;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:1rem">Log in to FundMyPO</a>
-        <p style="color:#888;font-size:12px;margin-top:2rem">If you have any questions contact us at support@fundmypo.co.za</p>
+        <p style="color:#888;font-size:12px;margin-top:2rem">If you have any questions contact us at info@fundmypo.co.za</p>
       </div>`
+
+    } else if (type === 'new_registration') {
+      subject = `New Registration: ${data.businessName} (${data.role === 'funder' ? 'Funder' : 'Supplier'})`
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <h2 style="color:#1B2B4B">New Registration on FundMyPO</h2>
+        <p style="color:#444">A new user has registered and is awaiting approval.</p>
+        <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1rem 0">
+          <p style="margin:0 0 8px;color:#444"><strong>Name:</strong> ${data.name}</p>
+          <p style="margin:0 0 8px;color:#444"><strong>Business:</strong> ${data.businessName}</p>
+          <p style="margin:0 0 8px;color:#444"><strong>Email:</strong> ${data.email}</p>
+          <p style="margin:0;color:#444"><strong>Role:</strong> ${data.role === 'funder' ? 'Funder' : 'Supplier / SME'}</p>
+        </div>
+        <a href="https://fundmypo.co.za/admin" style="display:inline-block;background:#1B2B4B;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:1rem">Review in Admin Panel</a>
+        <p style="color:#888;font-size:12px;margin-top:2rem">Log in to the admin panel to view their documents and approve or decline their application.</p>
+      </div>`
+
+    } else if (type === 'account_approved') {
+      subject = 'Your FundMyPO Account Has Been Approved!'
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#0F6E56;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:24px">Account Approved!</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
+          <p style="color:#444;line-height:1.8">Great news! Your FundMyPO account has been reviewed and <strong style="color:#0F6E56">approved</strong>.</p>
+          <p style="color:#444;line-height:1.8">
+            ${data.role === 'funder'
+              ? 'You can now log in and start browsing available purchase orders and submitting funding offers.'
+              : 'You can now log in and start submitting purchase orders to receive competitive funding offers from our verified funders.'}
+          </p>
+          <div style="background:#E1F5EE;padding:1rem;border-radius:8px;margin:1.5rem 0">
+            <p style="color:#085041;margin:0;font-size:14px">Your business <strong>${data.businessName}</strong> is now active on the platform.</p>
+          </div>
+          <a href="https://fundmypo.co.za/register" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">Log in to FundMyPO</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">If you have any questions contact us at info@fundmypo.co.za or WhatsApp 067 316 2771</p>
+        </div>
+      </div>`
+
+    } else if (type === 'account_declined') {
+      subject = 'Update on Your FundMyPO Application'
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:24px">Application Update</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
+          <p style="color:#444;line-height:1.8">Thank you for applying to join FundMyPO. After reviewing your application and documents, we are unable to approve your account at this time.</p>
+          <div style="background:#FEE2E2;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #DC2626">
+            <p style="color:#991B1B;margin:0;font-size:14px">This may be due to incomplete or invalid documentation. Please ensure all documents are valid and up to date.</p>
+          </div>
+          <p style="color:#444;line-height:1.8">If you believe this is an error or would like to reapply with updated documents, please contact us directly.</p>
+          <a href="mailto:info@fundmypo.co.za" style="display:inline-block;background:#1B2B4B;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">Contact Us</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
+      </div>`
+
     } else if (type === 'new_offer') {
       subject = 'New Funding Offer Received!'
       html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
@@ -28,22 +84,16 @@ export async function POST(req: NextRequest) {
         <p style="color:#444">Funder: ${data.funderName}<br>Amount: ${data.amount}<br>Rate: ${data.rate}</p>
         <a href="https://fundmypo.co.za/dashboard" style="display:inline-block;background:#0F6E56;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">View offer</a>
       </div>`
-    } else if (type === 'account_approved') {
-      subject = 'Your FundMyPO Account Has Been Approved!'
-      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
-        <h2 style="color:#085041">Account Approved! ✅</h2>
-        <p style="color:#444">Hi ${data.name}, your account has been verified and approved.</p>
-        <p style="color:#444">You can now log in and start using FundMyPO.</p>
-        <a href="https://fundmypo.co.za/register" style="display:inline-block;background:#0F6E56;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Log in now</a>
-      </div>`
+
     } else if (type === 'offer_accepted') {
       subject = 'Your Funding Offer Was Accepted!'
       html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
-        <h2 style="color:#085041">Offer Accepted! 🎉</h2>
+        <h2 style="color:#085041">Offer Accepted!</h2>
         <p style="color:#444">Your offer for <strong>${data.poNumber}</strong> has been accepted!</p>
         <p style="color:#444">Amount: ${data.amount}<br>Rate: ${data.rate}<br>Term: ${data.term}<br>Commission: ${data.commission}</p>
         <a href="https://fundmypo.co.za/funder" style="display:inline-block;background:#0F6E56;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">View details</a>
       </div>`
+
     } else if (type === 'new_po_submitted') {
       subject = 'New PO Submitted on FundMyPO'
       html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
