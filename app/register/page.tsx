@@ -1,13 +1,49 @@
 ﻿'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import type { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+import Link from 'next/link'
+
+const inputStyle = {width:'100%',padding:'10px 14px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none',background:'#fff'}
+const labelStyle = {display:'block' as const,fontSize:'13px',color:'#555',marginBottom:'6px',fontWeight:'500'}
+const fieldStyle = {marginBottom:'1rem'}
+
+function UploadBox({ label, file, onChange, required }: { label: string, file: File|null, onChange: (f: File|null) => void, required?: boolean }) {
+  return (
+    <div style={fieldStyle}>
+      <label style={labelStyle}>
+        {label}{' '}
+        {required && <span style={{color:'#DC2626'}}>*</span>}
+        {!required && <span style={{fontSize:'11px',color:'#888'}}> (optional)</span>}
+      </label>
+      <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative',cursor:'pointer'}}>
+        {file ? (
+          <div>
+            <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'500'}}>{file.name}</p>
+            <p style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>Click to change</p>
+          </div>
+        ) : (
+          <div>
+            <p style={{fontSize:'13px',color:'#666',marginBottom:'.25rem'}}>Click to upload {label}</p>
+            <p style={{fontSize:'12px',color:'#aaa'}}>PDF, JPG or PNG — max 5MB</p>
+          </div>
+        )}
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e=>onChange(e.target.files?.[0]||null)}
+          style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',opacity:0,cursor:'pointer'}}/>
+      </div>
+    </div>
+  )
+}
 
 export default function RegisterPage() {
   const router = useRouter()
   const [tab, setTab] = useState<'login' | 'register'>('login')
   const [step, setStep] = useState(1)
-  const [role, setRole] = useState('business')
-  const [portalRole, setPortalRole] = useState('business')
+  const isBrowser = typeof window !== 'undefined'
+  const initialRole = isBrowser && new URLSearchParams(window.location.search).get('role') === 'funder' ? 'funder' : 'business'
+  const [role, setRole] = useState<'business' | 'funder'>(initialRole)
+  const [portalRole] = useState<'business' | 'funder'>(initialRole)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -21,7 +57,6 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const [companyDoc, setCompanyDoc] = useState<File|null>(null)
   const [idDoc, setIdDoc] = useState<File|null>(null)
   const [csdDoc, setCsdDoc] = useState<File|null>(null)
@@ -32,23 +67,15 @@ export default function RegisterPage() {
   const [uploadProgress, setUploadProgress] = useState('')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
-    const params = new URLSearchParams(window.location.search)
-    const roleParam = params.get('role')
-    if (roleParam === 'funder') {
-      setPortalRole('funder')
-      setRole('funder')
-    }
-  }, [])
-
-  async function getSupabase() {
+  async function getSupabase(): Promise<ReturnType<typeof createBrowserClient>> {
     const { createBrowserClient } = await import('@supabase/ssr')
     return createBrowserClient(
       'https://efzszombcfxyyobqehyp.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmenN6b21iY2Z4eXlvYnFlaHlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0NzIsImV4cCI6MjA5MzAyNjQ3Mn0.H4cYGfajHP8jkKGwoBLowna9joodOS5xvRzm8HBv3UU'
     )
   }
+
+  type SupabaseClient = Awaited<ReturnType<typeof getSupabase>>
 
   const passwordChecks = [
     { label: 'At least 8 characters', met: password.length >= 8 },
@@ -63,13 +90,15 @@ export default function RegisterPage() {
     setError('')
     try {
       const supabase = await getSupabase()
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://fundmypo.co.za/reset-password'
-      })
+      const redirectTo = `${window.location.origin}/Auth/confirm?next=/reset-password`
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
       setLoading(false)
       if (error) { setError(error.message); return }
       alert('Password reset email sent! Check your inbox.')
-    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Error: Something went wrong.')
+      setLoading(false)
+    }
   }
 
   async function handleLogin(currentPortalRole: string) {
@@ -122,10 +151,13 @@ export default function RegisterPage() {
 
       if (userRole === 'funder') { router.push('/funder') }
       else { router.push('/dashboard') }
-    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Error: Something went wrong.')
+      setLoading(false)
+    }
   }
 
-  async function uploadFile(supabase: any, file: File, userId: string, docName: string) {
+  async function uploadFile(supabase: SupabaseClient, file: File, userId: string, docName: string) {
     const ext = file.name.split('.').pop()
     const path = `${userId}/${docName}.${ext}`
     const { error } = await supabase.storage.from('verification-docs').upload(path, file, { upsert: true })
@@ -205,42 +237,15 @@ export default function RegisterPage() {
       setUploadProgress('')
       setSuccess(true)
       setLoading(false)
-    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Error: Something went wrong.')
+      setLoading(false)
+    }
   }
 
-  if (!mounted) return null
+  if (!isBrowser) return null
 
-  const inputStyle = {width:'100%',padding:'10px 14px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none',background:'#fff'}
   const inputFilled = (val: string) => ({...inputStyle, borderColor: val ? '#0F6E56' : '#e5e5e5'})
-  const labelStyle = {display:'block' as const,fontSize:'13px',color:'#555',marginBottom:'6px',fontWeight:'500'}
-  const fieldStyle = {marginBottom:'1rem'}
-
-  function UploadBox({ label, file, onChange, required }: { label: string, file: File|null, onChange: (f: File|null) => void, required?: boolean }) {
-    return (
-      <div style={fieldStyle}>
-        <label style={labelStyle}>
-          {label}{' '}
-          {required && <span style={{color:'#DC2626'}}>*</span>}
-          {!required && <span style={{fontSize:'11px',color:'#888'}}> (optional)</span>}
-        </label>
-        <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative',cursor:'pointer'}}>
-          {file ? (
-            <div>
-              <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'500'}}>{file.name}</p>
-              <p style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>Click to change</p>
-            </div>
-          ) : (
-            <div>
-              <p style={{fontSize:'13px',color:'#666',marginBottom:'.25rem'}}>Click to upload {label}</p>
-              <p style={{fontSize:'12px',color:'#aaa'}}>PDF, JPG or PNG — max 5MB</p>
-            </div>
-          )}
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e=>onChange(e.target.files?.[0]||null)}
-            style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',opacity:0,cursor:'pointer'}}/>
-        </div>
-      </div>
-    )
-  }
 
   const isFunder = portalRole === 'funder'
 
@@ -248,14 +253,14 @@ export default function RegisterPage() {
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
 
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
-        <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto'}}/>
-        </a>
+        <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
+          <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
+        </Link>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
           <span style={{fontSize:'13px',background:isFunder?'rgba(77,191,176,0.2)':'rgba(255,255,255,0.1)',color:isFunder?'#4DBFB0':'#fff',padding:'4px 12px',borderRadius:'99px',fontWeight:'500'}}>
             {isFunder ? 'Funder Portal' : 'Supplier Portal'}
           </span>
-          <a href="/" style={{fontSize:'13px',color:'rgba(255,255,255,0.7)',textDecoration:'none'}}>Back to home</a>
+          <Link href="/" style={{fontSize:'13px',color:'rgba(255,255,255,0.7)',textDecoration:'none'}}>Back to home</Link>
         </div>
       </nav>
 
@@ -316,9 +321,9 @@ export default function RegisterPage() {
               </p>
               <p style={{textAlign:'center',fontSize:'12px',color:'#888',marginTop:'.5rem'}}>
                 {isFunder ? (
-                  <>Wrong portal? <a href="/register" style={{color:'#0F6E56',fontWeight:'500'}}>Go to supplier login</a></>
+                  <>Wrong portal? <Link href="/register" style={{color:'#0F6E56',fontWeight:'500'}}>Go to supplier login</Link></>
                 ) : (
-                  <>Are you a funder? <a href="/register?role=funder" style={{color:'#0F6E56',fontWeight:'500'}}>Go to funder login</a></>
+                  <>Are you a funder? <Link href="/register?role=funder" style={{color:'#0F6E56',fontWeight:'500'}}>Go to funder login</Link></>
                 )}
               </p>
             </div>
