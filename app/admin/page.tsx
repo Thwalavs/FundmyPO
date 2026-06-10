@@ -45,6 +45,7 @@ export default function AdminPage() {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [mounted, setMounted] = useState(false)
 
   // loadProfiles declared before useEffect to satisfy lint rules
   async function loadProfiles() {
@@ -60,6 +61,10 @@ export default function AdminPage() {
 
   useEffect(() => {
     void (async () => { await loadProfiles() })()
+  }, [])
+
+  useEffect(() => {
+    setMounted(true)
   }, [])
 
   async function updateStatus(profileId: string, status: 'approved' | 'declined') {
