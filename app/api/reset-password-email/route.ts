@@ -19,9 +19,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         type: 'recovery',
         email,
-        options: {
-          redirect_to: 'https://fundmypo.co.za/reset-password'
-        }
+        redirect_to: 'https://fundmypo.co.za/reset-password'
       })
     })
 
