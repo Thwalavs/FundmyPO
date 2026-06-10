@@ -45,7 +45,6 @@ export default function AdminPage() {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [mounted, setMounted] = useState(false)
 
   // loadProfiles declared before useEffect to satisfy lint rules
   async function loadProfiles() {
@@ -61,10 +60,6 @@ export default function AdminPage() {
 
   useEffect(() => {
     void (async () => { await loadProfiles() })()
-  }, [])
-
-  useEffect(() => {
-    setMounted(true)
   }, [])
 
   async function updateStatus(profileId: string, status: 'approved' | 'declined') {
@@ -105,8 +100,6 @@ export default function AdminPage() {
     window.location.href = '/'
   }
 
-  if (!mounted) return null
-
   const filtered = profiles.filter(p => {
     const matchesTab = activeTab === 'all' || p.status === activeTab
     const matchesSearch = !searchQuery ||
@@ -138,10 +131,10 @@ export default function AdminPage() {
   }
 
   return (
-    <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
+    <main className="admin-page" style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
 
       {/* NAV */}
-      <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
+      <nav className="admin-nav" style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
         <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
           <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
         </Link>
@@ -156,7 +149,7 @@ export default function AdminPage() {
         </div>
       </nav>
 
-      <div style={{maxWidth:'1100px',margin:'0 auto',padding:'2rem'}}>
+      <div className="admin-content" style={{maxWidth:'1100px',margin:'0 auto',padding:'2rem'}}>
 
         <div style={{marginBottom:'1.5rem'}}>
           <h1 style={{fontSize:'24px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>User Management</h1>
@@ -164,7 +157,7 @@ export default function AdminPage() {
         </div>
 
         {/* STATS */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'1rem',marginBottom:'2rem'}}>
+        <div className="admin-stats-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'1rem',marginBottom:'2rem'}}>
           {[
             { label:'Pending Review', value:counts.pending, color:'#92400E', bg:'#FEF3C7' },
             { label:'Approved', value:counts.approved, color:'#065F46', bg:'#D1FAE5' },
@@ -179,7 +172,7 @@ export default function AdminPage() {
         </div>
 
         {/* SEARCH */}
-        <div style={{marginBottom:'1rem'}}>
+        <div className="admin-search" style={{marginBottom:'1rem'}}>
           <input
             type="text"
             placeholder="Search by name, email or business..."
@@ -190,7 +183,7 @@ export default function AdminPage() {
         </div>
 
         {/* TABS */}
-        <div style={{display:'flex',gap:'4px',background:'#fff',border:'1px solid #e5e5e5',borderRadius:'10px',padding:'4px',marginBottom:'1.5rem',width:'fit-content'}}>
+        <div className="admin-tabs" style={{display:'flex',gap:'4px',background:'#fff',border:'1px solid #e5e5e5',borderRadius:'10px',padding:'4px',marginBottom:'1.5rem',width:'fit-content'}}>
           {(['pending','approved','declined','all'] as const).map(t=>(
             <button key={t} onClick={()=>setActiveTab(t)}
               style={{padding:'8px 16px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'13px',fontWeight:'600',
@@ -202,13 +195,13 @@ export default function AdminPage() {
         </div>
 
         {/* TABLE */}
-        <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',overflow:'hidden'}}>
+        <div className="admin-table-wrapper" style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',overflow:'hidden'}}>
           {loading ? (
             <div style={{padding:'3rem',textAlign:'center',color:'#888'}}>Loading users...</div>
           ) : filtered.length === 0 ? (
             <div style={{padding:'3rem',textAlign:'center',color:'#888'}}>No users found.</div>
           ) : (
-            <table style={{width:'100%',borderCollapse:'collapse'}}>
+            <table className="admin-table" style={{width:'100%',borderCollapse:'collapse'}}>
               <thead>
                 <tr style={{background:'#f9fafb',borderBottom:'1px solid #e5e5e5'}}>
                   {['Name / Business','Email','Role','Status','Registered','Actions'].map(h=>(
@@ -219,23 +212,23 @@ export default function AdminPage() {
               <tbody>
                 {filtered.map((profile, i) => (
                   <tr key={profile.id} style={{borderBottom:'1px solid #f0f0f0',background:i%2===0?'#fff':'#fafafa'}}>
-                    <td style={{padding:'14px 16px'}}>
+                    <td data-label="Name / Business" style={{padding:'14px 16px'}}>
                       <p style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B',marginBottom:'2px'}}>
                         {profile.first_name ? `${profile.first_name} ${profile.last_name}` : '—'}
                       </p>
                       <p style={{fontSize:'12px',color:'#888'}}>{profile.business_name || '—'}</p>
                     </td>
-                    <td style={{padding:'14px 16px',fontSize:'13px',color:'#444'}}>{profile.email}</td>
-                    <td style={{padding:'14px 16px'}}>
+                    <td data-label="Email" style={{padding:'14px 16px',fontSize:'13px',color:'#444'}}>{profile.email}</td>
+                    <td data-label="Role" style={{padding:'14px 16px'}}>
                       <span style={{background:profile.role==='funder'?'#E6F1FB':'#E1F5EE',color:profile.role==='funder'?'#0C447C':'#085041',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'600'}}>
                         {profile.role === 'funder' ? 'Funder' : 'Supplier'}
                       </span>
                     </td>
-                    <td style={{padding:'14px 16px'}}>{statusBadge(profile.status)}</td>
-                    <td style={{padding:'14px 16px',fontSize:'12px',color:'#888'}}>
+                    <td data-label="Status" style={{padding:'14px 16px'}}>{statusBadge(profile.status)}</td>
+                    <td data-label="Registered" style={{padding:'14px 16px',fontSize:'12px',color:'#888'}}>
                       {new Date(profile.created_at).toLocaleDateString('en-ZA')}
                     </td>
-                    <td style={{padding:'14px 16px'}}>
+                    <td data-label="Actions" style={{padding:'14px 16px'}}>
                       <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                         <button onClick={()=>setSelectedProfile(profile)}
                           style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
@@ -267,8 +260,8 @@ export default function AdminPage() {
 
       {/* PROFILE DETAIL MODAL */}
       {selectedProfile && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'1rem'}}>
-          <div style={{background:'#fff',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'560px',maxHeight:'90vh',overflowY:'auto'}}>
+        <div className="admin-modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'1rem'}}>
+          <div className="admin-modal" style={{background:'#fff',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'560px',maxHeight:'90vh',overflowY:'auto'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
               <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B'}}>Application Details</h2>
               <button onClick={()=>setSelectedProfile(null)}
@@ -277,7 +270,7 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1.5rem'}}>
+            <div className="admin-detail-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1.5rem'}}>
               {[
                 ['Name', `${selectedProfile.first_name || ''} ${selectedProfile.last_name || ''}`],
                 ['Email', selectedProfile.email],
@@ -297,7 +290,7 @@ export default function AdminPage() {
 
             <div style={{marginBottom:'1.5rem'}}>
               <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem'}}>Verification Documents</p>
-              <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+              <div className="admin-doc-list" style={{display:'flex',flexDirection:'column',gap:'8px'}}>
                 {(selectedProfile.role === 'business' ? [
                     { name:'Company Registration Certificate', path:'company-certificate' },
                     { name:'ID Copy of Director', path:'id-document' },
@@ -320,7 +313,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div style={{display:'flex',gap:'10px'}}>
+            <div className="admin-modal-actions" style={{display:'flex',gap:'10px'}}>
               <button onClick={()=>setSelectedProfile(null)}
                 style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
                 Close
