@@ -172,6 +172,18 @@ export default function RegisterPage() {
         }
       }
 
+      // Send welcome email to user
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'welcome',
+            to: 'admin@fundmypo.co.za',
+            data: { name: `${firstName} ${lastName}`, businessName, email, role }
+          })
+        })
+      } catch(e) { console.log('Admin notification failed:', e) }
+
       // Notify admin of new registration
       try {
         await fetch('/api/send-email', {
