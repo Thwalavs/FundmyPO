@@ -30,23 +30,28 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     setMounted(true)
 
-    // Supabase puts the token in the URL hash as #access_token=...&type=recovery
-    // We need to listen for the PASSWORD_RECOVERY event which fires automatically
-    // when Supabase detects the token in the hash
-    async function init() {
-      const supabase = await getSupabase()
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setReady(true)
-        }
-      })
-      // Also check if there's already a session (user refreshed the page)
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) setReady(true)
-
-      return () => subscription.unsubscribe()
+    // Check for error param (invalid/expired link from route handler)
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('error') === 'invalid_link') {
+      setReady(false)
+      return
     }
-    init()
+
+    // Session was set by the /auth/confirm route handler — just check it exists
+    async function checkSession() {
+      const supabase = await getSupabase()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        setReady(true)
+      } else {
+        // Fallback: also listen for PASSWORD_RECOVERY event (hash flow)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+          if (event === 'PASSWORD_RECOVERY') setReady(true)
+        })
+        return () => subscription.unsubscribe()
+      }
+    }
+    checkSession()
   }, [])
 
   async function handleReset() {
@@ -116,7 +121,7 @@ export default function ResetPasswordPage() {
             </div>
           )}
 
-          {/* Error if link is invalid / expired */}
+          {/* Invalid/expired link */}
           {!message && !ready && (
             <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: '10px', padding: '1.25rem', textAlign: 'center' }}>
               <p style={{ color: '#DC2626', fontSize: '14px', fontWeight: '600', marginBottom: '.5rem' }}>Invalid or expired link</p>
@@ -168,10 +173,7 @@ export default function ResetPasswordPage() {
                   placeholder="Repeat your password"
                   value={confirm}
                   onChange={e => setConfirm(e.target.value)}
-                  style={{
-                    ...inputStyle,
-                    borderColor: confirm.length === 0 ? '#e5e5e5' : confirm === password ? '#0F6E56' : '#DC2626'
-                  }}
+                  style={{ ...inputStyle, borderColor: confirm.length === 0 ? '#e5e5e5' : confirm === password ? '#0F6E56' : '#DC2626' }}
                 />
                 {confirm.length > 0 && confirm !== password && (
                   <p style={{ fontSize: '12px', color: '#DC2626', marginTop: '4px' }}>Passwords do not match</p>
