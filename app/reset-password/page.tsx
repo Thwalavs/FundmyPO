@@ -1,5 +1,7 @@
-'use client'
+ 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 export default function ResetPasswordPage() {
@@ -10,7 +12,6 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [ready, setReady] = useState(false)
-  const [mounted, setMounted] = useState(false)
 
   const passwordChecks = [
     { label: 'At least 8 characters', met: password.length >= 8 },
@@ -28,17 +29,15 @@ export default function ResetPasswordPage() {
   }
 
   useEffect(() => {
-    setMounted(true)
+    void (async () => {
+      // Check for error param (invalid/expired link from route handler)
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('error') === 'invalid_link') {
+        setReady(false)
+        return
+      }
 
-    // Check for error param (invalid/expired link from route handler)
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('error') === 'invalid_link') {
-      setReady(false)
-      return
-    }
-
-    // Session was set by the /auth/confirm route handler — just check it exists
-    async function checkSession() {
+      // Session was set by the /auth/confirm route handler — just check it exists
       const supabase = await getSupabase()
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
@@ -48,10 +47,10 @@ export default function ResetPasswordPage() {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
           if (event === 'PASSWORD_RECOVERY') setReady(true)
         })
+        // cleanup
         return () => subscription.unsubscribe()
       }
-    }
-    checkSession()
+    })()
   }, [])
 
   async function handleReset() {
@@ -65,13 +64,13 @@ export default function ResetPasswordPage() {
       if (error) { setError(error.message); setLoading(false); return }
       setMessage('Password updated successfully! Redirecting to login...')
       setTimeout(() => router.push('/register'), 2500)
-    } catch (e: any) {
-      setError('Error: ' + e.message)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Unknown error'
+      setError('Error: ' + message)
       setLoading(false)
     }
   }
 
-  if (!mounted) return null
 
   const inputStyle = {
     width: '100%', padding: '10px 14px', border: '1px solid #e5e5e5',
@@ -88,12 +87,12 @@ export default function ResetPasswordPage() {
 
       {/* NAV */}
       <nav style={{ background: '#1B2B4B', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
-        <a href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          <img src="/logo.png" alt="FundMyPO" style={{ height: '48px', width: 'auto' }} />
-        </a>
-        <a href="/register" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{ height: '48px', width: 'auto' }} />
+        </Link>
+        <Link href="/register" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>
           Back to login
-        </a>
+        </Link>
       </nav>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', minHeight: 'calc(100vh - 65px)' }}>

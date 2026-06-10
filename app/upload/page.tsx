@@ -1,12 +1,39 @@
-'use client'
+ 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+
+function UploadBox({ label, file, onChange, hint }: { label: string, file: File|null, onChange: (f: File|null) => void, hint: string }) {
+  const fieldStyle = { marginBottom: '1rem' }
+  return (
+    <div style={fieldStyle}>
+      <label style={{display:'block',fontSize:'13px',color:'#555',marginBottom:'6px',fontWeight:500}}>{label} <span style={{color:'#DC2626'}}>*</span></label>
+      <p style={{fontSize:'12px',color:'#888',marginBottom:'8px'}}>{hint}</p>
+      <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1.25rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative',cursor:'pointer'}}>
+        {file ? (
+          <div>
+            <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'600'}}>✓ {file.name}</p>
+            <p style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>Click to change file</p>
+          </div>
+        ) : (
+          <div>
+            <div style={{fontSize:'28px',marginBottom:'.5rem'}}>📄</div>
+            <p style={{fontSize:'13px',color:'#666',fontWeight:'500'}}>Click to upload {label}</p>
+            <p style={{fontSize:'12px',color:'#aaa',marginTop:'4px'}}>PDF, JPG or PNG — max 10MB</p>
+          </div>
+        )}
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e=>onChange(e.target.files?.[0]||null)}
+          style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',opacity:0,cursor:'pointer'}}/>
+      </div>
+    </div>
+  )
+}
 
 export default function UploadPage() {
   const [step, setStep] = useState(1)
-  const [mounted, setMounted] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const [poFile, setPoFile] = useState<File|null>(null)
   const [quotationFile, setQuotationFile] = useState<File|null>(null)
-  const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -28,7 +55,7 @@ export default function UploadPage() {
   const [quotationValue, setQuotationValue] = useState('')
   const [quotationNumber, setQuotationNumber] = useState('')
 
-  useEffect(()=>{ setMounted(true) },[])
+  useEffect(()=>{},[])
 
   async function handleSubmit() {
     setLoading(true)
@@ -94,10 +121,9 @@ export default function UploadPage() {
 
       setLoading(false)
       setSubmitted(true)
-    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
+    } catch(e: unknown) { const message = e instanceof Error ? e.message : 'Unknown error'; setError('Error: ' + message); setLoading(false) }
   }
 
-  if (!mounted) return null
 
   const inputStyle = {width:'100%',padding:'10px 14px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none',background:'#fff'}
   const inputReq = (val: string) => ({...inputStyle, borderColor: val ? '#0F6E56' : '#e5e5e5'})
@@ -111,42 +137,19 @@ export default function UploadPage() {
   function step1Valid() { return !!(clientName && clientContact && clientDepartment && clientPhone && clientEmail) }
   function step2Valid() { return !!(poNumber && poValue && fundingNeeded && sector && supplierName && supplierPhone && supplierEmail && quotationNumber && quotationValue) }
 
-  function UploadBox({ label, file, onChange, hint }: { label: string, file: File|null, onChange: (f: File|null) => void, hint: string }) {
-    return (
-      <div style={fieldStyle}>
-        <label style={labelStyle}>{label} <span style={{color:'#DC2626'}}>*</span></label>
-        <p style={{fontSize:'12px',color:'#888',marginBottom:'8px'}}>{hint}</p>
-        <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1.25rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative',cursor:'pointer'}}>
-          {file ? (
-            <div>
-              <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'600'}}>✓ {file.name}</p>
-              <p style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>Click to change file</p>
-            </div>
-          ) : (
-            <div>
-              <div style={{fontSize:'28px',marginBottom:'.5rem'}}>📄</div>
-              <p style={{fontSize:'13px',color:'#666',fontWeight:'500'}}>Click to upload {label}</p>
-              <p style={{fontSize:'12px',color:'#aaa',marginTop:'4px'}}>PDF, JPG or PNG — max 10MB</p>
-            </div>
-          )}
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e=>onChange(e.target.files?.[0]||null)}
-            style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',opacity:0,cursor:'pointer'}}/>
-        </div>
-      </div>
-    )
-  }
+  
 
   return (
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
 
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
-        <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',}}/>
-        </a>
-        <a href="/dashboard" style={{fontSize:'13px',color:'rgba(255,255,255,0.8)',textDecoration:'none',background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',padding:'7px 14px',borderRadius:'8px',fontWeight:'500'}}>
+        <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
+          <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
+        </Link>
+        <Link href="/dashboard" style={{fontSize:'13px',color:'rgba(255,255,255,0.8)',textDecoration:'none',background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',padding:'7px 14px',borderRadius:'8px',fontWeight:'500'}}>
           ← Back to dashboard
-        </a>
+        </Link>
       </nav>
 
       <div style={{maxWidth:'720px',margin:'0 auto',padding:'2rem'}}>

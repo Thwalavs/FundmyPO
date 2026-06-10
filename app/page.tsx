@@ -1,5 +1,7 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -37,20 +39,20 @@ export default function LandingPage() {
 
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,zIndex:100,height:'68px',boxShadow:'0 2px 12px rgba(0,0,0,0.15)'}}>
-        <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto'}}/>
-        </a>
+        <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
+          <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
+        </Link>
         <div style={{display:'flex',alignItems:'center',gap:'2rem'}} className="desktop-menu">
           {[['For SMEs','#smes'],['For Funders','#funders'],['How It Works','#howitworks'],['Pricing','#pricing'],['Blog','#blog'],['Contact','#contact']].map(([label,href])=>(
             <a key={label} href={href} className="nav-link sans" style={{fontSize:'14px',color:'rgba(255,255,255,0.85)',textDecoration:'none',fontWeight:'500',letterSpacing:'0.3px'}}>{label}</a>
           ))}
           {/* LOGIN BUTTON */}
-          <a href="/register" className="nav-link sans" style={{fontSize:'14px',color:'rgba(255,255,255,0.85)',textDecoration:'none',fontWeight:'500',letterSpacing:'0.3px'}}>
+          <Link href="/register" className="nav-link sans" style={{fontSize:'14px',color:'rgba(255,255,255,0.85)',textDecoration:'none',fontWeight:'500',letterSpacing:'0.3px'}}>
             Login
-          </a>
-          <a href="/register" className="cta-btn sans" style={{background:'#4DBFB0',color:'#fff',padding:'9px 22px',borderRadius:'6px',textDecoration:'none',fontSize:'14px',fontWeight:'700',letterSpacing:'0.3px'}}>
+          </Link>
+          <Link href="/register" className="cta-btn sans" style={{background:'#4DBFB0',color:'#fff',padding:'9px 22px',borderRadius:'6px',textDecoration:'none',fontSize:'14px',fontWeight:'700',letterSpacing:'0.3px'}}>
             Get Funded Now
-          </a>
+          </Link>
         </div>
         <button onClick={()=>setMenuOpen(!menuOpen)}
           style={{display:'none',background:'none',border:'none',fontSize:'22px',cursor:'pointer',color:'#fff'}}
@@ -88,21 +90,21 @@ export default function LandingPage() {
         <div style={{maxWidth:'1200px',margin:'0 auto',padding:'5rem 2rem',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4rem',alignItems:'center'}} className="hero-grid">
           <div>
             <div style={{display:'inline-block',background:'rgba(77,191,176,0.15)',color:'#4DBFB0',padding:'6px 16px',borderRadius:'4px',fontSize:'12px',fontWeight:'700',marginBottom:'1.5rem',letterSpacing:'1px',textTransform:'uppercase',fontFamily:'Arial,sans-serif'}}>
-              South Africa's #1 PO Funding Platform
+              South Africa&apos;s #1 PO Funding Platform
             </div>
             <h1 className="hero-title" style={{fontSize:'42px',fontWeight:'700',color:'#fff',lineHeight:'1.25',marginBottom:'1.25rem',fontStyle:'italic'}}>
-              "Funding Your Growth,<br/>Securing Your Future."
+              &quot;Funding Your Growth,<br/>Securing Your Future.&quot;
             </h1>
             <p style={{fontSize:'16px',color:'rgba(255,255,255,0.7)',lineHeight:'1.8',marginBottom:'2.5rem',fontFamily:'Arial,sans-serif',fontWeight:'400'}}>
               Revolutionizing Purchase Order and Working Capital Solutions for South African SMEs.
             </p>
             <div style={{display:'flex',gap:'1rem',flexWrap:'wrap',marginBottom:'3rem'}}>
-              <a href="/register" className="cta-btn sans" style={{background:'#4DBFB0',color:'#fff',padding:'13px 28px',borderRadius:'6px',textDecoration:'none',fontSize:'15px',fontWeight:'700',fontFamily:'Arial,sans-serif'}}>
+              <Link href="/register" className="cta-btn sans" style={{background:'#4DBFB0',color:'#fff',padding:'13px 28px',borderRadius:'6px',textDecoration:'none',fontSize:'15px',fontWeight:'700',fontFamily:'Arial,sans-serif'}}>
                 Apply for Funding
-              </a>
-              <a href="/register?role=funder" className="cta-btn sans" style={{background:'transparent',color:'#fff',padding:'13px 28px',borderRadius:'6px',textDecoration:'none',fontSize:'15px',fontWeight:'600',border:'1px solid rgba(255,255,255,0.35)',fontFamily:'Arial,sans-serif'}}>
+              </Link>
+              <Link href="/register?role=funder" className="cta-btn sans" style={{background:'transparent',color:'#fff',padding:'13px 28px',borderRadius:'6px',textDecoration:'none',fontSize:'15px',fontWeight:'600',border:'1px solid rgba(255,255,255,0.35)',fontFamily:'Arial,sans-serif'}}>
                 Become a Funder
-              </a>
+              </Link>
             </div>
             <div style={{display:'flex',gap:'2.5rem',flexWrap:'wrap'}}>
               {[['R50M+','Funded to date'],['200+','SMEs helped'],['48hrs','Average approval']].map(([val,label])=>(
@@ -215,7 +217,7 @@ export default function LandingPage() {
                 { title:'Full Document Access', desc:'View the full PO, supplier quotation and all business verification documents before making any offer.' },
                 { title:'Competitive Returns', desc:'Earn 3–8% per deal with short repayment terms. Set your own rates and compete for the best deals.' },
                 { title:'Simple Fee Structure', desc:'FundMyPO charges a transparent 2% commission on funded deals only. No hidden fees.' },
-              ].map(({title,desc},i)=>(
+              ].map(({title,desc})=>(
                 <div key={title} className="pillar-card" style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'10px',padding:'1.25rem'}}>
                   <p style={{fontSize:'14px',fontWeight:'700',color:'#fff',marginBottom:'6px',fontFamily:'Arial,sans-serif'}}>{title}</p>
                   <p style={{fontSize:'13px',color:'rgba(255,255,255,0.6)',lineHeight:'1.7',fontFamily:'Arial,sans-serif'}}>{desc}</p>
@@ -346,9 +348,9 @@ export default function LandingPage() {
         <div style={{maxWidth:'1100px',margin:'0 auto'}}>
           <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',gap:'2rem',marginBottom:'2.5rem'}} className="footer-grid">
             <div>
-              <img src="/logo.png" alt="FundMyPO" style={{height:'44px',marginBottom:'1rem'}}/>
+              <Image src="/logo.png" alt="FundMyPO" width={140} height={44} style={{height:'44px',marginBottom:'1rem'}} />
               <p style={{fontSize:'13px',color:'rgba(255,255,255,0.5)',lineHeight:'1.8',maxWidth:'260px',fontFamily:'Arial,sans-serif'}}>
-                South Africa's leading purchase order funding marketplace. A Platform by Fund Bridge, Ltd.
+                South Africa&apos;s leading purchase order funding marketplace. A Platform by Fund Bridge, Ltd.
               </p>
               <div style={{display:'flex',gap:'10px',marginTop:'1.5rem'}}>
                 <a href="https://wa.me/27673162771" target="_blank" rel="noopener noreferrer"

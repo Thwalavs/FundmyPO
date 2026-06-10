@@ -1,5 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 
 type PO = {
   id: string
@@ -56,11 +58,9 @@ export default function DashboardPage() {
   const [loadingPos, setLoadingPos] = useState(true)
   const [viewingOffers, setViewingOffers] = useState<string|null>(null)
   const [acceptedOffers, setAcceptedOffers] = useState<Record<string,string>>({})
-  const [mounted, setMounted] = useState(false)
   const [userName, setUserName] = useState('')
 
-  useEffect(()=>{ setMounted(true); loadData() },[])
-
+  // declare loadData before useEffect to avoid referencing before declaration
   async function loadData() {
     try {
       const { createBrowserClient } = await import('@supabase/ssr')
@@ -84,6 +84,8 @@ export default function DashboardPage() {
     } catch(e) { console.log(e) }
     finally { setLoadingPos(false) }
   }
+
+  useEffect(()=>{ void (async ()=>{ await loadData() })() },[])
 
   async function handleAcceptOffer(poId: string, offerId: string) {
     try {
@@ -140,7 +142,7 @@ export default function DashboardPage() {
     } catch(e) { console.log(e) }
   }
 
-  if (!mounted) return null
+  
 
   const totalFunding = pos.reduce((sum, po) => sum + po.funding_needed, 0)
   const totalOffers = Object.values(offers).reduce((sum, arr) => sum + arr.length, 0)
@@ -151,9 +153,9 @@ export default function DashboardPage() {
 
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
-        <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto',}}/>
-        </a>
+        <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
+          <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
+        </Link>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
           <span style={{fontSize:'13px',background:'rgba(255,255,255,0.1)',color:'#fff',padding:'4px 12px',borderRadius:'99px'}}>🏢 Supplier Portal</span>
           <div style={{width:'34px',height:'34px',borderRadius:'50%',background:'#0F6E56',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600',color:'#fff'}}>

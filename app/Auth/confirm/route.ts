@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    const { error } = await supabase.auth.verifyOtp({ type: type as any, token_hash })
+    const { error } = await supabase.auth.verifyOtp({ type: type as 'recovery' | 'signup' | 'magiclink', token_hash })
 
     if (!error) {
       // Token is valid — redirect to the reset password page

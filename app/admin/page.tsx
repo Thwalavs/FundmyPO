@@ -1,5 +1,7 @@
-'use client'
+ 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 
 type Profile = {
   id: string
@@ -42,11 +44,9 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'declined' | 'all'>('pending')
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
-  useEffect(() => { setMounted(true); loadProfiles() }, [])
-
+  // loadProfiles declared before useEffect to satisfy lint rules
   async function loadProfiles() {
     setLoading(true)
     try {
@@ -57,6 +57,10 @@ export default function AdminPage() {
     } catch(e) { console.error(e) }
     finally { setLoading(false) }
   }
+
+  useEffect(() => {
+    void (async () => { await loadProfiles() })()
+  }, [])
 
   async function updateStatus(profileId: string, status: 'approved' | 'declined') {
     setActionLoading(profileId)
@@ -133,9 +137,9 @@ export default function AdminPage() {
 
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
-        <a href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto'}}/>
-        </a>
+        <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
+          <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
+        </Link>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
           <span style={{fontSize:'13px',background:'rgba(255,77,77,0.2)',color:'#ff6b6b',padding:'4px 12px',borderRadius:'99px',fontWeight:'600'}}>
             Admin Panel
@@ -161,7 +165,7 @@ export default function AdminPage() {
             { label:'Approved', value:counts.approved, color:'#065F46', bg:'#D1FAE5' },
             { label:'Declined', value:counts.declined, color:'#991B1B', bg:'#FEE2E2' },
             { label:'Total Users', value:counts.all, color:'#1B2B4B', bg:'#EEF2FF' },
-          ].map(({label,value,color,bg})=>(
+          ].map(({label,value,color})=>(
             <div key={label} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
               <div style={{fontSize:'28px',fontWeight:'700',color,marginBottom:'4px'}}>{value}</div>
               <div style={{fontSize:'12px',color:'#888'}}>{label}</div>

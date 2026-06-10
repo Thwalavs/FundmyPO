@@ -1,9 +1,11 @@
+import Link from 'next/link'
+
 export default function PrivacyPage() {
   return (
     <main style={{fontFamily:'sans-serif',maxWidth:'760px',margin:'0 auto',padding:'3rem 2rem'}}>
-      <a href="/" style={{fontSize:'20px',fontWeight:'500',textDecoration:'none',color:'#1a1a1a',display:'block',marginBottom:'2rem'}}>
+      <Link href="/" style={{fontSize:'20px',fontWeight:'500',textDecoration:'none',color:'#1a1a1a',display:'block',marginBottom:'2rem'}}>
         Fund<span style={{color:'#0F6E56'}}>MyPO</span>
-      </a>
+      </Link>
       <h1 style={{fontSize:'28px',fontWeight:'500',marginBottom:'.5rem'}}>Privacy Policy</h1>
       <p style={{fontSize:'14px',color:'#888',marginBottom:'2rem'}}>Last updated: May 2025</p>
       {[
@@ -29,8 +31,8 @@ export default function PrivacyPage() {
         </p>
       </div>
       <div style={{marginTop:'2rem',paddingTop:'1rem',borderTop:'1px solid #e5e5e5',display:'flex',gap:'1rem'}}>
-        <a href="/terms" style={{fontSize:'13px',color:'#0F6E56'}}>Terms & Conditions</a>
-        <a href="/" style={{fontSize:'13px',color:'#666'}}>← Back to home</a>
+        <Link href="/terms" style={{fontSize:'13px',color:'#0F6E56'}}>Terms & Conditions</Link>
+        <Link href="/" style={{fontSize:'13px',color:'#666'}}>← Back to home</Link>
       </div>
     </main>
   )

@@ -1,5 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 
 type PO = {
   id: string
@@ -84,7 +86,7 @@ async function downloadDoc(userId: string, docPath: string) {
 }
 
 function RealOffers() {
-  const [myOffers, setMyOffers] = useState<any[]>([])
+  const [myOffers, setMyOffers] = useState<Offer[]>([])
   const [loading, setLoading] = useState(true)
 
   async function load() {
@@ -98,12 +100,12 @@ function RealOffers() {
         .select('*, purchase_orders(*)')
         .eq('funder_id', user.id)
         .order('created_at', { ascending: false })
-      setMyOffers(offers || [])
+      setMyOffers((offers || []) as Offer[])
     } catch (e) { console.log(e) }
     finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { void (async () => { await load() })() }, [])
 
   if (loading) return <p style={{ fontSize: '14px', color: '#888', padding: '1rem' }}>Loading your offers...</p>
 
@@ -123,7 +125,7 @@ function RealOffers() {
         </button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {myOffers.map((offer: any) => {
+        {myOffers.map((offer) => {
           const po = offer.purchase_orders
           const isAccepted = offer.status === 'accepted'
           return (
@@ -177,11 +179,9 @@ export default function FunderDashboard() {
   const [rates, setRates] = useState<Record<string, string>>({})
   const [terms, setTerms] = useState<Record<string, string>>({})
   const [offerError, setOfferError] = useState<Record<string, string>>({})
-  const [mounted, setMounted] = useState(false)
   const [funderName, setFunderName] = useState('Funder')
 
-  useEffect(() => { setMounted(true); loadPOs(); loadFunderName() }, [])
-
+  // declare loader functions before useEffect
   async function loadFunderName() {
     try {
       const supabase = await getSupabase()
@@ -199,6 +199,8 @@ export default function FunderDashboard() {
     } catch (e) { console.log(e) }
     finally { setLoadingPOs(false) }
   }
+
+  useEffect(() => { void (async () => { await loadPOs(); await loadFunderName() })() }, [])
 
   async function handleSubmitOffer(poId: string) {
     const po = marketplace.find(p => p.id === poId)
@@ -222,16 +224,16 @@ export default function FunderDashboard() {
     setTerms(prev => { const n = { ...prev }; delete n[poId]; return n })
   }
 
-  if (!mounted) return null
+  
 
   return (
     <main style={{ fontFamily: 'sans-serif', minHeight: '100vh', background: '#f5f5f5' }}>
 
       {/* NAV */}
       <nav style={{ background: '#1B2B4B', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
-        <a href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          <img src="/logo.png" alt="FundMyPO" style={{ height: '48px', width: 'auto' }} />
-        </a>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{ height: '48px', width: 'auto' }} />
+        </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <span style={{ fontSize: '13px', background: 'rgba(77,191,176,0.2)', color: '#4DBFB0', padding: '4px 12px', borderRadius: '99px', fontWeight: '600' }}>Funder Portal</span>
           <button onClick={async () => { const s = await getSupabase(); await s.auth.signOut(); window.location.href = '/' }}
@@ -550,4 +552,14 @@ export default function FunderDashboard() {
       </div>
     </main>
   )
+}
+
+type Offer = {
+  id: string
+  amount: number
+  interest_rate: number
+  term_days: number
+  status: string
+  created_at: string
+  purchase_orders?: PO
 }
