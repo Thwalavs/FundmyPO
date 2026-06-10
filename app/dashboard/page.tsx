@@ -107,6 +107,33 @@ export default function DashboardPage() {
             })
           })
         } catch(e) { console.log('Email failed:', e) }
+
+        // Notify supplier their offer was accepted
+        try {
+          const { data: { user: currentUser } } = await supabase.auth.getUser()
+          const { data: supplierProfile } = await supabase
+            .from('profiles')
+            .select('email, first_name, business_name')
+            .eq('id', currentUser?.id)
+            .single()
+
+          if (supplierProfile) {
+            await fetch('/api/send-email', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'offer_accepted_supplier',
+                to: supplierProfile.email,
+                data: {
+                  name: supplierProfile.first_name || supplierProfile.business_name,
+                  poNumber: poData.po_number,
+                  amount: `R ${offerData.amount.toLocaleString()}`,
+                  rate: `${offerData.interest_rate}%`,
+                  term: `${offerData.term_days} days`,
+                }
+              })
+            })
+          }
+        } catch(e) { console.log('Supplier accepted email failed:', e) }
       }
       setAcceptedOffers(prev => ({...prev, [poId]: offerId}))
       await loadData()

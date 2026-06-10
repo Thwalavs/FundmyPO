@@ -21,6 +21,24 @@ export async function POST(req: NextRequest) {
         <p style="color:#888;font-size:12px;margin-top:2rem">If you have any questions contact us at info@fundmypo.co.za</p>
       </div>`
 
+    } else if (type === 'registration_pending') {
+      subject = 'Your FundMyPO Application Has Been Received'
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">Application Received!</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
+          <p style="color:#444;line-height:1.8">Thank you for registering on FundMyPO. We have received your application and documents for <strong>${data.businessName}</strong>.</p>
+          <div style="background:#FEF3C7;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #F59E0B">
+            <p style="color:#92400E;margin:0;font-weight:600;margin-bottom:4px">Account Pending Approval</p>
+            <p style="color:#92400E;margin:0;font-size:14px">Our team will review your documents within 24-48 hours. You will receive another email once your account has been approved.</p>
+          </div>
+          <p style="color:#444;line-height:1.8;font-size:14px">While you wait, if you have any questions feel free to reach out to us.</p>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
+      </div>`
+
     } else if (type === 'new_registration') {
       subject = `New Registration: ${data.businessName} (${data.role === 'funder' ? 'Funder' : 'Supplier'})`
       html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
@@ -88,10 +106,91 @@ export async function POST(req: NextRequest) {
     } else if (type === 'offer_accepted') {
       subject = 'Your Funding Offer Was Accepted!'
       html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
-        <h2 style="color:#085041">Offer Accepted!</h2>
-        <p style="color:#444">Your offer for <strong>${data.poNumber}</strong> has been accepted!</p>
-        <p style="color:#444">Amount: ${data.amount}<br>Rate: ${data.rate}<br>Term: ${data.term}<br>Commission: ${data.commission}</p>
-        <a href="https://fundmypo.co.za/funder" style="display:inline-block;background:#0F6E56;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">View details</a>
+        <div style="background:#0F6E56;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:24px">Offer Accepted!</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.funderName}</strong>,</p>
+          <p style="color:#444;line-height:1.8">Your funding offer for <strong>${data.poNumber}</strong> has been accepted!</p>
+          <div style="background:#E1F5EE;padding:1rem;border-radius:8px;margin:1.5rem 0">
+            <p style="color:#085041;margin:0;font-weight:600;margin-bottom:8px">Deal Details</p>
+            <p style="margin:0 0 6px;color:#085041"><strong>Amount:</strong> ${data.amount}</p>
+            <p style="margin:0 0 6px;color:#085041"><strong>Rate:</strong> ${data.rate}</p>
+            <p style="margin:0 0 6px;color:#085041"><strong>Term:</strong> ${data.term}</p>
+            <p style="margin:0;color:#085041"><strong>Commission:</strong> ${data.commission}</p>
+          </div>
+          <p style="color:#444;font-size:14px;line-height:1.8">Please proceed with the funding disbursement. The FundMyPO team will be in touch to facilitate the process.</p>
+          <a href="https://fundmypo.co.za/funder" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">View in Funder Portal</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
+      </div>`
+
+    } else if (type === 'offer_accepted_supplier') {
+      subject = `Congratulations! Your PO ${data.poNumber} Has Been Funded!`
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#0F6E56;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">Your PO Has Been Funded!</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
+          <p style="color:#444;line-height:1.8">Great news! You have accepted a funding offer for your purchase order <strong>${data.poNumber}</strong>.</p>
+          <div style="background:#E1F5EE;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #0F6E56">
+            <p style="color:#085041;margin:0;font-weight:600;margin-bottom:8px">Funding Details</p>
+            <p style="margin:0 0 6px;color:#085041"><strong>Amount:</strong> ${data.amount}</p>
+            <p style="margin:0 0 6px;color:#085041"><strong>Interest rate:</strong> ${data.rate}</p>
+            <p style="margin:0;color:#085041"><strong>Term:</strong> ${data.term}</p>
+          </div>
+          <p style="color:#444;font-size:14px;line-height:1.8">The funder will process the disbursement within 24 hours. You will be contacted directly once funds are released.</p>
+          <a href="https://fundmypo.co.za/dashboard" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">View Dashboard</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
+      </div>`
+
+    } else if (type === 'po_under_review') {
+      subject = `Your PO ${data.poNumber} is Now Live on FundMyPO`
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">PO Submitted Successfully!</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
+          <p style="color:#444;line-height:1.8">Your purchase order <strong>${data.poNumber}</strong> has been successfully submitted to the FundMyPO marketplace.</p>
+          <div style="background:#FEF3C7;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #F59E0B">
+            <p style="color:#92400E;margin:0;font-weight:600;margin-bottom:4px">Status: Under Review</p>
+            <p style="color:#92400E;margin:0;font-size:14px">Verified funders are now reviewing your PO and will submit competitive funding offers shortly.</p>
+          </div>
+          <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1.5rem 0">
+            <p style="margin:0 0 8px;color:#444"><strong>PO Number:</strong> ${data.poNumber}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Client:</strong> ${data.clientName}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>PO Value:</strong> ${data.poValue}</p>
+            <p style="margin:0;color:#444"><strong>Funding needed:</strong> ${data.fundingNeeded}</p>
+          </div>
+          <p style="color:#444;font-size:14px;line-height:1.8">Log in to your dashboard to track your application and view offers as they come in.</p>
+          <a href="https://fundmypo.co.za/dashboard" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">Track My Application</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
+      </div>`
+
+    } else if (type === 'new_po_available') {
+      subject = `New PO Available: ${data.poNumber} — ${data.sector}`
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">New PO on the Marketplace!</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
+          <p style="color:#444;line-height:1.8">A new purchase order has been listed on the FundMyPO marketplace and is available for funding.</p>
+          <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1.5rem 0">
+            <p style="margin:0 0 8px;color:#444"><strong>PO Number:</strong> ${data.poNumber}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Client:</strong> ${data.clientName}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Sector:</strong> ${data.sector}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>PO Value:</strong> ${data.poValue}</p>
+            <p style="margin:0;color:#444"><strong>Funding needed:</strong> ${data.fundingNeeded}</p>
+          </div>
+          <p style="color:#444;font-size:14px;line-height:1.8">Log in to the funder portal to view full details and submit a funding offer.</p>
+          <a href="https://fundmypo.co.za/register?role=funder" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">View PO & Make an Offer</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
       </div>`
 
     } else if (type === 'new_po_submitted') {

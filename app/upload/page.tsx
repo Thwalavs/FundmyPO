@@ -64,6 +64,34 @@ export default function UploadPage() {
           body: JSON.stringify({ type: 'new_po_submitted', to: 'vsiphoesihle@gmail.com', data: { businessName: clientName, poNumber, clientName, poValue: `R ${parseFloat(poValue||'0').toLocaleString()}` } })
         })
       } catch(e) { console.log('Email failed:', e) }
+
+      // Notify supplier their PO is under review
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        const { data: supplierProfile } = await supabase
+          .from('profiles')
+          .select('email, first_name, business_name')
+          .eq('id', currentUser?.id)
+          .single()
+
+        if (supplierProfile) {
+          await fetch('/api/send-email', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'po_under_review',
+              to: supplierProfile.email,
+              data: {
+                name: supplierProfile.first_name || supplierProfile.business_name,
+                poNumber,
+                clientName,
+                poValue: `R ${parseFloat(poValue||'0').toLocaleString()}`,
+                fundingNeeded: `R ${parseFloat(fundingNeeded||'0').toLocaleString()}`,
+              }
+            })
+          })
+        }
+      } catch(e) { console.log('Supplier PO notification failed:', e) }
+
       setLoading(false)
       setSubmitted(true)
     } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
