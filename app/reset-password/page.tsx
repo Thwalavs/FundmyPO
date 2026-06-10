@@ -156,7 +156,7 @@ export default function ResetPasswordPage() {
           )}
 
           {/* Invalid/expired link */}
-          {!message && !ready && (
+          {!message && !ready && !linkChecking && (
             <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: '10px', padding: '1.25rem', textAlign: 'center' }}>
               <p style={{ color: '#DC2626', fontSize: '14px', fontWeight: '600', marginBottom: '.5rem' }}>Invalid or expired link</p>
               <p style={{ color: '#B91C1C', fontSize: '13px', marginBottom: '1rem' }}>
