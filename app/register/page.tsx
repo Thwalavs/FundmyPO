@@ -79,13 +79,11 @@ export default function RegisterPage() {
 
       const userRole = data.user?.user_metadata?.role
 
-      // Admin always gets through
       if (userRole === 'admin') {
         router.push('/admin')
         return
       }
 
-      // Check approval status from profiles table
       const { data: profile } = await supabase
         .from('profiles')
         .select('status, role')
@@ -106,7 +104,6 @@ export default function RegisterPage() {
         return
       }
 
-      // Portal role check
       if (currentPortalRole === 'funder' && userRole !== 'funder') {
         await supabase.auth.signOut()
         setError('This portal is for funders only. Please use the supplier login instead.')
@@ -146,17 +143,11 @@ export default function RegisterPage() {
 
       const userId = data.user?.id
       if (userId) {
-        // Save to profiles table with pending status
         await supabase.from('profiles').insert({
-          id: userId,
-          email,
-          role,
-          first_name: firstName,
-          last_name: lastName,
-          business_name: businessName,
-          phone,
-          company_reg: companyReg,
-          status: 'pending',
+          id: userId, email, role,
+          first_name: firstName, last_name: lastName,
+          business_name: businessName, phone,
+          company_reg: companyReg, status: 'pending',
         })
 
         if (role === 'business') {
@@ -172,7 +163,7 @@ export default function RegisterPage() {
         }
       }
 
-      // Send welcome email to user
+      // Welcome email to user
       try {
         await fetch('/api/send-email', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -184,7 +175,7 @@ export default function RegisterPage() {
         })
       } catch(e) { console.log('Welcome email failed:', e) }
 
-      // Send pending approval email to user
+      // Pending approval email to user
       try {
         await fetch('/api/send-email', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -207,6 +198,12 @@ export default function RegisterPage() {
           })
         })
       } catch(e) { console.log('Admin notification failed:', e) }
+
+      setUploadProgress('')
+      setSuccess(true)
+      setLoading(false)
+    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
+  }
 
   if (!mounted) return null
 
