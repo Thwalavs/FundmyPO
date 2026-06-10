@@ -10,6 +10,9 @@ export default function RegisterPage() {
   const [portalRole, setPortalRole] = useState('business')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [businessName, setBusinessName] = useState('')
@@ -406,8 +409,26 @@ export default function RegisterPage() {
                       </div>
                       <div style={fieldStyle}>
                         <label style={labelStyle}>Password <span style={{color:'#DC2626'}}>*</span></label>
-                        <input type="password" placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}
-                          style={{...inputStyle, borderColor: password.length === 0 ? '#e5e5e5' : passwordValid ? '#0F6E56' : '#DC2626'}}/>
+                        <div style={{position:'relative'}}>
+                          <input type={showPassword ? 'text' : 'password'} placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}
+                            style={{...inputStyle, borderColor: password.length === 0 ? '#e5e5e5' : passwordValid ? '#0F6E56' : '#DC2626'}}/>
+                          <button type="button" onClick={()=>setShowPassword(s=>!s)} style={{position:'absolute',right:8,top:8,border:'none',background:'none',cursor:'pointer',color:'#0F6E56',fontSize:'13px',padding:4}}>
+                            {showPassword ? 'Hide' : 'Show'}
+                          </button>
+                        </div>
+                      </div>
+                      <div style={fieldStyle}>
+                        <label style={labelStyle}>Confirm password <span style={{color:'#DC2626'}}>*</span></label>
+                        <div style={{position:'relative'}}>
+                          <input type={showConfirmPassword ? 'text' : 'password'} placeholder="Re-type your password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)}
+                            style={{...inputStyle, borderColor: confirmPassword.length === 0 ? '#e5e5e5' : (confirmPassword === password ? '#0F6E56' : '#DC2626')}}/>
+                          <button type="button" onClick={()=>setShowConfirmPassword(s=>!s)} style={{position:'absolute',right:8,top:8,border:'none',background:'none',cursor:'pointer',color:'#0F6E56',fontSize:'13px',padding:4}}>
+                            {showConfirmPassword ? 'Hide' : 'Show'}
+                          </button>
+                        </div>
+                        {confirmPassword.length > 0 && confirmPassword !== password && (
+                          <p style={{color:'#DC2626',fontSize:'12px',marginTop:'6px'}}>Passwords do not match.</p>
+                        )}
                         {password.length > 0 && (
                           <div style={{marginTop:'8px',padding:'10px',background:'#f9f9f9',borderRadius:'8px',border:'1px solid #e5e5e5'}}>
                             <p style={{fontSize:'12px',fontWeight:'600',color:'#444',marginBottom:'6px'}}>Password requirements:</p>
@@ -424,12 +445,13 @@ export default function RegisterPage() {
                         <span style={{color:'#DC2626'}}>*</span> Required fields
                       </div>
                       <button onClick={()=>{
-                        if (!firstName || !lastName || !businessName || !email || !phone || !password) { setError('Please fill in all required fields.'); return }
+                        if (!firstName || !lastName || !businessName || !email || !phone || !password || !confirmPassword) { setError('Please fill in all required fields.'); return }
                         if (role === 'business' && !companyReg) { setError('Please enter your company registration number.'); return }
                         if (!passwordValid) { setError('Password does not meet all requirements.'); return }
+                        if (confirmPassword !== password) { setError('Passwords do not match. Please confirm your password.'); return }
                         if (!email.includes('@')) { setError('Please enter a valid email address.'); return }
                         setError(''); setStep(2)
-                      }} style={{width:'100%',padding:'12px',background:passwordValid&&firstName&&lastName&&businessName&&email&&phone?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+                      }} style={{width:'100%',padding:'12px',background:passwordValid&&firstName&&lastName&&businessName&&email&&phone&&confirmPassword&&confirmPassword===password?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
                         Continue to verification
                       </button>
                     </div>
