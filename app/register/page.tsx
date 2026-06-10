@@ -178,11 +178,23 @@ export default function RegisterPage() {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             type: 'welcome',
-            to: 'admin@fundmypo.co.za',
-            data: { name: `${firstName} ${lastName}`, businessName, email, role }
+            to: email,
+            data: { name: firstName || businessName, businessName, role }
           })
         })
-      } catch(e) { console.log('Admin notification failed:', e) }
+      } catch(e) { console.log('Welcome email failed:', e) }
+
+      // Send pending approval email to user
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'registration_pending',
+            to: email,
+            data: { name: firstName || businessName, businessName, role }
+          })
+        })
+      } catch(e) { console.log('Pending email failed:', e) }
 
       // Notify admin of new registration
       try {
@@ -195,12 +207,6 @@ export default function RegisterPage() {
           })
         })
       } catch(e) { console.log('Admin notification failed:', e) }
-
-      setUploadProgress('')
-      setSuccess(true)
-      setLoading(false)
-    } catch(e: any) { setError('Error: ' + e.message); setLoading(false) }
-  }
 
   if (!mounted) return null
 
