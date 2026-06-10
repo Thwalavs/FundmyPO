@@ -84,23 +84,6 @@ export default function RegisterPage() {
   ]
   const passwordValid = passwordChecks.every(c => c.met)
 
-  async function handleForgotPassword() {
-    if (!email) { setError('Please enter your email address first.'); return }
-    setLoading(true)
-    setError('')
-    try {
-      const supabase = await getSupabase()
-      const redirectTo = `${window.location.origin}/reset-password`
-      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
-      setLoading(false)
-      if (error) { setError(error.message); return }
-      alert('Password reset email sent! Check your inbox.')
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Error: Something went wrong.')
-      setLoading(false)
-    }
-  }
-
   async function handleLogin(currentPortalRole: string) {
     setLoading(true)
     setError('')
@@ -304,7 +287,7 @@ export default function RegisterPage() {
                 <input type="password" placeholder="Your password" value={password} onChange={e=>setPassword(e.target.value)} style={inputStyle}/>
               </div>
               <div style={{textAlign:'right',marginBottom:'1.25rem'}}>
-                <button onClick={handleForgotPassword} disabled={loading}
+                <button onClick={() => router.push('/forgot-password')}
                   style={{fontSize:'13px',color:'#0F6E56',background:'none',border:'none',cursor:'pointer',padding:0,fontWeight:'500'}}>
                   Forgot password?
                 </button>
