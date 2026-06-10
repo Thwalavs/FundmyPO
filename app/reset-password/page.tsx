@@ -31,6 +31,22 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     void (async () => {
+      const supabase = await getSupabase()
+
+      // Handle hash-based token (#access_token=...&type=recovery)
+      const hash = window.location.hash
+      if (hash && hash.includes('access_token')) {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+          if (event === 'PASSWORD_RECOVERY') {
+            setReady(true)
+            setLinkChecking(false)
+          }
+        })
+        setLinkChecking(false)
+        return () => subscription.unsubscribe()
+      }
+
+      // Handle query param token (?token_hash=...&type=recovery)
       const params = new URLSearchParams(window.location.search)
       if (params.get('error') === 'invalid_link') {
         setReady(false)
@@ -38,7 +54,6 @@ export default function ResetPasswordPage() {
         return
       }
 
-      const supabase = await getSupabase()
       const token_hash = params.get('token_hash')
       const type = params.get('type')
 
@@ -55,14 +70,8 @@ export default function ResetPasswordPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         setReady(true)
-        setLinkChecking(false)
-      } else {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-          if (event === 'PASSWORD_RECOVERY') setReady(true)
-        })
-        setLinkChecking(false)
-        return () => subscription.unsubscribe()
       }
+      setLinkChecking(false)
     })()
   }, [])
 
