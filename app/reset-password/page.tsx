@@ -36,13 +36,19 @@ export default function ResetPasswordPage() {
       // Handle hash-based token (#access_token=...&type=recovery)
       const hash = window.location.hash
       if (hash && hash.includes('access_token')) {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          setReady(true)
+          setLinkChecking(false)
+          return
+        }
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
           if (event === 'PASSWORD_RECOVERY') {
             setReady(true)
             setLinkChecking(false)
           }
         })
-        setLinkChecking(false)
         return () => subscription.unsubscribe()
       }
 
