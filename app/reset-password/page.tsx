@@ -12,6 +12,7 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [ready, setReady] = useState(false)
+  const [linkChecking, setLinkChecking] = useState(true)
 
   const passwordChecks = [
     { label: 'At least 8 characters', met: password.length >= 8 },
@@ -30,24 +31,36 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     void (async () => {
-      // Check for error param (invalid/expired link from route handler)
       const params = new URLSearchParams(window.location.search)
       if (params.get('error') === 'invalid_link') {
         setReady(false)
+        setLinkChecking(false)
         return
       }
 
-      // Session was set by the /auth/confirm route handler — just check it exists
       const supabase = await getSupabase()
+      const token_hash = params.get('token_hash')
+      const type = params.get('type')
+
+      if (token_hash && type) {
+        const { error } = await supabase.auth.verifyOtp({
+          type: type as 'recovery' | 'signup' | 'magiclink',
+          token_hash,
+        })
+        setReady(!error)
+        setLinkChecking(false)
+        return
+      }
+
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         setReady(true)
+        setLinkChecking(false)
       } else {
-        // Fallback: also listen for PASSWORD_RECOVERY event (hash flow)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
           if (event === 'PASSWORD_RECOVERY') setReady(true)
         })
-        // cleanup
+        setLinkChecking(false)
         return () => subscription.unsubscribe()
       }
     })()
@@ -108,6 +121,13 @@ export default function ResetPasswordPage() {
             <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.25rem' }}>Set new password</h1>
             <p style={{ fontSize: '13px', color: '#888' }}>Enter your new password below</p>
           </div>
+
+          {linkChecking && (
+            <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '12px', padding: '1.5rem', textAlign: 'center', marginBottom: '1.25rem' }}>
+              <p style={{ color: '#1D4ED8', fontSize: '14px', fontWeight: '600', marginBottom: '0.5rem' }}>Checking reset link...</p>
+              <p style={{ color: '#2563EB', fontSize: '13px' }}>Please wait while we verify your password recovery token.</p>
+            </div>
+          )}
 
           {/* Success state */}
           {message && (
