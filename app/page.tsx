@@ -46,7 +46,7 @@ export default function LandingPage() {
           {[['For SMEs','#smes'],['For Funders','#funders'],['How It Works','#howitworks'],['Pricing','#pricing'],['Blog','#blog'],['Contact','#contact']].map(([label,href])=>(
             <a key={label} href={href} className="nav-link sans" style={{fontSize:'14px',color:'rgba(255,255,255,0.85)',textDecoration:'none',fontWeight:'500',letterSpacing:'0.3px'}}>{label}</a>
           ))}
-          <Link href="/login" className="nav-link sans" style={{fontSize:'14px',color:'rgba(255,255,255,0.85)',textDecoration:'none',fontWeight:'500',letterSpacing:'0.3px'}}>
+          <Link href="/register" className="nav-link sans" style={{fontSize:'14px',color:'rgba(255,255,255,0.85)',textDecoration:'none',fontWeight:'500',letterSpacing:'0.3px'}}>
             Login
           </Link>
           <Link href="/register" className="cta-btn sans" style={{background:'#4DBFB0',color:'#fff',padding:'9px 22px',borderRadius:'6px',textDecoration:'none',fontSize:'14px',fontWeight:'700',letterSpacing:'0.3px'}}>
@@ -68,7 +68,7 @@ export default function LandingPage() {
               {label}
             </a>
           ))}
-          <a href="/login" onClick={()=>setMenuOpen(false)}
+          <a href="/register" onClick={()=>setMenuOpen(false)}
             style={{fontSize:'15px',color:'rgba(255,255,255,0.85)',textDecoration:'none',fontWeight:'500',padding:'12px 0',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
             Login
           </a>
