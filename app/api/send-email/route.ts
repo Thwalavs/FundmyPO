@@ -86,7 +86,8 @@ export async function POST(req: NextRequest) {
           <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
           <p style="color:#444;line-height:1.8">Thank you for applying to join FundMyPO. After reviewing your application and documents, we are unable to approve your account at this time.</p>
           <div style="background:#FEE2E2;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #DC2626">
-            <p style="color:#991B1B;margin:0;font-size:14px">This may be due to incomplete or invalid documentation. Please ensure all documents are valid and up to date.</p>
+            <p style="color:#991B1B;margin:0;font-weight:600;margin-bottom:4px">Reason:</p>
+            <p style="color:#991B1B;margin:0;font-size:14px">${data.reason || 'Please ensure all documents are valid and up to date.'}</p>
           </div>
           <p style="color:#444;line-height:1.8">If you believe this is an error or would like to reapply with updated documents, please contact us directly.</p>
           <a href="mailto:info@fundmypo.co.za" style="display:inline-block;background:#1B2B4B;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">Contact Us</a>
