@@ -165,6 +165,7 @@ export default function AuthPage() {
             <Link href="/login?role=funder" style={{ fontSize: '13px', color: '#0C447C', background: '#E6F1FB', padding: '8px 20px', borderRadius: '8px', textDecoration: 'none', fontWeight: '600', display: 'inline-block' }}>
               Funder Login →
             </Link>
+            </div>
          </div>
       </div>
     </main>
