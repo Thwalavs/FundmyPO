@@ -7,12 +7,13 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Public routes — always accessible
+  // Allow all public routes through
   const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/privacy', '/terms', '/auth']
   if (publicPaths.some(p => pathname === p || pathname.startsWith(p + '/'))) {
     return NextResponse.next()
   }
 
+  // Only check if user is logged in — do NOT check role
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -29,12 +30,12 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Not logged in — send to login
+  // Not logged in — send to register page
   if (!user) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/register', request.url))
   }
 
-  // Logged in — just let them through, login page already routed them correctly
+  // Logged in — let them through, login page already handled role routing
   return response
 }
 
