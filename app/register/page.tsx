@@ -5,32 +5,35 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 
-const inputStyle = {width:'100%',padding:'10px 14px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none',background:'#fff'}
-const labelStyle = {display:'block' as const,fontSize:'13px',color:'#555',marginBottom:'6px',fontWeight:'500'}
-const fieldStyle = {marginBottom:'1rem'}
-
-function UploadBox({ label, file, onChange, required }: { label: string, file: File|null, onChange: (f: File|null) => void, required?: boolean }) {
+function UploadBox({ label, file, onChange, required }: { label: string, file: File | null, onChange: (f: File | null) => void, required?: boolean }) {
   return (
-    <div style={fieldStyle}>
-      <label style={labelStyle}>
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-slate-600 mb-2">
         {label}{' '}
-        {required && <span style={{color:'#DC2626'}}>*</span>}
-        {!required && <span style={{fontSize:'11px',color:'#888'}}> (optional)</span>}
+        {required ? (
+          <span className="text-rose-600">*</span>
+        ) : (
+          <span className="text-slate-400 text-xs">(optional)</span>
+        )}
       </label>
-      <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative',cursor:'pointer'}}>
+      <div className={`relative rounded-3xl border-2 p-5 text-center transition ${file ? 'border-teal-600 bg-teal-50' : 'border-slate-200 bg-white'} cursor-pointer`}>
         {file ? (
           <div>
-            <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'500'}}>{file.name}</p>
-            <p style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>Click to change</p>
+            <p className="text-sm font-semibold text-teal-700">{file.name}</p>
+            <p className="text-sm text-slate-500 mt-1">Click to change</p>
           </div>
         ) : (
           <div>
-            <p style={{fontSize:'13px',color:'#666',marginBottom:'.25rem'}}>Click to upload {label}</p>
-            <p style={{fontSize:'12px',color:'#aaa'}}>PDF, JPG or PNG — max 5MB</p>
+            <p className="text-sm text-slate-600 mb-1">Click to upload {label}</p>
+            <p className="text-sm text-slate-400">PDF, JPG or PNG — max 5MB</p>
           </div>
         )}
-        <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e=>onChange(e.target.files?.[0]||null)}
-          style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',opacity:0,cursor:'pointer'}}/>
+        <input
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png"
+          onChange={e => onChange(e.target.files?.[0] || null)}
+          className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
+        />
       </div>
     </div>
   )
@@ -83,6 +86,10 @@ export default function RegisterPage() {
     { label: 'At least one number', met: /[0-9]/.test(password) },
   ]
   const passwordValid = passwordChecks.every(c => c.met)
+
+  const inputBase = 'w-full rounded-3xl bg-white px-4 py-3 text-sm text-slate-900 outline-none transition duration-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-100'
+  const getInputClass = (value: string, valid: boolean) =>
+    `${inputBase} ${value ? (valid ? 'border-teal-500' : 'border-rose-500') : 'border-slate-200'}`
 
   async function handleLogin(currentPortalRole: string) {
     setLoading(true)
@@ -228,85 +235,112 @@ export default function RegisterPage() {
 
   if (!isBrowser) return null
 
-  const inputFilled = (val: string) => ({...inputStyle, borderColor: val ? '#0F6E56' : '#e5e5e5'})
-
   const isFunder = portalRole === 'funder'
+  const canAdvanceStepOne = Boolean(
+    firstName && lastName && businessName && email && phone && password && confirmPassword && passwordValid && confirmPassword === password && (role === 'funder' || companyReg)
+  )
 
   return (
-    <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
-
-      <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
-        <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
-          <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      <nav className="bg-slate-950 px-6 md:px-8 lg:px-10 h-[65px] flex items-center justify-between gap-3">
+        <Link href="/" className="flex items-center gap-3">
+          <Image src="/logo.png" alt="FundMyPO" width={140} height={48} className="h-12 w-auto" />
         </Link>
-        <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
-          <span style={{fontSize:'13px',background:isFunder?'rgba(77,191,176,0.2)':'rgba(255,255,255,0.1)',color:isFunder?'#4DBFB0':'#fff',padding:'4px 12px',borderRadius:'99px',fontWeight:'500'}}>
+        <div className="flex items-center gap-3">
+          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${isFunder ? 'bg-teal-100 text-teal-700' : 'bg-white/10 text-white'}`}>
             {isFunder ? 'Funder Portal' : 'Supplier Portal'}
           </span>
-          <Link href="/" style={{fontSize:'13px',color:'rgba(255,255,255,0.7)',textDecoration:'none'}}>Back to home</Link>
+          <Link href="/" className="text-sm text-white/80 transition hover:text-white">Back to home</Link>
         </div>
       </nav>
 
-      <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:'2rem',minHeight:'calc(100vh - 65px)'}}>
-        <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'480px',boxShadow:'0 4px 24px rgba(0,0,0,0.06)'}}>
+      <div className="flex min-h-[calc(100vh-65px)] items-center justify-center px-4 py-10">
+        <div className="w-full max-w-3xl rounded-[1rem] border border-slate-200 bg-white p-6 md:p-8 shadow-[0_4px_24px_rgba(15,23,42,0.08)]">
 
-          <div style={{textAlign:'center',marginBottom:'1.5rem'}}>
-            <h1 style={{fontSize:'22px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-slate-950 mb-2">
               {tab === 'login' ? (isFunder ? 'Funder Sign In' : 'Supplier Sign In') : (isFunder ? 'Create Funder Account' : 'Create Supplier Account')}
             </h1>
-            <p style={{fontSize:'13px',color:'#888'}}>
+            <p className="text-sm text-slate-500">
               {tab === 'login' ? 'Welcome back to FundMyPO' : "Join South Africa's leading PO funding platform"}
             </p>
           </div>
 
-          <div style={{display:'flex',border:'1px solid #e5e5e5',borderRadius:'10px',overflow:'hidden',marginBottom:'1.5rem'}}>
-            <button onClick={()=>{setTab('login');setStep(1);setError('')}}
-              style={{flex:1,padding:'10px',fontSize:'14px',fontWeight:'600',border:'none',cursor:'pointer',background:tab==='login'?'#0F6E56':'transparent',color:tab==='login'?'#fff':'#666'}}>
+          <div className="flex overflow-hidden rounded-3xl border border-slate-200 mb-6">
+            <button
+              type="button"
+              onClick={() => { setTab('login'); setStep(1); setError('') }}
+              className={`flex-1 py-3 text-sm font-semibold transition ${tab === 'login' ? 'bg-teal-600 text-white' : 'bg-transparent text-slate-600 hover:text-slate-900'}`}>
               Sign in
             </button>
-            <button onClick={()=>{setTab('register');setStep(1);setError('')}}
-              style={{flex:1,padding:'10px',fontSize:'14px',fontWeight:'600',border:'none',cursor:'pointer',background:tab==='register'?'#0F6E56':'transparent',color:tab==='register'?'#fff':'#666'}}>
+            <button
+              type="button"
+              onClick={() => { setTab('register'); setStep(1); setError('') }}
+              className={`flex-1 py-3 text-sm font-semibold transition ${tab === 'register' ? 'bg-teal-600 text-white' : 'bg-transparent text-slate-600 hover:text-slate-900'}`}>
               Create account
             </button>
           </div>
 
           {error && (
-            <div style={{background:'#FEE2E2',border:'1px solid #FCA5A5',borderRadius:'8px',padding:'10px 14px',marginBottom:'1rem',fontSize:'13px',color:'#DC2626'}}>
+            <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4 mb-6 text-sm text-rose-700">
               {error}
             </div>
           )}
 
           {tab === 'login' && (
-            <div>
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Email address</label>
-                <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)} style={inputStyle}/>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-2">Email address</label>
+                <input
+                  type="email"
+                  placeholder="you@company.co.za"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className={inputBase + ' border-slate-200'}
+                />
               </div>
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Password</label>
-                <input type="password" placeholder="Your password" value={password} onChange={e=>setPassword(e.target.value)} style={inputStyle}/>
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-2">Password</label>
+                <input
+                  type="password"
+                  placeholder="Your password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className={inputBase + ' border-slate-200'}
+                />
               </div>
-              <div style={{textAlign:'right',marginBottom:'1.25rem'}}>
-                <button onClick={() => router.push('/forgot-password')}
-                  style={{fontSize:'13px',color:'#0F6E56',background:'none',border:'none',cursor:'pointer',padding:0,fontWeight:'500'}}>
+              <div className="text-right mb-5">
+                <button
+                  type="button"
+                  onClick={() => router.push('/forgot-password')}
+                  className="text-sm font-semibold text-teal-600 transition hover:text-teal-700"
+                >
                   Forgot password?
                 </button>
               </div>
-              <button onClick={()=>handleLogin(portalRole)} disabled={loading}
-                style={{width:'100%',padding:'12px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+              <button
+                type="button"
+                onClick={() => handleLogin(portalRole)}
+                disabled={loading}
+                className="w-full rounded-3xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70"
+              >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
-              <p style={{textAlign:'center',fontSize:'13px',color:'#666',marginTop:'1.25rem'}}>
+              <p className="text-center text-sm text-slate-500 mt-5">
                 No account?{' '}
-                <button onClick={()=>setTab('register')} style={{color:'#0F6E56',background:'none',border:'none',cursor:'pointer',fontSize:'13px',fontWeight:'600'}}>
+                <button
+                  type="button"
+                  onClick={() => setTab('register')}
+                  className="font-semibold text-teal-600 hover:text-teal-700"
+                >
                   Create one free
                 </button>
               </p>
-              <p style={{textAlign:'center',fontSize:'12px',color:'#888',marginTop:'.5rem'}}>
+              <p className="text-center text-xs text-slate-400 mt-2">
                 {isFunder ? (
-                  <>Wrong portal? <Link href="/register" style={{color:'#0F6E56',fontWeight:'500'}}>Go to supplier login</Link></>
+                  <>Wrong portal? <Link href="/register" className="font-semibold text-teal-600 hover:text-teal-700">Go to supplier login</Link></>
                 ) : (
-                  <>Are you a funder? <Link href="/register?role=funder" style={{color:'#0F6E56',fontWeight:'500'}}>Go to funder login</Link></>
+                  <>Are you a funder? <Link href="/register?role=funder" className="font-semibold text-teal-600 hover:text-teal-700">Go to funder login</Link></>
                 )}
               </p>
             </div>
@@ -315,202 +349,305 @@ export default function RegisterPage() {
           {tab === 'register' && (
             <div>
               {success ? (
-                <div style={{background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'12px',padding:'2rem',textAlign:'center'}}>
-                  <div style={{width:'56px',height:'56px',background:'#0F6E56',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 1rem'}}>
-                    <span style={{color:'#fff',fontSize:'24px',fontWeight:'700'}}>✓</span>
+                <div className="rounded-[1.25rem] border border-teal-100 bg-teal-50 p-8 text-center">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-teal-700 text-white text-2xl font-bold">
+                    ✓
                   </div>
-                  <p style={{color:'#085041',fontSize:'16px',fontWeight:'600',marginBottom:'.5rem'}}>Application submitted!</p>
-                  <p style={{color:'#0F6E56',fontSize:'13px',marginBottom:'1.5rem',lineHeight:'1.6'}}>
+                  <p className="text-lg font-semibold text-teal-900 mb-3">Application submitted!</p>
+                  <p className="text-sm leading-6 text-teal-700 mb-6">
                     Your account is <strong>pending approval</strong>. Our team will review your documents within 24-48 hours and notify you by email once approved.
                   </p>
-                  <button onClick={()=>{ setTab('login'); setSuccess(false) }}
-                    style={{padding:'10px 24px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                  <button
+                    type="button"
+                    onClick={() => { setTab('login'); setSuccess(false) }}
+                    className="rounded-3xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-700"
+                  >
                     Back to Sign in
                   </button>
                 </div>
               ) : (
                 <div>
-                  <div style={{display:'flex',alignItems:'center',marginBottom:'1.5rem'}}>
-                    {['Account details','Verification docs'].map((s,i)=>{
-                      const num = i + 1
-                      const active = step === num
-                      const done = step > num
+                  <div className="mb-6 flex flex-col gap-4 md:flex-row">
+                    {['Account details', 'Verification docs'].map((label, index) => {
+                      const stepNumber = index + 1
+                      const active = step === stepNumber
+                      const done = step > stepNumber
                       return (
-                        <div key={s} style={{display:'flex',alignItems:'center',flex:1}}>
-                          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px'}}>
-                            <div style={{width:'30px',height:'30px',borderRadius:'50%',background:done?'#0F6E56':active?'#0F6E56':'#e5e5e5',color:done||active?'#fff':'#888',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600'}}>
-                              {done ? '\u2713' : num}
+                        <div key={label} className="flex-1">
+                          <div className="flex items-center gap-4">
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${done || active ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                              {done ? '✓' : stepNumber}
                             </div>
-                            <span style={{fontSize:'11px',color:active?'#0F6E56':'#888',whiteSpace:'nowrap',fontWeight:active?'600':'400'}}>{s}</span>
+                            <p className={`text-xs font-semibold ${active ? 'text-teal-700' : 'text-slate-500'}`}>
+                              {label}
+                            </p>
                           </div>
-                          {i < 1 && <div style={{flex:1,height:'2px',background:done?'#0F6E56':'#e5e5e5',margin:'0 6px',marginBottom:'18px'}}></div>}
+                          {index === 0 && <div className={`mt-3 h-1 rounded-full ${done ? 'bg-teal-600' : 'bg-slate-200'}`}></div>}
                         </div>
                       )
                     })}
                   </div>
 
                   {step === 1 && (
-                    <div>
-                      <p style={{fontSize:'13px',color:'#666',marginBottom:'1rem',fontWeight:'500'}}>I am registering as a:</p>
-                      <div style={{display:'flex',gap:'8px',marginBottom:'1.25rem'}}>
-                        <button onClick={()=>setRole('business')}
-                          style={{flex:1,padding:'10px',border:role==='business'?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',background:role==='business'?'#E1F5EE':'#fff',color:role==='business'?'#085041':'#666',fontWeight:'600'}}>
-                          Supplier / SME
-                        </button>
-                        <button onClick={()=>setRole('funder')}
-                          style={{flex:1,padding:'10px',border:role==='funder'?'2px solid #0F6E56':'1px solid #e5e5e5',borderRadius:'8px',fontSize:'13px',cursor:'pointer',background:role==='funder'?'#E1F5EE':'#fff',color:role==='funder'?'#085041':'#666',fontWeight:'600'}}>
-                          Funder
-                        </button>
-                      </div>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
-                        <div>
-                          <label style={labelStyle}>First name <span style={{color:'#DC2626'}}>*</span></label>
-                          <input type="text" placeholder="Sipho" value={firstName} onChange={e=>setFirstName(e.target.value)} style={inputFilled(firstName)}/>
-                        </div>
-                        <div>
-                          <label style={labelStyle}>Last name <span style={{color:'#DC2626'}}>*</span></label>
-                          <input type="text" placeholder="Dlamini" value={lastName} onChange={e=>setLastName(e.target.value)} style={inputFilled(lastName)}/>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-700 mb-3">I am registering as a:</p>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <button
+                            type="button"
+                            onClick={() => setRole('business')}
+                            className={`rounded-3xl border px-4 py-3 text-sm font-semibold transition ${role === 'business' ? 'border-teal-600 bg-teal-50 text-teal-700' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}>
+                            Supplier / SME
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRole('funder')}
+                            className={`rounded-3xl border px-4 py-3 text-sm font-semibold transition ${role === 'funder' ? 'border-teal-600 bg-teal-50 text-teal-700' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}>
+                            Funder
+                          </button>
                         </div>
                       </div>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>{role==='business'?'Business name':'Institution name'} <span style={{color:'#DC2626'}}>*</span></label>
-                        <input type="text" placeholder={role==='business'?'Dlamini Suppliers (Pty) Ltd':'Nkosi Capital (Pty) Ltd'}
-                          value={businessName} onChange={e=>setBusinessName(e.target.value)} style={inputFilled(businessName)}/>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-600 mb-2">First name <span className="text-rose-600">*</span></label>
+                          <input
+                            type="text"
+                            placeholder="Sipho"
+                            value={firstName}
+                            onChange={e => setFirstName(e.target.value)}
+                            className={getInputClass(firstName, true)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-600 mb-2">Last name <span className="text-rose-600">*</span></label>
+                          <input
+                            type="text"
+                            placeholder="Dlamini"
+                            value={lastName}
+                            onChange={e => setLastName(e.target.value)}
+                            className={getInputClass(lastName, true)}
+                          />
+                        </div>
                       </div>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>Email address <span style={{color:'#DC2626'}}>*</span></label>
-                        <input type="email" placeholder="you@company.co.za" value={email} onChange={e=>setEmail(e.target.value)} style={inputFilled(email)}/>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600 mb-2">{role === 'business' ? 'Business name' : 'Institution name'} <span className="text-rose-600">*</span></label>
+                        <input
+                          type="text"
+                          placeholder={role === 'business' ? 'Dlamini Suppliers (Pty) Ltd' : 'Nkosi Capital (Pty) Ltd'}
+                          value={businessName}
+                          onChange={e => setBusinessName(e.target.value)}
+                          className={getInputClass(businessName, true)}
+                        />
                       </div>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>Phone number <span style={{color:'#DC2626'}}>*</span></label>
-                        <input type="tel" placeholder="+27 82 000 0000" value={phone} onChange={e=>setPhone(e.target.value)} style={inputFilled(phone)}/>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600 mb-2">Email address <span className="text-rose-600">*</span></label>
+                        <input
+                          type="email"
+                          placeholder="you@company.co.za"
+                          value={email}
+                          onChange={e => setEmail(e.target.value)}
+                          className={getInputClass(email, true)}
+                        />
                       </div>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>
-                          {role==='business'?'Company registration number':'FSCA registration number'}
-                          {role==='business'&&<span style={{color:'#DC2626'}}> *</span>}
-                          {role==='funder'&&<span style={{fontSize:'11px',color:'#888'}}> (optional)</span>}
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600 mb-2">Phone number <span className="text-rose-600">*</span></label>
+                        <input
+                          type="tel"
+                          placeholder="+27 82 000 0000"
+                          value={phone}
+                          onChange={e => setPhone(e.target.value)}
+                          className={getInputClass(phone, true)}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600 mb-2">
+                          {role === 'business' ? 'Company registration number' : 'FSCA registration number'}
+                          {role === 'business' ? <span className="text-rose-600"> *</span> : <span className="text-slate-400 text-xs"> (optional)</span>}
                         </label>
-                        <input type="text" placeholder={role==='business'?'2021/123456/07':'FSP 12345 (if applicable)'}
-                          value={companyReg} onChange={e=>setCompanyReg(e.target.value)}
-                          style={{...inputStyle, borderColor: companyReg ? '#0F6E56' : '#e5e5e5'}}/>
+                        <input
+                          type="text"
+                          placeholder={role === 'business' ? '2021/123456/07' : 'FSP 12345 (if applicable)'}
+                          value={companyReg}
+                          onChange={e => setCompanyReg(e.target.value)}
+                          className={getInputClass(companyReg, true)}
+                        />
                       </div>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>Password <span style={{color:'#DC2626'}}>*</span></label>
-                        <div style={{position:'relative'}}>
-                          <input type={showPassword ? 'text' : 'password'} placeholder="Min. 8 characters" value={password} onChange={e=>setPassword(e.target.value)}
-                            style={{...inputStyle, borderColor: password.length === 0 ? '#e5e5e5' : passwordValid ? '#0F6E56' : '#DC2626'}}/>
-                          <button type="button" onClick={()=>setShowPassword(s=>!s)} style={{position:'absolute',right:8,top:8,border:'none',background:'none',cursor:'pointer',color:'#0F6E56',fontSize:'13px',padding:4}}>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600 mb-2">Password <span className="text-rose-600">*</span></label>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Min. 8 characters"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            className={getInputClass(password, passwordValid)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(s => !s)}
+                            className="absolute right-3 top-3 text-sm font-semibold text-teal-600 hover:text-teal-700"
+                          >
                             {showPassword ? 'Hide' : 'Show'}
                           </button>
                         </div>
                       </div>
-                      <div style={fieldStyle}>
-                        <label style={labelStyle}>Confirm password <span style={{color:'#DC2626'}}>*</span></label>
-                        <div style={{position:'relative'}}>
-                          <input type={showConfirmPassword ? 'text' : 'password'} placeholder="Re-type your password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)}
-                            style={{...inputStyle, borderColor: confirmPassword.length === 0 ? '#e5e5e5' : (confirmPassword === password ? '#0F6E56' : '#DC2626')}}/>
-                          <button type="button" onClick={()=>setShowConfirmPassword(s=>!s)} style={{position:'absolute',right:8,top:8,border:'none',background:'none',cursor:'pointer',color:'#0F6E56',fontSize:'13px',padding:4}}>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600 mb-2">Confirm password <span className="text-rose-600">*</span></label>
+                        <div className="relative">
+                          <input
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            placeholder="Re-type your password"
+                            value={confirmPassword}
+                            onChange={e => setConfirmPassword(e.target.value)}
+                            className={getInputClass(confirmPassword, confirmPassword === password)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(s => !s)}
+                            className="absolute right-3 top-3 text-sm font-semibold text-teal-600 hover:text-teal-700"
+                          >
                             {showConfirmPassword ? 'Hide' : 'Show'}
                           </button>
                         </div>
                         {confirmPassword.length > 0 && confirmPassword !== password && (
-                          <p style={{color:'#DC2626',fontSize:'12px',marginTop:'6px'}}>Passwords do not match.</p>
+                          <p className="mt-2 text-xs text-rose-600">Passwords do not match.</p>
                         )}
                         {password.length > 0 && (
-                          <div style={{marginTop:'8px',padding:'10px',background:'#f9f9f9',borderRadius:'8px',border:'1px solid #e5e5e5'}}>
-                            <p style={{fontSize:'12px',fontWeight:'600',color:'#444',marginBottom:'6px'}}>Password requirements:</p>
-                            {passwordChecks.map(({label,met})=>(
-                              <div key={label} style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'3px'}}>
-                                <span style={{fontSize:'12px',fontWeight:'600',color:met?'#0F6E56':'#DC2626'}}>{met ? 'OK' : 'X'}</span>
-                                <span style={{fontSize:'12px',color:met?'#0F6E56':'#DC2626'}}>{label}</span>
+                          <div className="mt-4 space-y-2 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                            <p className="font-semibold text-slate-700">Password requirements:</p>
+                            {passwordChecks.map(({ label, met }) => (
+                              <div key={label} className="flex items-center gap-2 text-sm">
+                                <span className={`font-semibold ${met ? 'text-teal-600' : 'text-rose-600'}`}>{met ? 'OK' : 'X'}</span>
+                                <span className={met ? 'text-teal-700' : 'text-rose-600'}>{label}</span>
                               </div>
                             ))}
                           </div>
                         )}
                       </div>
-                      <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
-                        <span style={{color:'#DC2626'}}>*</span> Required fields
+
+                      <div className="rounded-3xl bg-slate-100 p-4 text-sm text-slate-600">
+                        <span className="text-rose-600">*</span> Required fields
                       </div>
-                      <button onClick={()=>{
-                        if (!firstName || !lastName || !businessName || !email || !phone || !password || !confirmPassword) { setError('Please fill in all required fields.'); return }
-                        if (role === 'business' && !companyReg) { setError('Please enter your company registration number.'); return }
-                        if (!passwordValid) { setError('Password does not meet all requirements.'); return }
-                        if (confirmPassword !== password) { setError('Passwords do not match. Please confirm your password.'); return }
-                        if (!email.includes('@')) { setError('Please enter a valid email address.'); return }
-                        setError(''); setStep(2)
-                      }} style={{width:'100%',padding:'12px',background:passwordValid&&firstName&&lastName&&businessName&&email&&phone&&confirmPassword&&confirmPassword===password?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!firstName || !lastName || !businessName || !email || !phone || !password || !confirmPassword) {
+                            setError('Please fill in all required fields.')
+                            return
+                          }
+                          if (role === 'business' && !companyReg) {
+                            setError('Please enter your company registration number.')
+                            return
+                          }
+                          if (!passwordValid) {
+                            setError('Password does not meet all requirements.')
+                            return
+                          }
+                          if (confirmPassword !== password) {
+                            setError('Passwords do not match. Please confirm your password.')
+                            return
+                          }
+                          if (!email.includes('@')) {
+                            setError('Please enter a valid email address.')
+                            return
+                          }
+                          setError('')
+                          setStep(2)
+                        }}
+                        disabled={!canAdvanceStepOne}
+                        className={`w-full rounded-3xl px-5 py-3 text-sm font-semibold text-white transition ${canAdvanceStepOne ? 'bg-teal-600 hover:bg-teal-700' : 'bg-slate-400 cursor-not-allowed'}`}
+                      >
                         Continue to verification
                       </button>
                     </div>
                   )}
 
                   {step === 2 && (
-                    <div>
-                      <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.25rem'}}>
-                        <p style={{fontSize:'13px',color:'#085041',fontWeight:'600',marginBottom:'2px'}}>Your documents are secure</p>
-                        <p style={{fontSize:'12px',color:'#0F6E56'}}>All documents are encrypted and only shared with verified parties.</p>
+                    <div className="space-y-5">
+                      <div className="rounded-3xl border border-teal-100 bg-teal-50 p-4">
+                        <p className="text-sm font-semibold text-teal-800 mb-1">Your documents are secure</p>
+                        <p className="text-sm text-teal-700">All documents are encrypted and only shared with verified parties.</p>
                       </div>
-                      {role === 'business' && (
-                        <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#666'}}>
-                          <span style={{color:'#DC2626'}}>*</span> All 5 documents required for suppliers
+                      {role === 'business' ? (
+                        <div className="rounded-3xl bg-slate-100 p-4 text-sm text-slate-600">
+                          <span className="text-rose-600">*</span> All 5 documents required for suppliers
                         </div>
-                      )}
-                      {role === 'funder' && (
-                        <div style={{background:'#E6F1FB',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'12px',color:'#0C447C'}}>
+                      ) : (
+                        <div className="rounded-3xl bg-sky-50 p-4 text-sm text-slate-700">
                           All documents are optional for funders. Upload what you have available.
                         </div>
                       )}
                       {role === 'business' ? (
                         <div>
-                          <UploadBox label="Company Registration Certificate" file={companyDoc} onChange={setCompanyDoc} required/>
-                          <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc} required/>
-                          <UploadBox label="CSD Full Registration Report" file={csdDoc} onChange={setCsdDoc} required/>
-                          <UploadBox label="Tax Clearance Certificate" file={taxDoc} onChange={setTaxDoc} required/>
-                          <UploadBox label="BBB-EE Certificate or Sworn Affidavit" file={bbbeeDoc} onChange={setBbbeeDoc} required/>
+                          <UploadBox label="Company Registration Certificate" file={companyDoc} onChange={setCompanyDoc} required />
+                          <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc} required />
+                          <UploadBox label="CSD Full Registration Report" file={csdDoc} onChange={setCsdDoc} required />
+                          <UploadBox label="Tax Clearance Certificate" file={taxDoc} onChange={setTaxDoc} required />
+                          <UploadBox label="BBB-EE Certificate or Sworn Affidavit" file={bbbeeDoc} onChange={setBbbeeDoc} required />
                         </div>
                       ) : (
                         <div>
-                          <UploadBox label="FSCA License" file={fscaDoc} onChange={setFscaDoc}/>
-                          <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc}/>
-                          <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds}/>
+                          <UploadBox label="FSCA License" file={fscaDoc} onChange={setFscaDoc} />
+                          <UploadBox label="ID Copy of Director" file={idDoc} onChange={setIdDoc} />
+                          <UploadBox label="Proof of Funds" file={proofFunds} onChange={setProofFunds} />
                         </div>
                       )}
                       {uploadProgress && (
-                        <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'10px',marginBottom:'1rem',fontSize:'13px',color:'#085041',textAlign:'center'}}>
+                        <div className="rounded-3xl border border-teal-100 bg-teal-50 p-4 text-sm text-teal-700 text-center">
                           {uploadProgress}
                         </div>
                       )}
-                      <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1rem'}}>
-                        <p style={{fontSize:'13px',color:'#633806',fontWeight:'600',marginBottom:'2px'}}>Review process</p>
-                        <p style={{fontSize:'12px',color:'#633806'}}>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
+                      <div className="rounded-3xl bg-amber-50 p-4 text-sm text-amber-900 border border-amber-100">
+                        <p className="font-semibold">Review process</p>
+                        <p>Your account will be reviewed within 24-48 hours. You will receive an email once approved.</p>
                       </div>
-                      <div style={{display:'flex',alignItems:'flex-start',gap:'10px',marginBottom:'1rem',padding:'12px',background:'#f9f9f9',borderRadius:'8px',border:`1px solid ${agreedToTerms?'#0F6E56':'#e5e5e5'}`}}>
-                        <input type="checkbox" checked={agreedToTerms} onChange={e=>setAgreedToTerms(e.target.checked)}
-                          style={{marginTop:'2px',width:'16px',height:'16px',cursor:'pointer',accentColor:'#0F6E56'}}/>
-                        <p style={{fontSize:'12px',color:'#666',margin:0,lineHeight:'1.6'}}>
-                          I agree to the{' '}
-                          <a href="/terms" target="_blank" style={{color:'#0F6E56',fontWeight:'600'}}>Terms & Conditions</a>
-                          {' '}and{' '}
-                          <a href="/privacy" target="_blank" style={{color:'#0F6E56',fontWeight:'600'}}>Privacy Policy</a>
-                          . I confirm all documents submitted are authentic and accurate.
-                        </p>
-                      </div>
-                      <div style={{display:'flex',gap:'10px'}}>
-                        <button onClick={()=>{ setError(''); setStep(1) }}
-                          style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                      <label className={`flex flex-col gap-3 rounded-3xl border p-4 ${agreedToTerms ? 'border-teal-600 bg-teal-50' : 'border-slate-200 bg-slate-50'}`}>
+                        <span className="flex items-start gap-3 text-sm text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={agreedToTerms}
+                            onChange={e => setAgreedToTerms(e.target.checked)}
+                            className="mt-1 h-5 w-5 rounded-lg border-slate-300 text-teal-600 focus:ring-teal-500"
+                          />
+                          <span className="leading-6">
+                            I agree to the{' '}
+                            <a href="/terms" target="_blank" className="font-semibold text-teal-600 hover:text-teal-700">Terms & Conditions</a>
+                            {' '}and{' '}
+                            <a href="/privacy" target="_blank" className="font-semibold text-teal-600 hover:text-teal-700">Privacy Policy</a>.
+                            I confirm all documents submitted are authentic and accurate.
+                          </span>
+                        </span>
+                      </label>
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <button
+                          type="button"
+                          onClick={() => { setError(''); setStep(1) }}
+                          className="rounded-3xl border border-slate-200 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                        >
                           Back
                         </button>
-                        <button onClick={()=>{
-                          if (role === 'business' && (!companyDoc || !idDoc || !csdDoc || !taxDoc || !bbbeeDoc)) {
-                            setError('Please upload all 5 required documents.')
-                            return
-                          }
-                          if (!agreedToTerms) { setError('Please agree to the Terms & Conditions.'); return }
-                          setError('')
-                          handleRegister()
-                        }} disabled={loading}
-                          style={{flex:2,padding:'12px',background:agreedToTerms?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (role === 'business' && (!companyDoc || !idDoc || !csdDoc || !taxDoc || !bbbeeDoc)) {
+                              setError('Please upload all 5 required documents.')
+                              return
+                            }
+                            if (!agreedToTerms) { setError('Please agree to the Terms & Conditions.'); return }
+                            setError('')
+                            handleRegister()
+                          }}
+                          disabled={loading}
+                          className="md:col-span-2 rounded-3xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70"
+                        >
                           {loading ? 'Creating account...' : 'Submit & Create account'}
                         </button>
                       </div>
