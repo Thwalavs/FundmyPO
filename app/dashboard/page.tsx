@@ -1,19 +1,48 @@
 'use client'
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { CheckCircle2, ClipboardList, Banknote, Home, Hourglass, Star, User, XCircle, Clock } from 'lucide-react'
 
-type Profile = {
+type PO = {
   id: string
-  email: string
-  role: string
-  first_name: string
-  last_name: string
-  business_name: string
-  phone: string
-  company_reg: string
+  po_number: string
+  client_name: string
+  client_department: string
+  po_value: number
+  funding_needed: number
+  sector: string
   status: string
   created_at: string
+}
+
+type Offer = {
+  id: string
+  po_id: string
+  amount: number
+  interest_rate: number
+  term_days: number
+  status: string
+  created_at: string
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const styles: Record<string, { bg: string; color: string; label: string }> = {
+    reviewing:     { bg:'#FAEEDA', color:'#633806', label:'Under review' },
+    active:        { bg:'#E1F5EE', color:'#085041', label:'Active' },
+    funded:        { bg:'#E6F1FB', color:'#0C447C', label:'Funded' },
+    accepted:      { bg:'#E1F5EE', color:'#085041', label:'Accepted ✓' },
+    pending:       { bg:'#f5f5f5', color:'#666',    label:'Pending' },
+    pending_admin: { bg:'#EEF4FB', color:'#0C447C', label:'Awaiting admin approval' },
+    expired:       { bg:'#f5f5f5', color:'#999',    label:'Expired' },
+    declined:      { bg:'#FEE2E2', color:'#DC2626', label:'Declined' },
+  }
+  const s = styles[status] || styles.pending
+  return (
+    <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'600'}}>
+      {s.label}
+    </span>
+  )
 }
 
 const SUPABASE_URL = 'https://efzszombcfxyyobqehyp.supabase.co'
@@ -24,166 +53,193 @@ async function getSupabase() {
   return createBrowserClient(SUPABASE_URL, SUPABASE_KEY)
 }
 
-async function downloadDoc(userId: string, docPath: string) {
+async function handleSignOut() {
   const supabase = await getSupabase()
-  const directPath = `${userId}/${docPath}.pdf`
-  const { data: directData } = await supabase.storage.from('verification-docs').createSignedUrl(directPath, 3600)
-  if (directData?.signedUrl) { window.open(directData.signedUrl, '_blank'); return }
-  const { data: files } = await supabase.storage.from('verification-docs').list(userId)
-  if (!files || files.length === 0) { alert('No documents found.'); return }
-  const matchedFile = files.find(f => f.name.startsWith(docPath) || f.name.includes(docPath))
-  if (!matchedFile) { alert('Document not found.'); return }
-  const { data: signedData } = await supabase.storage.from('verification-docs').createSignedUrl(`${userId}/${matchedFile.name}`, 3600)
-  if (signedData?.signedUrl) { window.open(signedData.signedUrl, '_blank') }
-  else { alert('Could not generate download link.') }
+  await supabase.auth.signOut()
+  window.location.href = '/'
 }
 
-export default function AdminPage() {
-  const [profiles, setProfiles] = useState<Profile[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'declined' | 'all'>('pending')
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [declineModal, setDeclineModal] = useState<Profile | null>(null)
+export default function DashboardPage() {
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState<'home'|'status'|'profile'>('home')
+  const [pos, setPos] = useState<PO[]>([])
+  const [offers, setOffers] = useState<Record<string, Offer[]>>({})
+  const [loadingPos, setLoadingPos] = useState(true)
+  const [viewingOffers, setViewingOffers] = useState<string|null>(null)
+  const [acceptedOffers, setAcceptedOffers] = useState<Record<string,string>>({})
+  const [userName, setUserName] = useState('')
+  const [declineModal, setDeclineModal] = useState<{poId:string, offerId:string}|null>(null)
   const [declineReason, setDeclineReason] = useState('')
   const [decliningLoading, setDecliningLoading] = useState(false)
 
-  async function loadProfiles() {
-    setLoading(true)
+  async function loadData() {
     try {
       const supabase = await getSupabase()
-      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
-      if (error) { console.error(error); return }
-      setProfiles(data || [])
-    } catch(e) { console.error(e) }
-    finally { setLoading(false) }
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/register'); return }
+      
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      if (profile?.role === 'admin') { router.push('/admin'); return }
+      if (profile?.role === 'funder') { router.push('/funder'); return }
+      setUserName(user.user_metadata?.first_name || user.user_metadata?.business_name || user.email || '')
+      const { data: poData } = await supabase.from('purchase_orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+      setPos(poData || [])
+      if (poData && poData.length > 0) {
+        const offersMap: Record<string, Offer[]> = {}
+        for (const po of poData) {
+          const { data: offerData } = await supabase.from('funding_offers').select('*').eq('po_id', po.id).order('interest_rate', { ascending: true })
+          
+          // Auto-expire offers older than 7 days
+          const now = new Date()
+          const updatedOffers = await Promise.all((offerData || []).map(async (offer) => {
+            if (offer.status === 'pending') {
+              const offerDate = new Date(offer.created_at)
+              const daysDiff = (now.getTime() - offerDate.getTime()) / (1000 * 60 * 60 * 24)
+              if (daysDiff > 7) {
+                await supabase.from('funding_offers').update({ status: 'expired' }).eq('id', offer.id)
+                return { ...offer, status: 'expired' }
+              }
+            }
+            return offer
+          }))
+          offersMap[po.id] = updatedOffers
+        }
+        setOffers(offersMap)
+      }
+    } catch(e) { console.log(e) }
+    finally { setLoadingPos(false) }
   }
 
-  useEffect(() => {
-    void (async () => { await loadProfiles() })()
-  }, [])
+  useEffect(()=>{ void (async ()=>{ await loadData() })() },[])
 
-  async function updateStatus(profileId: string, status: 'approved' | 'declined', reason?: string) {
-    setActionLoading(profileId)
+  async function handleAcceptOffer(poId: string, offerId: string) {
     try {
       const supabase = await getSupabase()
-      await supabase.from('profiles').update({ status }).eq('id', profileId)
+      // Set offer to pending_admin — awaiting admin approval
+      await supabase.from('funding_offers').update({ status: 'pending_admin' }).eq('id', offerId)
+      await supabase.from('purchase_orders').update({ status: 'pending_admin' }).eq('id', poId)
 
-      const profile = profiles.find(p => p.id === profileId)
-      if (profile) {
+      const { data: offerData } = await supabase.from('funding_offers').select('*').eq('id', offerId).single()
+      const { data: poData } = await supabase.from('purchase_orders').select('*').eq('id', poId).single()
+
+      if (offerData && poData) {
+        const { data: funderData } = await supabase.from('profiles').select('*').eq('id', offerData.funder_id).single()
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        const { data: supplierProfile } = await supabase.from('profiles').select('email, first_name, business_name').eq('id', currentUser?.id).single()
+
+        // Notify admin to review and approve
         try {
           await fetch('/api/send-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              type: status === 'approved' ? 'account_approved' : 'account_declined',
-              to: profile.email,
+              type: 'admin_offer_accepted',
+              to: 'admin@fundmypo.co.za',
               data: {
-                name: profile.first_name || profile.business_name,
-                businessName: profile.business_name,
-                role: profile.role,
-                reason: reason || 'No reason provided.',
+                funderName: funderData?.first_name || funderData?.business_name || 'Funder',
+                poNumber: poData.po_number,
+                businessName: supplierProfile?.business_name || supplierProfile?.first_name || 'Supplier',
+                amount: `R ${offerData.amount.toLocaleString()}`,
+                rate: `${offerData.interest_rate}%`,
+                term: `${offerData.term_days} days`,
+                commission: `R ${(offerData.amount * 0.02).toLocaleString()}`,
               }
             })
           })
-        } catch(e) { console.log('Email notification failed:', e) }
+        } catch(e) { console.log('Admin email failed:', e) }
+
+        // Confirm to supplier their acceptance is pending admin review
+        try {
+          if (supplierProfile) {
+            await fetch('/api/send-email', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'offer_accepted_supplier',
+                to: supplierProfile.email,
+                data: {
+                  name: supplierProfile.first_name || supplierProfile.business_name,
+                  poNumber: poData.po_number,
+                  amount: `R ${offerData.amount.toLocaleString()}`,
+                  rate: `${offerData.interest_rate}%`,
+                  term: `${offerData.term_days} days`,
+                }
+              })
+            })
+          }
+        } catch(e) { console.log('Supplier email failed:', e) }
       }
 
-      setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, status } : p))
-      setSelectedProfile(null)
+      setAcceptedOffers(prev => ({...prev, [poId]: offerId}))
+      await loadData()
+    } catch(e) { console.log(e) }
+  }
+
+  async function handleDeclineOffer(poId: string, offerId: string, reason: string) {
+    setDecliningLoading(true)
+    try {
+      const supabase = await getSupabase()
+      await supabase.from('funding_offers').update({ status: 'declined', decline_reason: reason }).eq('id', offerId)
+
+      const { data: offerData } = await supabase.from('funding_offers').select('*').eq('id', offerId).single()
+      const { data: poData } = await supabase.from('purchase_orders').select('*').eq('id', poId).single()
+
+      if (offerData && poData) {
+        const { data: funderData } = await supabase.from('profiles').select('*').eq('id', offerData.funder_id).single()
+
+        // Notify funder their offer was declined with reason
+        try {
+          await fetch('/api/send-email', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'offer_declined',
+              to: funderData?.email || 'admin@fundmypo.co.za',
+              data: {
+                funderName: funderData?.first_name || funderData?.business_name || 'Funder',
+                poNumber: poData.po_number,
+                amount: `R ${offerData.amount.toLocaleString()}`,
+                rate: `${offerData.interest_rate}%`,
+                reason,
+              }
+            })
+          })
+        } catch(e) { console.log('Decline email failed:', e) }
+      }
+
       setDeclineModal(null)
       setDeclineReason('')
-    } catch(e) { console.error(e) }
-    finally { setActionLoading(null) }
+      await loadData()
+    } catch(e) { console.log(e) }
+    finally { setDecliningLoading(false) }
   }
 
-  async function handleDecline(profile: Profile) {
-    setDeclineModal(profile)
-    setSelectedProfile(null)
-  }
-
-  async function handleSignOut() {
-    const supabase = await getSupabase()
-    await supabase.auth.signOut()
-    window.location.href = '/'
-  }
-
-  const filtered = profiles.filter(p => {
-    const matchesTab = activeTab === 'all' || p.status === activeTab
-    const matchesSearch = !searchQuery ||
-      p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.business_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.first_name?.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesTab && matchesSearch
-  })
-
-  const counts = {
-    pending: profiles.filter(p => p.status === 'pending').length,
-    approved: profiles.filter(p => p.status === 'approved').length,
-    declined: profiles.filter(p => p.status === 'declined').length,
-    all: profiles.length,
-  }
-
-  const statusBadge = (status: string) => {
-    const styles: Record<string, {bg: string, color: string, label: string}> = {
-      pending:  { bg:'#FEF3C7', color:'#92400E', label:'Pending' },
-      approved: { bg:'#D1FAE5', color:'#065F46', label:'Approved' },
-      declined: { bg:'#FEE2E2', color:'#991B1B', label:'Declined' },
-    }
-    const s = styles[status] || { bg:'#f3f4f6', color:'#6b7280', label: status }
-    return (
-      <span style={{background:s.bg,color:s.color,padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'600'}}>
-        {s.label}
-      </span>
-    )
-  }
+  const totalFunding = pos.reduce((sum, po) => sum + po.funding_needed, 0)
+  const totalOffers = Object.values(offers).reduce((sum, arr) => sum + arr.length, 0)
+  const fundedPos = pos.filter(p => p.status === 'funded').length
 
   return (
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
 
-      {/* DECLINE REASON MODAL */}
+      {/* DECLINE MODAL */}
       {declineModal && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:300,padding:'1rem'}}>
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem'}}>
           <div style={{background:'#fff',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'480px',boxShadow:'0 20px 60px rgba(0,0,0,0.2)'}}>
-            <h3 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Decline Registration</h3>
-            <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>
-              Please provide a reason for declining <strong>{declineModal.first_name || declineModal.business_name}</strong>'s application. They will be notified by email.
-            </p>
-            <div style={{background:'#f9fafb',borderRadius:'8px',padding:'12px',marginBottom:'1.25rem',border:'1px solid #e5e5e5'}}>
-              <p style={{fontSize:'12px',color:'#888',marginBottom:'4px',fontWeight:'600'}}>COMMON REASONS</p>
-              {[
-                'Incomplete or invalid documentation submitted.',
-                'Documents could not be verified with the relevant authorities.',
-                'Business does not meet our eligibility criteria.',
-                'Duplicate registration detected.',
-              ].map(reason => (
-                <button key={reason} onClick={() => setDeclineReason(reason)}
-                  style={{display:'block',width:'100%',textAlign:'left',padding:'6px 8px',fontSize:'13px',color:'#0C447C',background:declineReason===reason?'#E6F1FB':'transparent',border:'none',borderRadius:'6px',cursor:'pointer',marginBottom:'2px'}}>
-                  {reason}
-                </button>
-              ))}
-            </div>
+            <h3 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.5rem'}}>Decline this offer</h3>
+            <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Please provide a reason — the funder will be notified.</p>
             <textarea
-              placeholder="Or type a custom reason..."
+              placeholder="e.g. The interest rate is too high, we found a better offer..."
               value={declineReason}
               onChange={e => setDeclineReason(e.target.value)}
-              style={{width:'100%',padding:'12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',minHeight:'80px',resize:'vertical',outline:'none',marginBottom:'1.25rem',boxSizing:'border-box'}}
+              style={{width:'100%',padding:'12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',minHeight:'100px',resize:'vertical',outline:'none',marginBottom:'1.25rem'}}
             />
             <div style={{display:'flex',gap:'10px'}}>
               <button onClick={() => { setDeclineModal(null); setDeclineReason('') }}
-                style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                style={{flex:1,padding:'11px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
                 Cancel
               </button>
               <button
-                onClick={async () => {
-                  setDecliningLoading(true)
-                  await updateStatus(declineModal.id, 'declined', declineReason)
-                  setDecliningLoading(false)
-                }}
+                onClick={() => declineModal && handleDeclineOffer(declineModal.poId, declineModal.offerId, declineReason)}
                 disabled={!declineReason.trim() || decliningLoading}
-                style={{flex:2,padding:'12px',background:declineReason.trim()?'#DC2626':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
-                {decliningLoading ? 'Declining...' : 'Decline & Notify'}
+                style={{flex:2,padding:'11px',background:declineReason.trim()?'#DC2626':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                {decliningLoading ? 'Declining...' : 'Decline offer'}
               </button>
             </div>
           </div>
@@ -192,207 +248,292 @@ export default function AdminPage() {
 
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
-        <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
+        <button onClick={() => setActiveTab('home')} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center'}}>
           <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
-        </Link>
+        </button>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
-          <span style={{fontSize:'13px',background:'rgba(255,77,77,0.2)',color:'#ff6b6b',padding:'4px 12px',borderRadius:'99px',fontWeight:'600'}}>
-            Admin Panel
-          </span>
+          <span style={{fontSize:'13px',background:'rgba(255,255,255,0.1)',color:'#fff',padding:'4px 12px',borderRadius:'99px'}}>🏢 Supplier Portal</span>
+          <div style={{width:'34px',height:'34px',borderRadius:'50%',background:'#0F6E56',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'600',color:'#fff'}}>
+            {userName.slice(0,2).toUpperCase() || 'VS'}
+          </div>
           <button onClick={handleSignOut}
-            style={{fontSize:'13px',color:'rgba(255,255,255,0.8)',background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',padding:'7px 14px',borderRadius:'8px',cursor:'pointer'}}>
+            style={{fontSize:'13px',color:'rgba(255,255,255,0.8)',background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',padding:'7px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
             Sign out
           </button>
         </div>
       </nav>
 
-      <div style={{maxWidth:'1100px',margin:'0 auto',padding:'2rem'}}>
+      <div style={{maxWidth:'960px',margin:'0 auto',padding:'2rem'}}>
 
-        <div style={{marginBottom:'1.5rem'}}>
-          <h1 style={{fontSize:'24px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>User Management</h1>
-          <p style={{fontSize:'14px',color:'#666'}}>Review and approve new registrations.</p>
+        <div style={{marginBottom:'2rem'}}>
+          <h1 style={{fontSize:'24px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Welcome back, {userName}! 👋</h1>
+          <p style={{fontSize:'14px',color:'#666'}}>What would you like to do today?</p>
         </div>
 
-        {/* STATS */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'1rem',marginBottom:'2rem'}}>
-          {[
-            { label:'Pending Review', value:counts.pending, color:'#92400E' },
-            { label:'Approved', value:counts.approved, color:'#065F46' },
-            { label:'Declined', value:counts.declined, color:'#991B1B' },
-            { label:'Total Users', value:counts.all, color:'#1B2B4B' },
-          ].map(({label,value,color})=>(
-            <div key={label} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
-              <div style={{fontSize:'28px',fontWeight:'700',color,marginBottom:'4px'}}>{value}</div>
-              <div style={{fontSize:'12px',color:'#888'}}>{label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* SEARCH */}
-        <div style={{marginBottom:'1rem'}}>
-          <input
-            type="text"
-            placeholder="Search by name, email or business..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            style={{width:'100%',maxWidth:'400px',padding:'10px 14px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none'}}
-          />
-        </div>
-
-        {/* TABS */}
-        <div style={{display:'flex',gap:'4px',background:'#fff',border:'1px solid #e5e5e5',borderRadius:'10px',padding:'4px',marginBottom:'1.5rem',width:'fit-content'}}>
-          {(['pending','approved','declined','all'] as const).map(t=>(
-            <button key={t} onClick={()=>setActiveTab(t)}
-              style={{padding:'8px 16px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'13px',fontWeight:'600',
-                background:activeTab===t?'#1B2B4B':'transparent',
-                color:activeTab===t?'#fff':'#666'}}>
-              {t.charAt(0).toUpperCase()+t.slice(1)} ({counts[t]})
-            </button>
-          ))}
-        </div>
-
-        {/* TABLE */}
-        <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',overflow:'hidden'}}>
-          {loading ? (
-            <div style={{padding:'3rem',textAlign:'center',color:'#888'}}>Loading users...</div>
-          ) : filtered.length === 0 ? (
-            <div style={{padding:'3rem',textAlign:'center',color:'#888'}}>No users found.</div>
-          ) : (
-            <table style={{width:'100%',borderCollapse:'collapse'}}>
-              <thead>
-                <tr style={{background:'#f9fafb',borderBottom:'1px solid #e5e5e5'}}>
-                  {['Name / Business','Email','Role','Status','Registered','Actions'].map(h=>(
-                    <th key={h} style={{padding:'12px 16px',textAlign:'left',fontSize:'12px',fontWeight:'600',color:'#888',textTransform:'uppercase',letterSpacing:'0.5px'}}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((profile, i) => (
-                  <tr key={profile.id} style={{borderBottom:'1px solid #f0f0f0',background:i%2===0?'#fff':'#fafafa'}}>
-                    <td style={{padding:'14px 16px'}}>
-                      <p style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B',marginBottom:'2px'}}>
-                        {profile.first_name ? `${profile.first_name} ${profile.last_name}` : '—'}
-                      </p>
-                      <p style={{fontSize:'12px',color:'#888'}}>{profile.business_name || '—'}</p>
-                    </td>
-                    <td style={{padding:'14px 16px',fontSize:'13px',color:'#444'}}>{profile.email}</td>
-                    <td style={{padding:'14px 16px'}}>
-                      <span style={{background:profile.role==='funder'?'#E6F1FB':'#E1F5EE',color:profile.role==='funder'?'#0C447C':'#085041',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'600'}}>
-                        {profile.role === 'funder' ? 'Funder' : 'Supplier'}
-                      </span>
-                    </td>
-                    <td style={{padding:'14px 16px'}}>{statusBadge(profile.status)}</td>
-                    <td style={{padding:'14px 16px',fontSize:'12px',color:'#888'}}>
-                      {new Date(profile.created_at).toLocaleDateString('en-ZA')}
-                    </td>
-                    <td style={{padding:'14px 16px'}}>
-                      <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                        <button onClick={()=>setSelectedProfile(profile)}
-                          style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
-                          View docs
-                        </button>
-                        {profile.status !== 'approved' && (
-                          <button onClick={()=>updateStatus(profile.id, 'approved')}
-                            disabled={actionLoading === profile.id}
-                            style={{fontSize:'12px',color:'#065F46',background:'#D1FAE5',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
-                            {actionLoading === profile.id ? '...' : 'Approve'}
-                          </button>
-                        )}
-                        {profile.status !== 'declined' && (
-                          <button onClick={()=>handleDecline(profile)}
-                            disabled={actionLoading === profile.id}
-                            style={{fontSize:'12px',color:'#991B1B',background:'#FEE2E2',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
-                            Decline
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      {/* PROFILE DETAIL MODAL */}
-      {selectedProfile && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'1rem'}}>
-          <div style={{background:'#fff',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'560px',maxHeight:'90vh',overflowY:'auto'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
-              <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B'}}>Application Details</h2>
-              <button onClick={()=>setSelectedProfile(null)}
-                style={{background:'none',border:'none',fontSize:'20px',cursor:'pointer',color:'#888'}}>
-                ✕
-              </button>
+        {/* HOME TAB */}
+        {activeTab === 'home' && (
+          <div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1.5rem',marginBottom:'2rem'}}>
+              <a href="/upload" style={{textDecoration:'none'}}>
+                <div style={{background:'#0F6E56',borderRadius:'16px',padding:'2rem',cursor:'pointer',height:'100%'}}>
+                  <div style={{marginBottom:'1rem'}}><Banknote size={32} color="#fff" /></div>
+                  <h2 style={{fontSize:'20px',fontWeight:'700',color:'#fff',marginBottom:'.5rem'}}>Apply for Funding</h2>
+                  <p style={{fontSize:'13px',color:'#a8dfc9',lineHeight:'1.6',marginBottom:'1.5rem'}}>
+                    Upload your purchase order and supplier quotation to get competitive funding offers.
+                  </p>
+                  <div style={{display:'inline-flex',alignItems:'center',gap:'6px',background:'rgba(255,255,255,0.15)',padding:'8px 16px',borderRadius:'8px'}}>
+                    <span style={{fontSize:'13px',color:'#fff',fontWeight:'600'}}>Start application →</span>
+                  </div>
+                </div>
+              </a>
+              <div onClick={()=>setActiveTab('status')} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',cursor:'pointer',height:'100%'}}>
+                <div style={{marginBottom:'1rem'}}><ClipboardList size={32} /></div>
+                <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.5rem'}}>Check Status</h2>
+                <p style={{fontSize:'13px',color:'#666',lineHeight:'1.6',marginBottom:'1.5rem'}}>
+                  Track your applications, view funding offers and accept the best deal.
+                </p>
+                <div style={{display:'inline-flex',alignItems:'center',gap:'6px',background:'#E1F5EE',padding:'8px 16px',borderRadius:'8px'}}>
+                  <span style={{fontSize:'13px',color:'#0F6E56',fontWeight:'600'}}>View applications →</span>
+                </div>
+              </div>
             </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1.5rem'}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:'1rem',marginBottom:'2rem'}}>
               {[
-                ['Name', `${selectedProfile.first_name || ''} ${selectedProfile.last_name || ''}`],
-                ['Email', selectedProfile.email],
-                ['Business', selectedProfile.business_name || '—'],
-                ['Role', selectedProfile.role],
-                ['Phone', selectedProfile.phone || '—'],
-                ['Company Reg', selectedProfile.company_reg || '—'],
-                ['Status', selectedProfile.status],
-                ['Registered', new Date(selectedProfile.created_at).toLocaleDateString('en-ZA')],
-              ].map(([label, value]) => (
-                <div key={label} style={{background:'#f9fafb',borderRadius:'8px',padding:'12px'}}>
-                  <p style={{fontSize:'11px',color:'#888',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'4px'}}>{label}</p>
-                  <p style={{fontSize:'13px',color:'#1B2B4B',fontWeight:'600'}}>{value}</p>
+                { label:'My applications', value:pos.length.toString(), color:'#0F6E56' },
+                { label:'Offers received', value:totalOffers.toString(), color:'#633806' },
+                { label:'Funded POs', value:fundedPos.toString(), color:'#0C447C' },
+                { label:'Total funding sought', value:`R ${totalFunding.toLocaleString()}`, color:'#085041' },
+              ].map(({label,value,color})=>(
+                <div key={label} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
+                  <div style={{fontSize:'22px',fontWeight:'700',color,marginBottom:'4px'}}>{value}</div>
+                  <div style={{fontSize:'12px',color:'#888'}}>{label}</div>
                 </div>
               ))}
             </div>
 
-            <div style={{marginBottom:'1.5rem'}}>
-              <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem'}}>Verification Documents</p>
-              <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-                {(selectedProfile.role === 'business' ? [
-                    { name:'Company Registration Certificate', path:'company-certificate' },
-                    { name:'ID Copy of Director', path:'id-document' },
-                    { name:'CSD Full Registration Report', path:'csd-report' },
-                    { name:'Tax Clearance Certificate', path:'tax-clearance' },
-                    { name:'BBB-EE Certificate', path:'bbbee-certificate' },
-                  ] : [
-                    { name:'FSCA License', path:'fsca-license' },
-                    { name:'ID Copy of Director', path:'id-document' },
-                    { name:'Proof of Funds', path:'proof-of-funds' },
-                  ]).map(doc => (
-                  <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:'#f9fafb',borderRadius:'8px',border:'1px solid #e5e5e5'}}>
-                    <p style={{fontSize:'13px',color:'#1B2B4B',fontWeight:'500'}}>{doc.name}</p>
-                    <button onClick={()=>downloadDoc(selectedProfile.id, doc.path)}
-                      style={{fontSize:'12px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
-                      View
-                    </button>
+            <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
+              <h2 style={{fontSize:'16px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>Recent applications</h2>
+              {loadingPos && <p style={{fontSize:'14px',color:'#888'}}>Loading...</p>}
+              {!loadingPos && pos.length === 0 && (
+                <div style={{textAlign:'center',padding:'1.5rem'}}>
+                  <p style={{fontSize:'14px',color:'#888',marginBottom:'1rem'}}>No applications yet</p>
+                  <a href="/upload" style={{background:'#0F6E56',color:'#fff',padding:'10px 20px',borderRadius:'8px',fontSize:'13px',textDecoration:'none',fontWeight:'600'}}>
+                    Apply for funding →
+                  </a>
+                </div>
+              )}
+              {pos.slice(0,3).map((po,i)=>(
+                <div key={po.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:i<2?'1px solid #f0f0f0':'none',flexWrap:'wrap',gap:'8px'}}>
+                  <div>
+                    <p style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B'}}>{po.po_number || 'PO-'+po.id.slice(0,8)}</p>
+                    <p style={{fontSize:'12px',color:'#666'}}>{po.client_name} — {po.sector}</p>
                   </div>
-                ))}
+                  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                    <StatusBadge status={po.status}/>
+                    {(offers[po.id]||[]).filter(o=>o.status==='pending').length > 0 && (
+                      <span style={{fontSize:'12px',color:'#0F6E56',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'4px'}}>
+                        <Banknote size={14} />{(offers[po.id]||[]).filter(o=>o.status==='pending').length} offer{(offers[po.id]||[]).filter(o=>o.status==='pending').length>1?'s':''}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STATUS TAB */}
+        {activeTab === 'status' && (
+          <div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem',flexWrap:'wrap',gap:'8px'}}>
+              <div>
+                <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>My Funding Applications</h2>
+                <p style={{fontSize:'13px',color:'#666'}}>View offers, accept or decline funding deals</p>
+              </div>
+              <div style={{display:'flex',gap:'8px'}}>
+                <button onClick={()=>setActiveTab('home')}
+                  style={{fontSize:'13px',color:'#666',background:'#fff',border:'1px solid #e5e5e5',padding:'8px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'500'}}>
+                  ← Back
+                </button>
+                <a href="/upload" style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'8px 16px',borderRadius:'8px',cursor:'pointer',textDecoration:'none',fontWeight:'600'}}>
+                  + New application
+                </a>
               </div>
             </div>
 
-            <div style={{display:'flex',gap:'10px'}}>
-              <button onClick={()=>setSelectedProfile(null)}
-                style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
-                Close
-              </button>
-              {selectedProfile.status !== 'approved' && (
-                <button onClick={()=>updateStatus(selectedProfile.id, 'approved')}
-                  disabled={actionLoading === selectedProfile.id}
-                  style={{flex:1,padding:'12px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
-                  {actionLoading === selectedProfile.id ? 'Processing...' : 'Approve'}
-                </button>
-              )}
-              {selectedProfile.status !== 'declined' && (
-                <button onClick={()=>handleDecline(selectedProfile)}
-                  disabled={actionLoading === selectedProfile.id}
-                  style={{flex:1,padding:'12px',background:'#DC2626',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
-                  Decline
-                </button>
-              )}
+            {loadingPos && <p style={{fontSize:'14px',color:'#888'}}>Loading your applications...</p>}
+            {!loadingPos && pos.length === 0 && (
+              <div style={{textAlign:'center',padding:'3rem',background:'#fff',borderRadius:'12px',border:'1px solid #e5e5e5'}}>
+                <p style={{fontSize:'16px',color:'#666',marginBottom:'.5rem'}}>No applications yet</p>
+                <a href="/upload" style={{background:'#0F6E56',color:'#fff',padding:'12px 24px',borderRadius:'8px',fontSize:'14px',textDecoration:'none',fontWeight:'600'}}>
+                  Apply for funding →
+                </a>
+              </div>
+            )}
+
+            <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
+              {pos.map(po=>{
+                const poOffers = offers[po.id] || []
+                const pendingOffers = poOffers.filter(o => o.status === 'pending')
+                const acceptedOffer = poOffers.find(o => o.status === 'accepted' || o.status === 'pending_admin' || acceptedOffers[po.id] === o.id)
+
+                return (
+                  <div key={po.id} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
+                      <div>
+                        <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px',flexWrap:'wrap'}}>
+                          <span style={{fontSize:'15px',fontWeight:'700',color:'#1B2B4B'}}>{po.po_number || 'PO-'+po.id.slice(0,8)}</span>
+                          <StatusBadge status={po.status}/>
+                        </div>
+                        <p style={{fontSize:'13px',color:'#666'}}>{po.client_name}</p>
+                        <p style={{fontSize:'12px',color:'#888'}}>Dept: {po.client_department} • {po.sector}</p>
+                        <p style={{fontSize:'12px',color:'#888'}}>📅 {new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <p style={{fontSize:'16px',fontWeight:'700',color:'#0F6E56'}}>R {po.po_value.toLocaleString()}</p>
+                        <p style={{fontSize:'12px',color:'#888'}}>Funding: R {po.funding_needed.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    {/* PROGRESS */}
+                    <div style={{display:'flex',justifyContent:'space-between',marginBottom:'12px'}}>
+                      {['Submitted','Under review','Offers received','Funded'].map((s,i)=>{
+                        const statusIndex = ['reviewing','reviewing','active','funded'].indexOf(po.status)
+                        const done = i <= statusIndex || po.status === 'funded'
+                        const current = (po.status==='reviewing'&&i===1)||(po.status==='active'&&i===2)||(po.status==='funded'&&i===3)
+                        return (
+                          <div key={s} style={{display:'flex',flexDirection:'column',alignItems:'center',flex:1}}>
+                            <div style={{width:'22px',height:'22px',borderRadius:'50%',background:done||current?'#0F6E56':'#e5e5e5',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px',marginBottom:'4px',fontWeight:'600'}}>
+                              {done?'✓':i+1}
+                            </div>
+                            <span style={{fontSize:'9px',color:current?'#0F6E56':'#888',textAlign:'center',whiteSpace:'nowrap',fontWeight:current?'600':'400'}}>{s}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
+                      <div>
+                        {pendingOffers.length > 0 && (
+                          <span style={{fontSize:'12px',color:'#0F6E56',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'4px'}}>
+                            <Banknote size={14} />{pendingOffers.length} offer{pendingOffers.length>1?'s':''} received
+                          </span>
+                        )}
+                      </div>
+                      {pendingOffers.length > 0 && !acceptedOffer && (
+                        <button onClick={()=>setViewingOffers(viewingOffers===po.id?null:po.id)}
+                          style={{fontSize:'13px',color:'#fff',background:'#0F6E56',border:'none',padding:'7px 16px',borderRadius:'8px',cursor:'pointer',fontWeight:'600'}}>
+                          {viewingOffers===po.id ? 'Hide offers' : `View ${pendingOffers.length} offer${pendingOffers.length>1?'s':''}`}
+                        </button>
+                      )}
+                      {po.status==='reviewing'&&pendingOffers.length===0&&(
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'12px',color:'#633806',background:'#FAEEDA',padding:'6px 12px',borderRadius:'8px',fontWeight:'500'}}>
+                          <Hourglass size={14} /> Being reviewed by funders
+                        </span>
+                      )}
+                      {po.status==='funded'&&(
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'12px',color:'#0C447C',background:'#E6F1FB',padding:'6px 12px',borderRadius:'8px',fontWeight:'500'}}>
+                          <CheckCircle2 size={14} /> Successfully funded
+                        </span>
+                      )}
+                    </div>
+
+                    {/* PENDING ADMIN APPROVAL */}
+                    {acceptedOffer && acceptedOffer.status === 'pending_admin' && (
+                      <div style={{marginTop:'1rem',background:'#EEF4FB',border:'1px solid #B8D4F0',borderRadius:'12px',padding:'1.25rem',textAlign:'center'}}>
+                        <Clock size={32} color="#0C447C" style={{margin:'0 auto .5rem'}} />
+                        <p style={{fontSize:'16px',fontWeight:'700',color:'#0C447C',marginBottom:'.5rem'}}>Awaiting admin approval</p>
+                        <p style={{fontSize:'13px',color:'#2563EB',lineHeight:'1.6'}}>
+                          You've accepted the offer of <strong>R {acceptedOffer.amount.toLocaleString()}</strong> at <strong>{acceptedOffer.interest_rate}%</strong>.
+                          The admin is reviewing and negotiating the commission. You'll be notified once approved.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* FULLY ACCEPTED */}
+                    {acceptedOffer && acceptedOffer.status === 'accepted' && (
+                      <div style={{marginTop:'1rem',background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'12px',padding:'1.25rem',textAlign:'center'}}>
+                        <CheckCircle2 size={32} color="#0F6E56" style={{margin:'0 auto .5rem'}} />
+                        <p style={{fontSize:'16px',fontWeight:'700',color:'#085041',marginBottom:'.5rem'}}>Offer accepted!</p>
+                        <p style={{fontSize:'13px',color:'#0F6E56'}}>
+                          Funding of R {acceptedOffer.amount.toLocaleString()} at {acceptedOffer.interest_rate}% for {acceptedOffer.term_days} days will be processed within 24 hours.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* OFFERS LIST */}
+                    {viewingOffers===po.id && pendingOffers.length>0 && !acceptedOffer && (
+                      <div style={{marginTop:'1.25rem'}}>
+                        <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>Compare funding offers</p>
+                        <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
+                          {pendingOffers.map((offer,i)=>{
+                            const offerDate = new Date(offer.created_at)
+                            const daysLeft = 7 - Math.floor((new Date().getTime() - offerDate.getTime()) / (1000*60*60*24))
+                            return (
+                              <div key={offer.id} style={{background:'#f9f9f9',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
+                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
+                                  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                    <span style={{fontSize:'15px',fontWeight:'700',color:'#1B2B4B'}}>Offer {i+1}</span>
+                                    {i===0&&<span style={{background:'#E1F5EE',color:'#085041',fontSize:'11px',padding:'2px 8px',borderRadius:'99px',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'4px'}}><Star size={12} /> Best rate</span>}
+                                    <span style={{background:daysLeft<=2?'#FEE2E2':'#f5f5f5',color:daysLeft<=2?'#DC2626':'#888',fontSize:'11px',padding:'2px 8px',borderRadius:'99px',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'4px'}}>
+                                      <Clock size={10} /> {daysLeft}d left
+                                    </span>
+                                  </div>
+                                  <div style={{textAlign:'right'}}>
+                                    <p style={{fontSize:'22px',fontWeight:'700',color:'#0F6E56'}}>{offer.interest_rate}%</p>
+                                    <p style={{fontSize:'12px',color:'#888'}}>interest rate</p>
+                                  </div>
+                                </div>
+                                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px',background:'#fff',borderRadius:'8px',padding:'12px',marginBottom:'1rem'}}>
+                                  {[['Amount',`R ${offer.amount.toLocaleString()}`],['Term',`${offer.term_days} days`],['Fee',`R ${(offer.amount*offer.interest_rate/100).toLocaleString()}`]].map(([l,v])=>(
+                                    <div key={l} style={{textAlign:'center'}}>
+                                      <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B'}}>{v}</p>
+                                      <p style={{fontSize:'11px',color:'#888',marginTop:'2px'}}>{l}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
+                                  <button onClick={()=>setDeclineModal({poId:po.id, offerId:offer.id})}
+                                    style={{padding:'11px',background:'#FEE2E2',color:'#DC2626',border:'1px solid #FCA5A5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                                    <XCircle size={16} /> Decline
+                                  </button>
+                                  <button onClick={()=>handleAcceptOffer(po.id,offer.id)}
+                                    style={{padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}}>
+                                    <CheckCircle2 size={16} /> Accept
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
+        )}
+
+        {activeTab === 'profile' && (
+          <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.5rem'}}>
+            <h2 style={{fontSize:'16px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1.5rem'}}>Business Profile</h2>
+            <p style={{fontSize:'14px',color:'#666'}}>Profile details coming soon.</p>
+          </div>
+        )}
+
+        {/* BOTTOM NAV */}
+        <div style={{display:'flex',gap:'4px',background:'#fff',border:'1px solid #e5e5e5',borderRadius:'10px',padding:'4px',marginTop:'2rem',width:'fit-content'}}>
+          {(['home','status','profile'] as const).map(t=>(
+            <button key={t} onClick={()=>setActiveTab(t)}
+              style={{padding:'8px 20px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'14px',fontWeight:'600',background:activeTab===t?'#0F6E56':'transparent',color:activeTab===t?'#fff':'#666',display:'inline-flex',alignItems:'center',gap:'6px'}}>
+              {t==='home' ? <><Home size={14} /> Home</> : t==='status' ? <><ClipboardList size={14} /> My Applications</> : <><User size={14} /> Profile</>}
+            </button>
+          ))}
         </div>
-      )}
+
+      </div>
     </main>
   )
 }
