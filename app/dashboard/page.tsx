@@ -100,15 +100,29 @@ export default function DashboardPage() {
       const { data: poData } = await supabase.from('purchase_orders').select('*').eq('id', poId).single()
       if (offerData && poData) {
         const { data: funderData } = await supabase.from('profiles').select('*').eq('id', offerData.funder_id).single()
+        // Notify funder their offer was accepted
         try {
           await fetch('/api/send-email', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              type: 'offer_accepted', to: funderData?.email || 'vsiphoesihle@gmail.com',
+              type: 'offer_accepted',
+              to: funderData?.email || 'admin@fundmypo.co.za',
               data: { funderName: funderData?.first_name || 'Funder', poNumber: poData.po_number, businessName: poData.client_name, amount: `R ${offerData.amount.toLocaleString()}`, rate: `${offerData.interest_rate}%`, term: `${offerData.term_days} days`, commission: `R ${(offerData.amount * 0.02).toLocaleString()}` }
             })
           })
-        } catch(e) { console.log('Email failed:', e) }
+        } catch(e) { console.log('Funder email failed:', e) }
+
+        // Notify admin that offer was accepted
+        try {
+          await fetch('/api/send-email', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'offer_accepted',
+              to: 'admin@fundmypo.co.za',
+              data: { funderName: funderData?.first_name || 'Funder', poNumber: poData.po_number, businessName: poData.client_name, amount: `R ${offerData.amount.toLocaleString()}`, rate: `${offerData.interest_rate}%`, term: `${offerData.term_days} days`, commission: `R ${(offerData.amount * 0.02).toLocaleString()}` }
+            })
+          })
+        } catch(e) { console.log('Admin offer accepted email failed:', e) }
 
         // Notify supplier their offer was accepted
         try {
