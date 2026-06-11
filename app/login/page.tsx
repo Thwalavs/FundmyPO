@@ -159,8 +159,13 @@ export default function AuthPage() {
               Register here
             </Link>
           </p>
-
-        </div>
+          
+          <div style={{ borderTop: '1px solid #f0f0f0', marginTop: '1.5rem', paddingTop: '1.5rem', textAlign: 'center' }}>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '10px' }}>Are you a funder?</p>
+            <Link href="/login?role=funder" style={{ fontSize: '13px', color: '#0C447C', background: '#E6F1FB', padding: '8px 20px', borderRadius: '8px', textDecoration: 'none', fontWeight: '600', display: 'inline-block' }}>
+              Funder Login →
+            </Link>
+         </div>
       </div>
     </main>
   )
