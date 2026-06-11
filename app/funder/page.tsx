@@ -196,6 +196,18 @@ export default function FunderDashboard() {
       const { data, error } = await supabase.from('purchase_orders').select('*').order('created_at', { ascending: false })
       if (error) { console.log('Error loading POs:', error.message); return }
       setMarketplace(data || [])
+
+      // Load existing offers from DB
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user && data && data.length > 0) {
+        const { data: existingOffers } = await supabase
+          .from('funding_offers')
+          .select('po_id')
+          .eq('funder_id', user.id)
+        if (existingOffers && existingOffers.length > 0) {
+          setSubmittedOffers(existingOffers.map(o => o.po_id))
+        }
+      }
     } catch (e) { console.log(e) }
     finally { setLoadingPOs(false) }
   }
@@ -245,6 +257,12 @@ export default function FunderDashboard() {
         })
       }
     } catch (e) { console.log('Supplier offer notification failed:', e) }
+
+    setSubmittedOffers(prev => [...prev, poId])
+    setSelectedPO(null)
+    setPreviewPO(null)
+    setRates(prev => { const n = { ...prev }; delete n[poId]; return n })
+    setTerms(prev => { const n = { ...prev }; delete n[poId]; return n })
   }
 
   

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { AlertTriangle, ClipboardList, Factory, FileText, FileUpload, Info, ShieldLock, User, CheckCircle2, TrendingUp } from 'lucide-react'
 
 function UploadBox({ label, file, onChange, hint }: { label: string, file: File|null, onChange: (f: File|null) => void, hint: string }) {
   const fieldStyle = { marginBottom: '1rem' }
@@ -17,7 +18,7 @@ function UploadBox({ label, file, onChange, hint }: { label: string, file: File|
           </div>
         ) : (
           <div>
-            <div style={{fontSize:'28px',marginBottom:'.5rem'}}>📄</div>
+            <div style={{fontSize:'28px',marginBottom:'.5rem'}}><FileUpload size={32} /></div>
             <p style={{fontSize:'13px',color:'#666',fontWeight:'500'}}>Click to upload {label}</p>
             <p style={{fontSize:'12px',color:'#aaa',marginTop:'4px'}}>PDF, JPG or PNG — max 10MB</p>
           </div>
@@ -211,8 +212,9 @@ export default function UploadPage() {
         <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',boxShadow:'0 4px 24px rgba(0,0,0,0.04)'}}>
 
           {error && (
-            <div style={{background:'#FEE2E2',border:'1px solid #FCA5A5',borderRadius:'8px',padding:'10px 14px',marginBottom:'1rem',fontSize:'13px',color:'#DC2626'}}>
-              ⚠️ {error}
+            <div style={{background:'#FEE2E2',border:'1px solid #FCA5A5',borderRadius:'8px',padding:'10px 14px',marginBottom:'1rem',fontSize:'13px',color:'#DC2626',display:'inline-flex',alignItems:'center',gap:'8px'}}>
+              <AlertTriangle size={16} />
+              <span>{error}</span>
             </div>
           )}
 
@@ -286,7 +288,7 @@ export default function UploadPage() {
               <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Fill in your purchase order and supplier quotation details.</p>
 
               <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:'1px solid #e5e5e5'}}>
-                <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>📋 Purchase Order Details</p>
+                <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><ClipboardList size={16} /> Purchase Order Details</p>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
                   <div>
                     <label style={labelStyle}>PO Number <span style={{color:'#DC2626'}}>*</span></label>
@@ -336,7 +338,7 @@ export default function UploadPage() {
               </div>
 
               <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:'1px solid #e5e5e5'}}>
-                <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem'}}>🏭 Supplier Details</p>
+                <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><Factory size={16} /> Supplier Details</p>
                 <div style={fieldStyle}>
                   <label style={labelStyle}>Supplier / Vendor name <span style={{color:'#DC2626'}}>*</span></label>
                   <input type="text" placeholder="e.g. ABC Electrical Supplies (Pty) Ltd" value={supplierName} onChange={e=>setSupplierName(e.target.value)} style={inputReq(supplierName)}/>
@@ -365,7 +367,7 @@ export default function UploadPage() {
 
               {po > 0 && quote > 0 && (
                 <div style={{background:profit>0?'#E1F5EE':'#FEE2E2',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:`1px solid ${profit>0?'#5DCAA5':'#FCA5A5'}`}}>
-                  <p style={{fontSize:'13px',fontWeight:'700',color:profit>0?'#085041':'#DC2626',marginBottom:'.75rem'}}>📊 Profit Margin Calculator</p>
+                  <p style={{fontSize:'13px',fontWeight:'700',color:profit>0?'#085041':'#DC2626',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><TrendingUp size={16} /> Profit Margin Calculator</p>
                   <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'.75rem'}}>
                     <div style={{textAlign:'center'}}>
                       <p style={{fontSize:'18px',fontWeight:'700',color:'#0F6E56'}}>R {po.toLocaleString()}</p>
@@ -380,8 +382,18 @@ export default function UploadPage() {
                       <p style={{fontSize:'11px',color:'#666',marginTop:'2px'}}>Profit Margin</p>
                     </div>
                   </div>
-                  <p style={{textAlign:'center',fontSize:'13px',color:profit>0?'#085041':'#DC2626',fontWeight:'600'}}>
-                    {profit>0 ? `Estimated profit: R ${profit.toLocaleString()} ✅` : `Warning: Supplier cost exceeds PO value ⚠️`}
+                  <p style={{textAlign:'center',fontSize:'13px',color:profit>0?'#085041':'#DC2626',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'8px'}}>
+                    {profit>0 ? (
+                      <>
+                        Estimated profit: R {profit.toLocaleString()}
+                        <CheckCircle2 size={14} />
+                      </>
+                    ) : (
+                      <>
+                        Warning: Supplier cost exceeds PO value
+                        <AlertTriangle size={14} />
+                      </>
+                    )}
                   </p>
                 </div>
               )}
@@ -407,7 +419,7 @@ export default function UploadPage() {
               <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Upload Documents</h2>
               <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Upload both your purchase order and supplier quotation.</p>
               <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
-                <span style={{fontSize:'18px'}}>🔒</span>
+                <ShieldLock size={18} />
                 <div>
                   <p style={{fontSize:'13px',color:'#085041',fontWeight:'600',marginBottom:'2px'}}>Document security</p>
                   <p style={{fontSize:'12px',color:'#0F6E56',lineHeight:'1.6'}}>Both documents will only be shared with verified funders who submit an offer on your PO.</p>
@@ -416,7 +428,7 @@ export default function UploadPage() {
               <UploadBox label="Purchase Order Document" file={poFile} onChange={setPoFile} hint="Upload the official PO from your client. Must include contact details and department."/>
               <UploadBox label="Supplier Quotation" file={quotationFile} onChange={setQuotationFile} hint="Upload the quotation from your supplier. Must include contact details and pricing."/>
               <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
-                <span style={{fontSize:'18px'}}>⚠️</span>
+                <AlertTriangle size={18} />
                 <div>
                   <p style={{fontSize:'13px',color:'#633806',fontWeight:'600',marginBottom:'2px'}}>Important reminder</p>
                   <p style={{fontSize:'12px',color:'#633806',lineHeight:'1.6'}}>Submitting fraudulent documents is a criminal offence.</p>
@@ -444,12 +456,12 @@ export default function UploadPage() {
               <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Please review everything before submitting.</p>
 
               {[
-                { title:'👤 Client Information', rows:[['Company',clientName],['Contact',clientContact],['Department',clientDepartment],['Phone',clientPhone],['Email',clientEmail]] },
-                { title:'📋 Purchase Order', rows:[['PO Number',poNumber],['PO Value',`R ${parseFloat(poValue||'0').toLocaleString()}`],['Funding needed',`R ${parseFloat(fundingNeeded||'0').toLocaleString()}`],['Sector',sector]] },
-                { title:'🏭 Supplier', rows:[['Supplier',supplierName],['Phone',supplierPhone],['Quotation No.',quotationNumber],['Quotation Value',`R ${parseFloat(quotationValue||'0').toLocaleString()}`]] },
-              ].map(({title,rows})=>(
+                { icon: User, title:'Client Information', rows:[['Company',clientName],['Contact',clientContact],['Department',clientDepartment],['Phone',clientPhone],['Email',clientEmail]] },
+                { icon: ClipboardList, title:'Purchase Order', rows:[['PO Number',poNumber],['PO Value',`R ${parseFloat(poValue||'0').toLocaleString()}`],['Funding needed',`R ${parseFloat(fundingNeeded||'0').toLocaleString()}`],['Sector',sector]] },
+                { icon: Factory, title:'Supplier', rows:[['Supplier',supplierName],['Phone',supplierPhone],['Quotation No.',quotationNumber],['Quotation Value',`R ${parseFloat(quotationValue||'0').toLocaleString()}`]] },
+              ].map(({icon: Icon, title, rows})=>(
                 <div key={title} style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
-                  <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem'}}>{title}</p>
+                  <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><Icon size={14} /> {title}</p>
                   {rows.map(([l,v])=>(
                     <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
                       <span style={{color:'#888'}}>{l}</span>
@@ -461,7 +473,7 @@ export default function UploadPage() {
 
               {po > 0 && quote > 0 && (
                 <div style={{background:'#E1F5EE',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem',border:'1px solid #5DCAA5'}}>
-                  <p style={{fontSize:'13px',fontWeight:'700',color:'#085041',marginBottom:'.5rem'}}>📊 Profit Margin</p>
+                  <p style={{fontSize:'13px',fontWeight:'700',color:'#085041',marginBottom:'.5rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><TrendingUp size={16} /> Profit Margin</p>
                   <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}>
                     <span style={{color:'#666'}}>Estimated profit</span>
                     <span style={{fontWeight:'700',color:'#085041'}}>R {profit.toLocaleString()} ({margin}%)</span>
@@ -470,7 +482,7 @@ export default function UploadPage() {
               )}
 
               <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:'1px solid #e5e5e5'}}>
-                <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem'}}>📄 Documents</p>
+                <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><FileText size={16} /> Documents</p>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
                   <span style={{color:'#888'}}>Purchase Order</span>
                   <span style={{color:poFile?'#0F6E56':'#DC2626',fontWeight:'600'}}>{poFile?'✓ '+poFile.name:'Not uploaded'}</span>
@@ -482,7 +494,7 @@ export default function UploadPage() {
               </div>
 
               <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
-                <span style={{fontSize:'18px'}}>ℹ️</span>
+                <Info size={18} />
                 <p style={{fontSize:'13px',color:'#085041',lineHeight:'1.6'}}>
                   By submitting, your PO will be listed on the FundMyPO marketplace for verified funders to review and submit offers.
                 </p>

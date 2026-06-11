@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { CheckCircle2, ClipboardList, Banknote, Home, Hourglass, Star, User } from 'lucide-react'
 
 type PO = {
   id: string
@@ -195,7 +196,7 @@ export default function DashboardPage() {
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1.5rem',marginBottom:'2rem'}}>
               <a href="/upload" style={{textDecoration:'none'}}>
                 <div style={{background:'#0F6E56',borderRadius:'16px',padding:'2rem',cursor:'pointer',height:'100%'}}>
-                  <div style={{fontSize:'36px',marginBottom:'1rem'}}>💰</div>
+                  <div style={{fontSize:'36px',marginBottom:'1rem'}}><Banknote size={32} color="#fff" /></div>
                   <h2 style={{fontSize:'20px',fontWeight:'700',color:'#fff',marginBottom:'.5rem'}}>Apply for Funding</h2>
                   <p style={{fontSize:'13px',color:'#a8dfc9',lineHeight:'1.6',marginBottom:'1.5rem'}}>
                     Upload your purchase order and supplier quotation to get competitive funding offers.
@@ -206,7 +207,7 @@ export default function DashboardPage() {
                 </div>
               </a>
               <div onClick={()=>setActiveTab('status')} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'16px',padding:'2rem',cursor:'pointer',height:'100%'}}>
-                <div style={{fontSize:'36px',marginBottom:'1rem'}}>📋</div>
+                <div style={{fontSize:'36px',marginBottom:'1rem'}}><ClipboardList size={32} /></div>
                 <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.5rem'}}>Check Status</h2>
                 <p style={{fontSize:'13px',color:'#666',lineHeight:'1.6',marginBottom:'1.5rem'}}>
                   Track your applications, view funding offers and accept the best deal.
@@ -251,7 +252,7 @@ export default function DashboardPage() {
                   <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                     <StatusBadge status={po.status}/>
                     {(offers[po.id]||[]).length > 0 && (
-                      <span style={{fontSize:'12px',color:'#0F6E56',fontWeight:'600'}}>💰 {(offers[po.id]||[]).length} offer{(offers[po.id]||[]).length>1?'s':''}</span>
+                      <span style={{fontSize:'12px',color:'#0F6E56',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'4px'}}><Banknote size={14} />{(offers[po.id]||[]).length} offer{(offers[po.id]||[]).length>1?'s':''}</span>
                     )}
                   </div>
                 </div>
@@ -332,7 +333,7 @@ export default function DashboardPage() {
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
                       <div>
                         {poOffers.length > 0 && (
-                          <span style={{fontSize:'12px',color:'#0F6E56',fontWeight:'600'}}>💰 {poOffers.length} offer{poOffers.length>1?'s':''} received</span>
+                          <span style={{fontSize:'12px',color:'#0F6E56',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'4px'}}><Banknote size={14} />{poOffers.length} offer{poOffers.length>1?'s':''} received</span>
                         )}
                       </div>
                       {poOffers.length > 0 && !acceptedOffer && (
@@ -342,20 +343,20 @@ export default function DashboardPage() {
                         </button>
                       )}
                       {po.status==='reviewing'&&poOffers.length===0&&(
-                        <span style={{fontSize:'12px',color:'#633806',background:'#FAEEDA',padding:'6px 12px',borderRadius:'8px',fontWeight:'500'}}>
-                          ⏳ Being reviewed by funders
-                        </span>
+                          <span style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'12px',color:'#633806',background:'#FAEEDA',padding:'6px 12px',borderRadius:'8px',fontWeight:'500'}}>
+                            <Hourglass size={14} /> Being reviewed by funders
+                          </span>
                       )}
                       {po.status==='funded'&&(
-                        <span style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',padding:'6px 12px',borderRadius:'8px',fontWeight:'500'}}>
-                          ✅ Successfully funded
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'12px',color:'#0C447C',background:'#E6F1FB',padding:'6px 12px',borderRadius:'8px',fontWeight:'500'}}>
+                          <CheckCircle2 size={14} /> Successfully funded
                         </span>
                       )}
                     </div>
 
                     {acceptedOffer && (
                       <div style={{marginTop:'1rem',background:'#E1F5EE',border:'1px solid #5DCAA5',borderRadius:'12px',padding:'1.25rem',textAlign:'center'}}>
-                        <div style={{fontSize:'32px',marginBottom:'.5rem'}}>🎉</div>
+                        <div style={{fontSize:'32px',marginBottom:'.5rem'}}><CheckCircle2 size={32} color="#0F6E56" /></div>
                         <p style={{fontSize:'16px',fontWeight:'700',color:'#085041',marginBottom:'.5rem'}}>Offer accepted!</p>
                         <p style={{fontSize:'13px',color:'#0F6E56'}}>
                           Funding of R {acceptedOffer.amount.toLocaleString()} at {acceptedOffer.interest_rate}% for {acceptedOffer.term_days} days will be processed within 24 hours.
@@ -372,7 +373,7 @@ export default function DashboardPage() {
                               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'.75rem'}}>
                                 <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                                   <span style={{fontSize:'15px',fontWeight:'700',color:'#1B2B4B'}}>Offer {i+1}</span>
-                                  {i===0&&<span style={{background:'#E1F5EE',color:'#085041',fontSize:'11px',padding:'2px 8px',borderRadius:'99px',fontWeight:'600'}}>⭐ Best rate</span>}
+                                  {i===0&&<span style={{background:'#E1F5EE',color:'#085041',fontSize:'11px',padding:'2px 8px',borderRadius:'99px',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'4px'}}><Star size={12} /> Best rate</span>}
                                 </div>
                                 <div style={{textAlign:'right'}}>
                                   <p style={{fontSize:'22px',fontWeight:'700',color:'#0F6E56'}}>{offer.interest_rate}%</p>
@@ -415,7 +416,7 @@ export default function DashboardPage() {
           {(['home','status','profile'] as const).map(t=>(
             <button key={t} onClick={()=>setActiveTab(t)}
               style={{padding:'8px 20px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'14px',fontWeight:'600',background:activeTab===t?'#0F6E56':'transparent',color:activeTab===t?'#fff':'#666'}}>
-              {t==='home'?'🏠 Home':t==='status'?'📋 My Applications':'👤 Profile'}
+              {t==='home' ? <><Home size={14} style={{marginRight:'6px'}} /> Home</> : t==='status' ? <><ClipboardList size={14} style={{marginRight:'6px'}} /> My Applications</> : <><User size={14} style={{marginRight:'6px'}} /> Profile</>}
             </button>
           ))}
         </div>
