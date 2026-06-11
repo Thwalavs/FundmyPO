@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
           <p style="color:#444;line-height:1.8">Thank you for registering on FundMyPO. We have received your application and documents for <strong>${data.businessName}</strong>.</p>
           <div style="background:#FEF3C7;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #F59E0B">
             <p style="color:#92400E;margin:0;font-weight:600;margin-bottom:4px">Account Pending Approval</p>
-            <p style="color:#92400E;margin:0;font-size:14px">Our team will review your documents within 24-48 hours. You will receive another email once your account has been approved.</p>
+            <p style="color:#92400E;margin:0;font-size:14px">Our team will review your documents within 24hours. You will receive another email once your account has been approved.</p>
           </div>
           <p style="color:#444;line-height:1.8;font-size:14px">While you wait, if you have any questions feel free to reach out to us.</p>
           <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
@@ -140,7 +140,6 @@ export async function POST(req: NextRequest) {
             <p style="margin:0 0 8px;color:#444"><strong>Amount:</strong> ${data.amount}</p>
             <p style="margin:0 0 8px;color:#444"><strong>Rate:</strong> ${data.rate}</p>
             <p style="margin:0 0 8px;color:#444"><strong>Term:</strong> ${data.term}</p>
-            <p style="margin:0;color:#444"><strong>Commission:</strong> ${data.commission}</p>
           </div>
           <p style="color:#444;font-size:14px">Please contact the funder to facilitate the disbursement.</p>
           <a href="https://fundmypo.co.za/admin" style="display:inline-block;background:#1B2B4B;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">View in Admin Panel</a>
