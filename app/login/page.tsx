@@ -12,7 +12,7 @@ async function getSupabase() {
   return createBrowserClient(SUPABASE_URL, SUPABASE_KEY)
 }
 
-export default function LoginPage() {
+export default function AuthPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -39,34 +39,32 @@ export default function LoginPage() {
         return
       }
 
-      // Fetch role and status from profiles table
+      // ✅ Fetch role from profiles table and redirect accordingly
       const { data: profile } = await supabase
         .from('profiles')
         .select('role, status')
         .eq('id', data.user.id)
         .single()
 
-      // Block pending accounts
       if (profile?.status === 'pending') {
         setError('Your account is pending approval. You will be notified by email once approved.')
         await supabase.auth.signOut()
         return
       }
 
-      // Block declined accounts
       if (profile?.status === 'declined') {
-        setError('Your account application was declined. Please contact support at info@fundmypo.co.za')
+        setError('Your account application was declined. Please contact support.')
         await supabase.auth.signOut()
         return
       }
 
-      // ✅ Route to correct dashboard based on role
+      // Route to the correct dashboard based on role
       if (profile?.role === 'admin') {
         router.push('/admin')
       } else if (profile?.role === 'funder') {
         router.push('/funder')
       } else {
-        // business / supplier
+        // supplier or any other role
         router.push('/dashboard')
       }
 
@@ -85,9 +83,6 @@ export default function LoginPage() {
       <nav style={{ background: '#1B2B4B', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{ height: '48px', width: 'auto' }} />
-        </Link>
-        <Link href="/register" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', padding: '7px 14px', borderRadius: '8px', textDecoration: 'none', fontWeight: '500' }}>
-          Register
         </Link>
       </nav>
 
