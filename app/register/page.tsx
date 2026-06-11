@@ -338,9 +338,9 @@ export default function RegisterPage() {
               </p>
               <p className="text-center text-xs text-slate-400 mt-2">
                 {isFunder ? (
-                  <>Wrong portal? <Link href="/register" className="font-semibold text-teal-600 hover:text-teal-700">Go to supplier login</Link></>
+                  <>Wrong portal? <button type="button" onClick={() => { window.location.href = '/register' }} className="font-semibold text-teal-600 hover:text-teal-700">Go to supplier login</button></>
                 ) : (
-                  <>Are you a funder? <Link href="/register?role=funder" className="font-semibold text-teal-600 hover:text-teal-700">Go to funder login</Link></>
+                  <>Are you a funder? <button type="button" onClick={() => { window.location.href = '/register?role=funder' }} className="font-semibold text-teal-600 hover:text-teal-700">Go to funder login</button></>
                 )}
               </p>
             </div>
