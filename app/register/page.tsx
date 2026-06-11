@@ -99,24 +99,18 @@ export default function RegisterPage() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
 
-      const userRole = data.user?.user_metadata?.role
-
-      if (userRole === 'admin') {
-        router.push('/admin')
-        return
-      }
-
-      const { data: profile } = await supabase
+      const { data : profile } = await supabase
         .from('profiles')
         .select('status, role')
         .eq('id', data.user.id)
         .single()
+      
+        const userRole = profile?.role 
 
-      if (profile?.status === 'pending') {
-        await supabase.auth.signOut()
-        setError('Your account is pending approval. You will be notified by email once our team has reviewed your documents.')
-        setLoading(false)
-        return
+
+        if (userRole === 'admin') {
+          router.push('/admin')          
+          return
       }
 
       if (profile?.status === 'declined') {
