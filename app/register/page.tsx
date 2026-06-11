@@ -355,7 +355,7 @@ export default function RegisterPage() {
                   </div>
                   <p className="text-lg font-semibold text-teal-900 mb-3">Application submitted!</p>
                   <p className="text-sm leading-6 text-teal-700 mb-6">
-                    Your account is <strong>pending approval</strong>. Our team will review your documents within 24-48 hours and notify you by email once approved.
+                    Your account is <strong>pending approval</strong>. Our team will review your documents within 24hours and notify you by email once approved.
                   </p>
                   <button
                     type="button"
