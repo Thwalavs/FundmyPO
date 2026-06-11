@@ -222,6 +222,30 @@ export async function POST(req: NextRequest) {
         <p style="color:#444">PO Number: ${data.poNumber}<br>Client: ${data.clientName}<br>Value: ${data.poValue}</p>
         <a href="https://fundmypo.co.za/admin" style="display:inline-block;background:#085041;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Review in admin</a>
       </div>`
+
+    } else if (type === 'offer_declined') {
+      subject = `Your Funding Offer for ${data.poNumber} Was Declined`
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">Offer Update</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.funderName}</strong>,</p>
+          <p style="color:#444;line-height:1.8">Unfortunately your funding offer for <strong>${data.poNumber}</strong> has been declined.</p>
+          <div style="background:#FEE2E2;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #DC2626">
+            <p style="color:#991B1B;margin:0;font-weight:600;margin-bottom:4px">Reason provided:</p>
+            <p style="color:#991B1B;margin:0;font-size:14px">${data.reason}</p>
+          </div>
+          <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1.5rem 0">
+            <p style="margin:0 0 8px;color:#444"><strong>PO Number:</strong> ${data.poNumber}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Offer Amount:</strong> ${data.amount}</p>
+            <p style="margin:0;color:#444"><strong>Rate:</strong> ${data.rate}</p>
+          </div>
+          <p style="color:#444;font-size:14px">Other purchase orders are available on the marketplace.</p>
+          <a href="https://fundmypo.co.za/register?role=funder" style="display:inline-block;background:#1B2B4B;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">Browse Marketplace</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
+      </div>`
     }
 
     const res = await fetch('https://api.resend.com/emails', {

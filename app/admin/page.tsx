@@ -1,4 +1,4 @@
- 'use client'
+'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -45,8 +45,10 @@ export default function AdminPage() {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [declineModal, setDeclineModal] = useState<Profile | null>(null)
+  const [declineReason, setDeclineReason] = useState('')
+  const [decliningLoading, setDecliningLoading] = useState(false)
 
-  // loadProfiles declared before useEffect to satisfy lint rules
   async function loadProfiles() {
     setLoading(true)
     try {
@@ -62,7 +64,7 @@ export default function AdminPage() {
     void (async () => { await loadProfiles() })()
   }, [])
 
-  async function updateStatus(profileId: string, status: 'approved' | 'declined') {
+  async function updateStatus(profileId: string, status: 'approved' | 'declined', reason?: string) {
     setActionLoading(profileId)
     try {
       const supabase = await getSupabase()
@@ -70,7 +72,6 @@ export default function AdminPage() {
 
       const profile = profiles.find(p => p.id === profileId)
       if (profile) {
-        // Send email notification to user
         try {
           await fetch('/api/send-email', {
             method: 'POST',
@@ -82,6 +83,7 @@ export default function AdminPage() {
                 name: profile.first_name || profile.business_name,
                 businessName: profile.business_name,
                 role: profile.role,
+                reason: reason || 'No reason provided.',
               }
             })
           })
@@ -90,8 +92,15 @@ export default function AdminPage() {
 
       setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, status } : p))
       setSelectedProfile(null)
+      setDeclineModal(null)
+      setDeclineReason('')
     } catch(e) { console.error(e) }
     finally { setActionLoading(null) }
+  }
+
+  async function handleDecline(profile: Profile) {
+    setDeclineModal(profile)
+    setSelectedProfile(null)
   }
 
   async function handleSignOut() {
@@ -131,10 +140,58 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="admin-page" style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
+    <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
+
+      {/* DECLINE REASON MODAL */}
+      {declineModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:300,padding:'1rem'}}>
+          <div style={{background:'#fff',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'480px',boxShadow:'0 20px 60px rgba(0,0,0,0.2)'}}>
+            <h3 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Decline Registration</h3>
+            <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>
+              Please provide a reason for declining <strong>{declineModal.first_name || declineModal.business_name}</strong>'s application. They will be notified by email.
+            </p>
+            <div style={{background:'#f9fafb',borderRadius:'8px',padding:'12px',marginBottom:'1.25rem',border:'1px solid #e5e5e5'}}>
+              <p style={{fontSize:'12px',color:'#888',marginBottom:'4px',fontWeight:'600'}}>COMMON REASONS</p>
+              {[
+                'Incomplete or invalid documentation submitted.',
+                'Documents could not be verified with the relevant authorities.',
+                'Business does not meet our eligibility criteria.',
+                'Duplicate registration detected.',
+              ].map(reason => (
+                <button key={reason} onClick={() => setDeclineReason(reason)}
+                  style={{display:'block',width:'100%',textAlign:'left',padding:'6px 8px',fontSize:'13px',color:'#0C447C',background:declineReason===reason?'#E6F1FB':'transparent',border:'none',borderRadius:'6px',cursor:'pointer',marginBottom:'2px'}}>
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <textarea
+              placeholder="Or type a custom reason..."
+              value={declineReason}
+              onChange={e => setDeclineReason(e.target.value)}
+              style={{width:'100%',padding:'12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',minHeight:'80px',resize:'vertical',outline:'none',marginBottom:'1.25rem',boxSizing:'border-box'}}
+            />
+            <div style={{display:'flex',gap:'10px'}}>
+              <button onClick={() => { setDeclineModal(null); setDeclineReason('') }}
+                style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setDecliningLoading(true)
+                  await updateStatus(declineModal.id, 'declined', declineReason)
+                  setDecliningLoading(false)
+                }}
+                disabled={!declineReason.trim() || decliningLoading}
+                style={{flex:2,padding:'12px',background:declineReason.trim()?'#DC2626':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                {decliningLoading ? 'Declining...' : 'Decline & Notify'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* NAV */}
-      <nav className="admin-nav" style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
+      <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
         <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
           <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
         </Link>
@@ -149,7 +206,7 @@ export default function AdminPage() {
         </div>
       </nav>
 
-      <div className="admin-content" style={{maxWidth:'1100px',margin:'0 auto',padding:'2rem'}}>
+      <div style={{maxWidth:'1100px',margin:'0 auto',padding:'2rem'}}>
 
         <div style={{marginBottom:'1.5rem'}}>
           <h1 style={{fontSize:'24px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>User Management</h1>
@@ -157,12 +214,12 @@ export default function AdminPage() {
         </div>
 
         {/* STATS */}
-        <div className="admin-stats-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'1rem',marginBottom:'2rem'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'1rem',marginBottom:'2rem'}}>
           {[
-            { label:'Pending Review', value:counts.pending, color:'#92400E', bg:'#FEF3C7' },
-            { label:'Approved', value:counts.approved, color:'#065F46', bg:'#D1FAE5' },
-            { label:'Declined', value:counts.declined, color:'#991B1B', bg:'#FEE2E2' },
-            { label:'Total Users', value:counts.all, color:'#1B2B4B', bg:'#EEF2FF' },
+            { label:'Pending Review', value:counts.pending, color:'#92400E' },
+            { label:'Approved', value:counts.approved, color:'#065F46' },
+            { label:'Declined', value:counts.declined, color:'#991B1B' },
+            { label:'Total Users', value:counts.all, color:'#1B2B4B' },
           ].map(({label,value,color})=>(
             <div key={label} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
               <div style={{fontSize:'28px',fontWeight:'700',color,marginBottom:'4px'}}>{value}</div>
@@ -172,7 +229,7 @@ export default function AdminPage() {
         </div>
 
         {/* SEARCH */}
-        <div className="admin-search" style={{marginBottom:'1rem'}}>
+        <div style={{marginBottom:'1rem'}}>
           <input
             type="text"
             placeholder="Search by name, email or business..."
@@ -183,7 +240,7 @@ export default function AdminPage() {
         </div>
 
         {/* TABS */}
-        <div className="admin-tabs" style={{display:'flex',gap:'4px',background:'#fff',border:'1px solid #e5e5e5',borderRadius:'10px',padding:'4px',marginBottom:'1.5rem',width:'fit-content'}}>
+        <div style={{display:'flex',gap:'4px',background:'#fff',border:'1px solid #e5e5e5',borderRadius:'10px',padding:'4px',marginBottom:'1.5rem',width:'fit-content'}}>
           {(['pending','approved','declined','all'] as const).map(t=>(
             <button key={t} onClick={()=>setActiveTab(t)}
               style={{padding:'8px 16px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'13px',fontWeight:'600',
@@ -195,13 +252,13 @@ export default function AdminPage() {
         </div>
 
         {/* TABLE */}
-        <div className="admin-table-wrapper" style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',overflow:'hidden'}}>
+        <div style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',overflow:'hidden'}}>
           {loading ? (
             <div style={{padding:'3rem',textAlign:'center',color:'#888'}}>Loading users...</div>
           ) : filtered.length === 0 ? (
             <div style={{padding:'3rem',textAlign:'center',color:'#888'}}>No users found.</div>
           ) : (
-            <table className="admin-table" style={{width:'100%',borderCollapse:'collapse'}}>
+            <table style={{width:'100%',borderCollapse:'collapse'}}>
               <thead>
                 <tr style={{background:'#f9fafb',borderBottom:'1px solid #e5e5e5'}}>
                   {['Name / Business','Email','Role','Status','Registered','Actions'].map(h=>(
@@ -212,23 +269,23 @@ export default function AdminPage() {
               <tbody>
                 {filtered.map((profile, i) => (
                   <tr key={profile.id} style={{borderBottom:'1px solid #f0f0f0',background:i%2===0?'#fff':'#fafafa'}}>
-                    <td data-label="Name / Business" style={{padding:'14px 16px'}}>
+                    <td style={{padding:'14px 16px'}}>
                       <p style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B',marginBottom:'2px'}}>
                         {profile.first_name ? `${profile.first_name} ${profile.last_name}` : '—'}
                       </p>
                       <p style={{fontSize:'12px',color:'#888'}}>{profile.business_name || '—'}</p>
                     </td>
-                    <td data-label="Email" style={{padding:'14px 16px',fontSize:'13px',color:'#444'}}>{profile.email}</td>
-                    <td data-label="Role" style={{padding:'14px 16px'}}>
+                    <td style={{padding:'14px 16px',fontSize:'13px',color:'#444'}}>{profile.email}</td>
+                    <td style={{padding:'14px 16px'}}>
                       <span style={{background:profile.role==='funder'?'#E6F1FB':'#E1F5EE',color:profile.role==='funder'?'#0C447C':'#085041',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'600'}}>
                         {profile.role === 'funder' ? 'Funder' : 'Supplier'}
                       </span>
                     </td>
-                    <td data-label="Status" style={{padding:'14px 16px'}}>{statusBadge(profile.status)}</td>
-                    <td data-label="Registered" style={{padding:'14px 16px',fontSize:'12px',color:'#888'}}>
+                    <td style={{padding:'14px 16px'}}>{statusBadge(profile.status)}</td>
+                    <td style={{padding:'14px 16px',fontSize:'12px',color:'#888'}}>
                       {new Date(profile.created_at).toLocaleDateString('en-ZA')}
                     </td>
-                    <td data-label="Actions" style={{padding:'14px 16px'}}>
+                    <td style={{padding:'14px 16px'}}>
                       <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                         <button onClick={()=>setSelectedProfile(profile)}
                           style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
@@ -242,10 +299,10 @@ export default function AdminPage() {
                           </button>
                         )}
                         {profile.status !== 'declined' && (
-                          <button onClick={()=>updateStatus(profile.id, 'declined')}
+                          <button onClick={()=>handleDecline(profile)}
                             disabled={actionLoading === profile.id}
                             style={{fontSize:'12px',color:'#991B1B',background:'#FEE2E2',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
-                            {actionLoading === profile.id ? '...' : 'Decline'}
+                            Decline
                           </button>
                         )}
                       </div>
@@ -260,17 +317,17 @@ export default function AdminPage() {
 
       {/* PROFILE DETAIL MODAL */}
       {selectedProfile && (
-        <div className="admin-modal-overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'1rem'}}>
-          <div className="admin-modal" style={{background:'#fff',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'560px',maxHeight:'90vh',overflowY:'auto'}}>
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'1rem'}}>
+          <div style={{background:'#fff',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'560px',maxHeight:'90vh',overflowY:'auto'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
               <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B'}}>Application Details</h2>
               <button onClick={()=>setSelectedProfile(null)}
                 style={{background:'none',border:'none',fontSize:'20px',cursor:'pointer',color:'#888'}}>
-                x
+                ✕
               </button>
             </div>
 
-            <div className="admin-detail-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1.5rem'}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'1.5rem'}}>
               {[
                 ['Name', `${selectedProfile.first_name || ''} ${selectedProfile.last_name || ''}`],
                 ['Email', selectedProfile.email],
@@ -290,7 +347,7 @@ export default function AdminPage() {
 
             <div style={{marginBottom:'1.5rem'}}>
               <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem'}}>Verification Documents</p>
-              <div className="admin-doc-list" style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+              <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
                 {(selectedProfile.role === 'business' ? [
                     { name:'Company Registration Certificate', path:'company-certificate' },
                     { name:'ID Copy of Director', path:'id-document' },
@@ -313,7 +370,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="admin-modal-actions" style={{display:'flex',gap:'10px'}}>
+            <div style={{display:'flex',gap:'10px'}}>
               <button onClick={()=>setSelectedProfile(null)}
                 style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
                 Close
@@ -326,10 +383,10 @@ export default function AdminPage() {
                 </button>
               )}
               {selectedProfile.status !== 'declined' && (
-                <button onClick={()=>updateStatus(selectedProfile.id, 'declined')}
+                <button onClick={()=>handleDecline(selectedProfile)}
                   disabled={actionLoading === selectedProfile.id}
                   style={{flex:1,padding:'12px',background:'#DC2626',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
-                  {actionLoading === selectedProfile.id ? 'Processing...' : 'Decline'}
+                  Decline
                 </button>
               )}
             </div>
