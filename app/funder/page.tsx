@@ -218,10 +218,33 @@ export default function FunderDashboard() {
         interest_rate: parseFloat(rates[poId] || '0'), term_days: parseInt(terms[poId] || '0'), status: 'pending'
       })
     } catch (e) { console.log(e) }
-    setSubmittedOffers(prev => [...prev, poId])
-    setSelectedPO(null); setPreviewPO(null)
-    setRates(prev => { const n = { ...prev }; delete n[poId]; return n })
-    setTerms(prev => { const n = { ...prev }; delete n[poId]; return n })
+    // Notify supplier that a funder made an offer
+    try {
+      const supabase2 = await getSupabase()
+      const { data: supplierProfile } = await supabase2
+        .from('profiles')
+        .select('email, first_name, business_name')
+        .eq('id', po.user_id)
+        .single()
+
+      if (supplierProfile) {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'new_offer',
+            to: supplierProfile.email,
+            data: {
+              name: supplierProfile.first_name || supplierProfile.business_name,
+              poNumber: po.po_number,
+              funderName: funderName,
+              amount: `R ${po.funding_needed.toLocaleString()}`,
+              rate: `${rates[poId]}%`,
+            }
+          })
+        })
+      }
+    } catch (e) { console.log('Supplier offer notification failed:', e) }
   }
 
   
