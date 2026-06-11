@@ -17,10 +17,12 @@ export const metadata: Metadata = {
   title: "FundMyPO",
   description: "South Africa's leading purchase order funding platform.",
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+     apple: '/apple-touch-icon.png',
   },
-};
 
 export default function RootLayout({
   children,
