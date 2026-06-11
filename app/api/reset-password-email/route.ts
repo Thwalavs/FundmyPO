@@ -24,13 +24,14 @@ export async function POST(request: NextRequest) {
     })
 
     const resetData = await resetRes.json()
+    console.log('Supabase response:', JSON.stringify(resetData))
 
     if (!resetRes.ok || !resetData.action_link) {
       console.error('Supabase link generation failed:', resetData)
       return NextResponse.json({ error: 'Failed to generate reset link' }, { status: 500 })
     }
 
-    const resetLink = resetData.action_link
+    const resetLink = `https://fundmypo.co.za/reset-password?token_hash=${resetData.hashed_token}&type=recovery`
 
     // 2. Send email via Resend
     const resendRes = await fetch('https://api.resend.com/emails', {
