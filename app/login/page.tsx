@@ -58,6 +58,17 @@ export default function AuthPage() {
         return
       }
 
+      console.log('Profile role:', profile?.role, 'Status:', profile?.status)
+
+      // Route to the correct dashboard based on role
+      if (profile?.role === 'admin') {
+        router.push('/admin')
+      } else if (profile?.role === 'funder') {
+        router.push('/funder')
+      } else {
+        router.push('/dashboard')
+      }
+
       // Route to the correct dashboard based on role
       if (profile?.role === 'admin') {
         router.push('/admin')
