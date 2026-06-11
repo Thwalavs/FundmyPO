@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { AlertTriangle, ClipboardList, Factory, FileText, FileUpload, Info, ShieldLock, User, CheckCircle2, TrendingUp } from 'lucide-react'
+import { AlertTriangle, ClipboardList, Factory, FileText, FileUp, Info, ShieldCheck, User, CheckCircle2, TrendingUp } from 'lucide-react'
 
 function UploadBox({ label, file, onChange, hint }: { label: string, file: File|null, onChange: (f: File|null) => void, hint: string }) {
   const fieldStyle = { marginBottom: '1rem' }
@@ -18,7 +18,7 @@ function UploadBox({ label, file, onChange, hint }: { label: string, file: File|
           </div>
         ) : (
           <div>
-            <div style={{fontSize:'28px',marginBottom:'.5rem'}}><FileUpload size={32} /></div>
+            <div style={{fontSize:'28px',marginBottom:'.5rem'}}><FileUp size={32} /></div>
             <p style={{fontSize:'13px',color:'#666',fontWeight:'500'}}>Click to upload {label}</p>
             <p style={{fontSize:'12px',color:'#aaa',marginTop:'4px'}}>PDF, JPG or PNG — max 10MB</p>
           </div>
@@ -419,7 +419,7 @@ export default function UploadPage() {
               <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Upload Documents</h2>
               <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Upload both your purchase order and supplier quotation.</p>
               <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
-                <ShieldLock size={18} />
+                <ShieldCheck size={18} />
                 <div>
                   <p style={{fontSize:'13px',color:'#085041',fontWeight:'600',marginBottom:'2px'}}>Document security</p>
                   <p style={{fontSize:'12px',color:'#0F6E56',lineHeight:'1.6'}}>Both documents will only be shared with verified funders who submit an offer on your PO.</p>
