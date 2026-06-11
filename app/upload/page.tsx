@@ -85,12 +85,46 @@ export default function UploadPage() {
         const ext = quotationFile.name.split('.').pop()
         await supabase.storage.from('verification-docs').upload(`${user.id}/quotation-${po.id}.${ext}`, quotationFile, { upsert: true })
       }
+      // Notify admin of new PO
       try {
         await fetch('/api/send-email', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'new_po_submitted', to: 'vsiphoesihle@gmail.com', data: { businessName: clientName, poNumber, clientName, poValue: `R ${parseFloat(poValue||'0').toLocaleString()}` } })
+          body: JSON.stringify({ 
+            type: 'new_po_submitted', 
+            to: 'admin@fundmypo.co.za', 
+            data: { businessName: clientName, poNumber, clientName, poValue: `R ${parseFloat(poValue||'0').toLocaleString()}` } 
+          })
         })
-      } catch(e) { console.log('Email failed:', e) }
+      } catch(e) { console.log('Admin email failed:', e) }
+
+      // Notify all approved funders of new PO
+      try {
+        const { data: funders } = await supabase
+          .from('profiles')
+          .select('email, first_name, business_name')
+          .eq('role', 'funder')
+          .eq('status', 'approved')
+
+        if (funders && funders.length > 0) {
+          await Promise.all(funders.map(funder =>
+            fetch('/api/send-email', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'new_po_available',
+                to: funder.email,
+                data: {
+                  name: funder.first_name || funder.business_name,
+                  poNumber,
+                  clientName,
+                  sector,
+                  poValue: `R ${parseFloat(poValue||'0').toLocaleString()}`,
+                  fundingNeeded: `R ${parseFloat(fundingNeeded||'0').toLocaleString()}`,
+                }
+              })
+            })
+          ))
+        }
+      } catch(e) { console.log('Funder notifications failed:', e) }
 
       // Notify supplier their PO is under review
       try {
