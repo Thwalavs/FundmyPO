@@ -192,7 +192,7 @@ export default function AdminPage() {
 
       {/* NAV */}
       <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
-        <Link href="/" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
+        <Link href="/admin" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
           <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
         </Link>
         <div style={{display:'flex',alignItems:'center',gap:'1rem'}}>
