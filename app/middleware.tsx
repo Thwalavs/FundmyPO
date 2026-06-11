@@ -8,12 +8,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public routes — always accessible
-  const publicPaths = ['/', '/register', '/login', '/forgot-password', '/reset-password', '/privacy', '/terms', '/Auth']
+  const publicPaths = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/privacy', '/terms', '/auth']
   if (publicPaths.some(p => pathname === p || pathname.startsWith(p + '/'))) {
     return NextResponse.next()
   }
 
-  // Build Supabase client that reads cookies from the request
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -32,61 +31,13 @@ export async function middleware(request: NextRequest) {
 
   // Not logged in — send to login
   if (!user) {
-    return NextResponse.redirect(new URL('/Auth', request.url))
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Fetch the user's role from the profiles table
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  const role = profile?.role // 'admin' | 'supplier' | 'funder'
-
-  // --- ROUTE PROTECTION ---
-
-  // /admin/** — admin only
-  if (pathname.startsWith('/admin')) {
-    if (role !== 'admin') {
-      // Redirect suppliers and funders to their own dashboards
-      const dest = role === 'funder' ? '/funder' : '/dashboard'
-      return NextResponse.redirect(new URL(dest, request.url))
-    }
-  }
-
-  // /funder/** — funders only
-  if (pathname.startsWith('/funder')) {
-    if (role !== 'funder' && role !== 'admin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-  }
-
-  // /dashboard/** — suppliers only
-  if (pathname.startsWith('/dashboard')) {
-    if (role === 'admin') {
-      return NextResponse.redirect(new URL('/admin', request.url))
-    }
-    if (role === 'funder') {
-      return NextResponse.redirect(new URL('/funder', request.url))
-    }
-  }
-
-  // /upload/** — suppliers only
-  if (pathname.startsWith('/upload')) {
-    if (role === 'admin') return NextResponse.redirect(new URL('/admin', request.url))
-    if (role === 'funder') return NextResponse.redirect(new URL('/funder', request.url))
-  }
-
+  // Logged in — just let them through, login page already routed them correctly
   return response
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths EXCEPT:
-     * - _next/static, _next/image, favicon.ico, public files
-     */
-    '/((?!_next/static|_next/image|favicon|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }
