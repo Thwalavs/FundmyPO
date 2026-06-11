@@ -117,7 +117,7 @@ export default function DashboardPage() {
           await fetch('/api/send-email', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              type: 'offer_accepted',
+              type: 'admin_offer_accepted',
               to: 'admin@fundmypo.co.za',
               data: { funderName: funderData?.first_name || 'Funder', poNumber: poData.po_number, businessName: poData.client_name, amount: `R ${offerData.amount.toLocaleString()}`, rate: `${offerData.interest_rate}%`, term: `${offerData.term_days} days`, commission: `R ${(offerData.amount * 0.02).toLocaleString()}` }
             })

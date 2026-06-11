@@ -125,6 +125,28 @@ export async function POST(req: NextRequest) {
         </div>
       </div>`
 
+    } else if (type === 'admin_offer_accepted') {
+      subject = `Offer Accepted: ${data.poNumber} — Action Required`
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">Offer Accepted — Action Required</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">A supplier has accepted a funding offer on FundMyPO.</p>
+          <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1.5rem 0">
+            <p style="margin:0 0 8px;color:#444"><strong>PO Number:</strong> ${data.poNumber}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Supplier:</strong> ${data.businessName}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Funder:</strong> ${data.funderName}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Amount:</strong> ${data.amount}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Rate:</strong> ${data.rate}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Term:</strong> ${data.term}</p>
+            <p style="margin:0;color:#444"><strong>Commission:</strong> ${data.commission}</p>
+          </div>
+          <p style="color:#444;font-size:14px">Please contact the funder to facilitate the disbursement.</p>
+          <a href="https://fundmypo.co.za/admin" style="display:inline-block;background:#1B2B4B;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">View in Admin Panel</a>
+        </div>
+      </div>`
+
     } else if (type === 'offer_accepted_supplier') {
       subject = `Congratulations! Your PO ${data.poNumber} Has Been Funded!`
       html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
