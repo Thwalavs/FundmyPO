@@ -42,7 +42,6 @@ export default function UploadPage() {
   const [clientContact, setClientContact] = useState('')
   const [clientPhone, setClientPhone] = useState('')
   const [clientEmail, setClientEmail] = useState('')
-  const [clientDepartment, setClientDepartment] = useState('')
   const [poNumber, setPoNumber] = useState('')
   const [poValue, setPoValue] = useState('')
   const [fundingNeeded, setFundingNeeded] = useState('')
@@ -71,7 +70,7 @@ export default function UploadPage() {
       if (!user) { setError('Please log in first'); setLoading(false); return }
       const { data: po, error: poError } = await supabase.from('purchase_orders').insert({
         user_id: user.id, po_number: poNumber, client_name: clientName, client_contact: clientContact,
-        client_phone: clientPhone, client_email: clientEmail, client_department: clientDepartment,
+        client_phone: clientPhone, client_email: clientEmail,
         po_value: parseFloat(poValue)||0, funding_needed: parseFloat(fundingNeeded)||0,
         quotation_value: parseFloat(quotationValue)||0, quotation_number: quotationNumber,
         supplier_name: supplierName, supplier_phone: supplierPhone, supplier_email: supplierEmail,
@@ -169,7 +168,7 @@ export default function UploadPage() {
   const profit = po - quote
   const margin = po > 0 ? ((profit/po)*100).toFixed(1) : '0'
 
-  function step1Valid() { return !!(clientName && clientContact && clientDepartment && clientPhone && clientEmail) }
+  function step1Valid() { return !!(clientName && clientContact && clientPhone && clientEmail) }
   function step2Valid() { return !!(poNumber && poValue && fundingNeeded && sector && supplierName && supplierPhone && supplierEmail && quotationNumber && quotationValue) }
 
   
@@ -253,11 +252,6 @@ export default function UploadPage() {
                 <label style={labelStyle}>Contact person name <span style={{color:'#DC2626'}}>*</span></label>
                 <p style={{fontSize:'12px',color:'#888',marginBottom:'6px'}}>The person responsible for issuing the purchase order</p>
                 <input type="text" placeholder="e.g. John Smith" value={clientContact} onChange={e=>setClientContact(e.target.value)} style={inputReq(clientContact)}/>
-              </div>
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Department <span style={{color:'#DC2626'}}>*</span></label>
-                <p style={{fontSize:'12px',color:'#888',marginBottom:'6px'}}>The department the PO came from</p>
-                <input type="text" placeholder="e.g. Supply Chain / Procurement" value={clientDepartment} onChange={e=>setClientDepartment(e.target.value)} style={inputReq(clientDepartment)}/>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
                 <div>
@@ -456,7 +450,7 @@ export default function UploadPage() {
               <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Please review everything before submitting.</p>
 
               {[
-                { icon: User, title:'Client Information', rows:[['Company',clientName],['Contact',clientContact],['Department',clientDepartment],['Phone',clientPhone],['Email',clientEmail]] },
+                { icon: User, title:'Client Information', rows:[['Company',clientName],['Contact',clientContact],['Phone',clientPhone],['Email',clientEmail]] },
                 { icon: ClipboardList, title:'Purchase Order', rows:[['PO Number',poNumber],['PO Value',`R ${parseFloat(poValue||'0').toLocaleString()}`],['Funding needed',`R ${parseFloat(fundingNeeded||'0').toLocaleString()}`],['Sector',sector]] },
                 { icon: Factory, title:'Supplier', rows:[['Supplier',supplierName],['Phone',supplierPhone],['Quotation No.',quotationNumber],['Quotation Value',`R ${parseFloat(quotationValue||'0').toLocaleString()}`]] },
               ].map(({icon: Icon, title, rows})=>(
