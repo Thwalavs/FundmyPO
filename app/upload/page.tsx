@@ -192,9 +192,11 @@ export default function UploadPage() {
   const margin = po > 0 ? ((profit/po)*100).toFixed(1) : '0'
 
   function step1Valid() { return !!(clientName && clientContact && clientPhone && clientEmail) }
- function step2Valid() {
-   return !!(poNumber && poValue && fundingNeeded && sector &&
-     suppliers.every(s => s.name && s.phone && s.email && s.quotationNumber && s.quotationValue))
+  function step2Valid() {
+    const fieldsOk = !!(poNumber && poValue && fundingNeeded && sector &&
+      suppliers.every(s => s.name && s.phone && s.email && s.quotationNumber && s.quotationValue))
+    const fundingOk = parseFloat(fundingNeeded) <= parseFloat(poValue)
+    return fieldsOk && fundingOk
   }
 
   return (
@@ -317,6 +319,11 @@ export default function UploadPage() {
                 <div>
                   <label style={labelStyle}>Funding Needed (ZAR) <span style={{color:'#DC2626'}}>*</span></label>
                   <input type="number" placeholder="e.g. 350000" value={fundingNeeded} onChange={e=>setFundingNeeded(e.target.value)} style={inputReq(fundingNeeded)}/>
+                  {fundingNeeded && poValue && parseFloat(fundingNeeded) > parseFloat(poValue) && (
+                    <p style={{color:'#DC2626',fontSize:'12px',marginTop:'4px',fontWeight:'500'}}>
+                      Funding needed cannot exceed the PO value (R {parseFloat(poValue).toLocaleString()})
+                    </p>
+                  )}
                 </div>
               </div>
               <div style={fieldStyle}>
@@ -416,7 +423,18 @@ export default function UploadPage() {
                   ← Back
                 </button>
                 <button onClick={()=>{
-                  if (!step2Valid()) { setError('Please fill in all PO and supplier details.'); window.scrollTo(0,0); return }
+                  const fieldsOk = !!(poNumber && poValue && fundingNeeded && sector &&
+                    suppliers.every(s => s.name && s.phone && s.email && s.quotationNumber && s.quotationValue))
+                  if (!fieldsOk) {
+                    setError('Please fill in all PO and supplier details.')
+                    window.scrollTo(0,0)
+                    return
+                  }
+                  if (parseFloat(fundingNeeded) > parseFloat(poValue)) {
+                    setError('Funding needed cannot exceed the Purchase Order (PO) value.')
+                    window.scrollTo(0,0)
+                    return
+                  }
                   setError(''); setStep(3)
                 }} style={{flex:2,padding:'12px',background:step2Valid()?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
                   Continue to documents →
