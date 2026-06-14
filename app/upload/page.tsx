@@ -191,12 +191,33 @@ export default function UploadPage() {
   const profit = po - quote
   const margin = po > 0 ? ((profit/po)*100).toFixed(1) : '0'
 
+  function handleFundingNeededBlur() {
+    if (poValue && fundingNeeded) {
+      const poVal = parseFloat(poValue)
+      const fundNeeded = parseFloat(fundingNeeded)
+      if (fundNeeded >= poVal && poVal > 0) {
+        setFundingNeeded((poVal - 1).toString())
+      }
+    }
+  }
+
+  function handlePoValueBlur() {
+    if (poValue && fundingNeeded) {
+      const poVal = parseFloat(poValue)
+      const fundNeeded = parseFloat(fundingNeeded)
+      if (fundNeeded >= poVal && poVal > 0) {
+        setFundingNeeded((poVal - 1).toString())
+      }
+    }
+  }
+
   function step1Valid() { return !!(clientName && clientContact && clientPhone && clientEmail) }
   function step2Valid() {
     const fieldsOk = !!(poNumber && poValue && fundingNeeded && sector &&
       suppliers.every(s => s.name && s.phone && s.email && s.quotationNumber && s.quotationValue))
     const fundingOk = parseFloat(fundingNeeded) <= parseFloat(poValue)
-    return fieldsOk && fundingOk
+    const profitOk = (parseFloat(poValue) || 0) - suppliers.reduce((sum, s) => sum + (parseFloat(s.quotationValue) || 0), 0) > 0
+    return fieldsOk && fundingOk && profitOk
   }
 
   return (
@@ -314,11 +335,11 @@ export default function UploadPage() {
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
                 <div>
                   <label style={labelStyle}>PO Value (ZAR) <span style={{color:'#DC2626'}}>*</span></label>
-                  <input type="number" placeholder="e.g. 500000" value={poValue} onChange={e=>setPoValue(e.target.value)} style={inputReq(poValue)}/>
+                  <input type="number" placeholder="e.g. 500000" value={poValue} onChange={e=>setPoValue(e.target.value)} onBlur={handlePoValueBlur} style={inputReq(poValue)}/>
                 </div>
                 <div>
                   <label style={labelStyle}>Funding Needed (ZAR) <span style={{color:'#DC2626'}}>*</span></label>
-                  <input type="number" placeholder="e.g. 350000" value={fundingNeeded} onChange={e=>setFundingNeeded(e.target.value)} style={inputReq(fundingNeeded)}/>
+                  <input type="number" placeholder="e.g. 350000" value={fundingNeeded} onChange={e=>setFundingNeeded(e.target.value)} onBlur={handleFundingNeededBlur} style={inputReq(fundingNeeded)}/>
                   {fundingNeeded && poValue && parseFloat(fundingNeeded) > parseFloat(poValue) && (
                     <p style={{color:'#DC2626',fontSize:'12px',marginTop:'4px',fontWeight:'500'}}>
                       Funding needed cannot exceed the PO value (R {parseFloat(poValue).toLocaleString()})
@@ -404,12 +425,31 @@ export default function UploadPage() {
 
               {/* PROFIT PREVIEW */}
               {po > 0 && quote > 0 && (
-                <div style={{background:'#E1F5EE',borderRadius:'12px',padding:'1rem',marginBottom:'1.5rem',border:'1px solid #5DCAA5'}}>
-                  <p style={{fontSize:'13px',fontWeight:'700',color:'#085041',marginBottom:'.5rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><TrendingUp size={16} /> Profit Margin</p>
+                <div style={{
+                  background: profit > 0 ? '#E1F5EE' : '#FEE2E2',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  marginBottom: '1.5rem',
+                  border: profit > 0 ? '1px solid #5DCAA5' : '1px solid #FCA5A5'
+                }}>
+                  <p style={{
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    color: profit > 0 ? '#085041' : '#DC2626',
+                    marginBottom: '.5rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}><TrendingUp size={16} /> Profit Margin</p>
                   <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}>
                     <span style={{color:'#666'}}>Estimated profit</span>
-                    <span style={{fontWeight:'700',color:'#085041'}}>R {profit.toLocaleString()} ({margin}%)</span>
+                    <span style={{fontWeight:'700',color: profit > 0 ? '#085041' : '#DC2626'}}>R {profit.toLocaleString()} ({margin}%)</span>
                   </div>
+                  {profit <= 0 && (
+                    <p style={{color:'#DC2626',fontSize:'12px',marginTop:'6px',fontWeight:'500'}}>
+                      Warning: Profit margin must be greater than 0% to apply for funding.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -423,18 +463,29 @@ export default function UploadPage() {
                   ← Back
                 </button>
                 <button onClick={()=>{
-                  const fieldsOk = !!(poNumber && poValue && fundingNeeded && sector &&
+                  let currentFundingNeeded = fundingNeeded
+                  const poVal = parseFloat(poValue) || 0
+                  const fundNeeded = parseFloat(fundingNeeded) || 0
+                  if (poVal > 0 && fundNeeded >= poVal) {
+                    currentFundingNeeded = (poVal - 1).toString()
+                    setFundingNeeded(currentFundingNeeded)
+                  }
+
+                  const fieldsOk = !!(poNumber && poValue && currentFundingNeeded && sector &&
                     suppliers.every(s => s.name && s.phone && s.email && s.quotationNumber && s.quotationValue))
                   if (!fieldsOk) {
                     setError('Please fill in all PO and supplier details.')
                     window.scrollTo(0,0)
                     return
                   }
-                  if (parseFloat(fundingNeeded) > parseFloat(poValue)) {
-                    setError('Funding needed cannot exceed the Purchase Order (PO) value.')
+
+                  const calculatedProfit = poVal - suppliers.reduce((sum, s) => sum + (parseFloat(s.quotationValue) || 0), 0)
+                  if (calculatedProfit <= 0) {
+                    setError('Profit margin must be greater than 0% to proceed.')
                     window.scrollTo(0,0)
                     return
                   }
+
                   setError(''); setStep(3)
                 }} style={{flex:2,padding:'12px',background:step2Valid()?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
                   Continue to documents →
