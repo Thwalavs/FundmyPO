@@ -50,15 +50,23 @@ export default function UploadPage() {
   const [sector, setSector] = useState('')
   const [description, setDescription] = useState('')
   const [suppliers, setSuppliers] = useState([
-  function updateSupplier(index: number, field: string, value: string) {
-  setSuppliers(prev => prev.map((s, i) => i === index ? { ...s, [field]: value } : s))
-  }
-
-function addSupplier() {
-  setSuppliers(prev => [...prev, { name: '', phone: '', email: '', quotationNumber: '', quotationValue: '' }])
-  }  
     { name: '', phone: '', email: '', quotationNumber: '', quotationValue: '' }
   ])
+
+  function updateSupplier(index: number, field: string, value: string) {
+    setSuppliers(prev => prev.map((s, i) => i === index ? { ...s, [field]: value } : s))
+  }
+
+  function addSupplier() {
+    setSuppliers(prev => [...prev, { name: '', phone: '', email: '', quotationNumber: '', quotationValue: '' }])
+    setQuotationFiles(prev => [...prev, null])
+  }
+
+  function removeSupplier(index: number) {
+    if (suppliers.length <= 1) return
+    setSuppliers(prev => prev.filter((_, i) => i !== index))
+    setQuotationFiles(prev => prev.filter((_, i) => i !== index))
+  }
 
   useEffect(()=>{},[])
 
@@ -293,56 +301,129 @@ function addSupplier() {
 
           {/* STEP 2 */}
           {!submitted && step === 2 && (
-            <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:'1px solid #e5e5e5'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
-                <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',display:'inline-flex',alignItems:'center',gap:'8px'}}><Factory size={16} /> Supplier Details</p>
-                <button type="button" onClick={addSupplier}
-                  style={{fontSize:'13px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'6px'}}>
-                  + Add supplier
-                </button>
+            <div>
+              <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Purchase Order & Supplier Details</h2>
+              <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Enter the PO and supplier information.</p>
+
+              <div style={fieldStyle}>
+                <label style={labelStyle}>PO Number <span style={{color:'#DC2626'}}>*</span></label>
+                <input type="text" placeholder="e.g. PO-2025-00123" value={poNumber} onChange={e=>setPoNumber(e.target.value)} style={inputReq(poNumber)}/>
               </div>
-              {suppliers.map((supplier, index) => (
-                <div key={index} style={{background:'#fff',borderRadius:'10px',padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'.75rem'}}>
-                    <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B'}}>Supplier {index + 1}</p>
-                    {suppliers.length > 1 && (
-                      <button type="button" onClick={() => removeSupplier(index)}
-                        style={{fontSize:'12px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'4px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
-                        Remove
-                      </button>
-                   )}
-                 </div>
-                 <div style={fieldStyle}>
-                   <label style={labelStyle}>Supplier / Vendor name <span style={{color:'#DC2626'}}>*</span></label>
-                   <input type="text" placeholder="e.g. ABC Electrical Supplies (Pty) Ltd" value={supplier.name}
-                     onChange={e => updateSupplier(index, 'name', e.target.value)} style={inputReq(supplier.name)}/>
-                 </div>
-                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
-                   <div>
-                    <label style={labelStyle}>Supplier phone <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="tel" placeholder="+27 11 000 0000" value={supplier.phone}
-                      onChange={e => updateSupplier(index, 'phone', e.target.value)} style={inputReq(supplier.phone)}/>
-                 </div>
-                 <div>
-                    <label style={labelStyle}>Supplier email <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="email" placeholder="sales@supplier.co.za" value={supplier.email}
-                      onChange={e => updateSupplier(index, 'email', e.target.value)} style={inputReq(supplier.email)}/>
-                  </div>
-                 </div>
-                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-                   <div>
-                    <label style={labelStyle}>Quotation number <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="text" placeholder="e.g. QT-2025-00456" value={supplier.quotationNumber}
-                      onChange={e => updateSupplier(index, 'quotationNumber', e.target.value)} style={inputReq(supplier.quotationNumber)}/>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Quotation value (ZAR) <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="number" placeholder="e.g. 350000" value={supplier.quotationValue}
-                      onChange={e => updateSupplier(index, 'quotationValue', e.target.value)} style={inputReq(supplier.quotationValue)}/>
-                  </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
+                <div>
+                  <label style={labelStyle}>PO Value (ZAR) <span style={{color:'#DC2626'}}>*</span></label>
+                  <input type="number" placeholder="e.g. 500000" value={poValue} onChange={e=>setPoValue(e.target.value)} style={inputReq(poValue)}/>
+                </div>
+                <div>
+                  <label style={labelStyle}>Funding Needed (ZAR) <span style={{color:'#DC2626'}}>*</span></label>
+                  <input type="number" placeholder="e.g. 350000" value={fundingNeeded} onChange={e=>setFundingNeeded(e.target.value)} style={inputReq(fundingNeeded)}/>
                 </div>
               </div>
-            ))}
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Sector <span style={{color:'#DC2626'}}>*</span></label>
+                <select value={sector} onChange={e=>setSector(e.target.value)} style={{...inputStyle,borderColor:sector?'#0F6E56':'#e5e5e5'}}>
+                  <option value="">Select sector</option>
+                  {['Logistics','Construction','ICT','Manufacturing','Healthcare','Agriculture','Mining','Retail','Other'].map(s=><option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
+                <div>
+                  <label style={labelStyle}>Issue date</label>
+                  <input type="date" value={issueDate} onChange={e=>setIssueDate(e.target.value)} style={inputStyle}/>
+                </div>
+                <div>
+                  <label style={labelStyle}>Expiry date</label>
+                  <input type="date" value={expiryDate} onChange={e=>setExpiryDate(e.target.value)} style={inputStyle}/>
+                </div>
+              </div>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Description</label>
+                <textarea placeholder="Brief description of the goods or services..." value={description} onChange={e=>setDescription(e.target.value)}
+                  style={{...inputStyle,minHeight:'80px',resize:'vertical'}}/>
+              </div>
+
+              {/* SUPPLIERS */}
+              <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:'1px solid #e5e5e5'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                  <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',display:'inline-flex',alignItems:'center',gap:'8px'}}><Factory size={16} /> Supplier Details</p>
+                  <button type="button" onClick={addSupplier}
+                    style={{fontSize:'13px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                    + Add supplier
+                  </button>
+                </div>
+                {suppliers.map((supplier, index) => (
+                  <div key={index} style={{background:'#fff',borderRadius:'10px',padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'.75rem'}}>
+                      <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B'}}>Supplier {index + 1}</p>
+                      {suppliers.length > 1 && (
+                        <button type="button" onClick={() => removeSupplier(index)}
+                          style={{fontSize:'12px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'4px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div style={fieldStyle}>
+                      <label style={labelStyle}>Supplier / Vendor name <span style={{color:'#DC2626'}}>*</span></label>
+                      <input type="text" placeholder="e.g. ABC Electrical Supplies (Pty) Ltd" value={supplier.name}
+                        onChange={e => updateSupplier(index, 'name', e.target.value)} style={inputReq(supplier.name)}/>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
+                      <div>
+                        <label style={labelStyle}>Supplier phone <span style={{color:'#DC2626'}}>*</span></label>
+                        <input type="tel" placeholder="+27 11 000 0000" value={supplier.phone}
+                          onChange={e => updateSupplier(index, 'phone', e.target.value)} style={inputReq(supplier.phone)}/>
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Supplier email <span style={{color:'#DC2626'}}>*</span></label>
+                        <input type="email" placeholder="sales@supplier.co.za" value={supplier.email}
+                          onChange={e => updateSupplier(index, 'email', e.target.value)} style={inputReq(supplier.email)}/>
+                      </div>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                      <div>
+                        <label style={labelStyle}>Quotation number <span style={{color:'#DC2626'}}>*</span></label>
+                        <input type="text" placeholder="e.g. QT-2025-00456" value={supplier.quotationNumber}
+                          onChange={e => updateSupplier(index, 'quotationNumber', e.target.value)} style={inputReq(supplier.quotationNumber)}/>
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Quotation value (ZAR) <span style={{color:'#DC2626'}}>*</span></label>
+                        <input type="number" placeholder="e.g. 350000" value={supplier.quotationValue}
+                          onChange={e => updateSupplier(index, 'quotationValue', e.target.value)} style={inputReq(supplier.quotationValue)}/>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* PROFIT PREVIEW */}
+              {po > 0 && quote > 0 && (
+                <div style={{background:'#E1F5EE',borderRadius:'12px',padding:'1rem',marginBottom:'1.5rem',border:'1px solid #5DCAA5'}}>
+                  <p style={{fontSize:'13px',fontWeight:'700',color:'#085041',marginBottom:'.5rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><TrendingUp size={16} /> Profit Margin</p>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}>
+                    <span style={{color:'#666'}}>Estimated profit</span>
+                    <span style={{fontWeight:'700',color:'#085041'}}>R {profit.toLocaleString()} ({margin}%)</span>
+                  </div>
+                </div>
+              )}
+
+              <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1.25rem',fontSize:'12px',color:'#666'}}>
+                <span style={{color:'#DC2626'}}>*</span> All fields are required
+              </div>
+
+              <div style={{display:'flex',gap:'12px'}}>
+                <button onClick={()=>{ setError(''); setStep(1) }}
+                  style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                  ← Back
+                </button>
+                <button onClick={()=>{
+                  if (!step2Valid()) { setError('Please fill in all PO and supplier details.'); window.scrollTo(0,0); return }
+                  setError(''); setStep(3)
+                }} style={{flex:2,padding:'12px',background:step2Valid()?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+                  Continue to documents →
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* STEP 3 */}
           {!submitted && step === 3 && (
@@ -380,9 +461,10 @@ function addSupplier() {
                   ← Back
                 </button>
                 <button onClick={()=>{
-                  if (!poFile || !quotationFile) { setError('Please upload both the Purchase Order and Supplier Quotation before continuing.'); window.scrollTo(0,0); return }
+                  const allQuotationsUploaded = quotationFiles.every(f => f !== null)
+                  if (!poFile || !allQuotationsUploaded) { setError('Please upload the Purchase Order and all Supplier Quotations before continuing.'); window.scrollTo(0,0); return }
                   setError(''); setStep(4)
-                }} style={{flex:2,padding:'12px',background:(poFile&&quotationFile)?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+                }} style={{flex:2,padding:'12px',background:(poFile&&quotationFiles.every(f=>f!==null))?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
                   Continue to review →
                 </button>
               </div>
@@ -398,11 +480,23 @@ function addSupplier() {
               {[
                 { icon: User, title:'Client Information', rows:[['Company',clientName],['Contact',clientContact],['Phone',clientPhone],['Email',clientEmail]] },
                 { icon: ClipboardList, title:'Purchase Order', rows:[['PO Number',poNumber],['PO Value',`R ${parseFloat(poValue||'0').toLocaleString()}`],['Funding needed',`R ${parseFloat(fundingNeeded||'0').toLocaleString()}`],['Sector',sector]] },
-                { icon: Factory, title:'Supplier', rows:[['Supplier',supplierName],['Phone',supplierPhone],['Quotation No.',quotationNumber],['Quotation Value',`R ${parseFloat(quotationValue||'0').toLocaleString()}`]] },
               ].map(({icon: Icon, title, rows})=>(
                 <div key={title} style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
                   <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><Icon size={14} /> {title}</p>
                   {rows.map(([l,v])=>(
+                    <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
+                      <span style={{color:'#888'}}>{l}</span>
+                      <span style={{color:'#1B2B4B',fontWeight:'600'}}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+
+              {/* Suppliers review */}
+              {suppliers.map((supplier, index) => (
+                <div key={index} style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
+                  <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><Factory size={14} /> Supplier {index + 1}</p>
+                  {[['Supplier', supplier.name],['Phone', supplier.phone],['Email', supplier.email],['Quotation No.', supplier.quotationNumber],['Quotation Value', `R ${parseFloat(supplier.quotationValue||'0').toLocaleString()}`]].map(([l,v])=>(
                     <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
                       <span style={{color:'#888'}}>{l}</span>
                       <span style={{color:'#1B2B4B',fontWeight:'600'}}>{v}</span>
@@ -427,10 +521,12 @@ function addSupplier() {
                   <span style={{color:'#888'}}>Purchase Order</span>
                   <span style={{color:poFile?'#0F6E56':'#DC2626',fontWeight:'600'}}>{poFile?'✓ '+poFile.name:'Not uploaded'}</span>
                 </div>
-                <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0',fontSize:'14px'}}>
-                  <span style={{color:'#888'}}>Supplier Quotation</span>
-                  <span style={{color:quotationFile?'#0F6E56':'#DC2626',fontWeight:'600'}}>{quotationFile?'✓ '+quotationFile.name:'Not uploaded'}</span>
-                </div>
+                {quotationFiles.map((qf, i) => (
+                  <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:i < quotationFiles.length - 1 ? '1px solid #e5e5e5' : 'none',fontSize:'14px'}}>
+                    <span style={{color:'#888'}}>Supplier {i + 1} Quotation</span>
+                    <span style={{color:qf?'#0F6E56':'#DC2626',fontWeight:'600'}}>{qf?'✓ '+qf.name:'Not uploaded'}</span>
+                  </div>
+                ))}
               </div>
 
               <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
