@@ -76,9 +76,13 @@ function addSupplier() {
       const { data: po, error: poError } = await supabase.from('purchase_orders').insert({
         user_id: user.id, po_number: poNumber, client_name: clientName, client_contact: clientContact,
         client_phone: clientPhone, client_email: clientEmail,
-        po_value: parseFloat(poValue)||0, funding_needed: parseFloat(fundingNeeded)||0,
-        quotation_value: parseFloat(quotationValue)||0, quotation_number: quotationNumber,
-        supplier_name: supplierName, supplier_phone: supplierPhone, supplier_email: supplierEmail,
+        po_value: parseFloat(poValue)||0,
+        funding_needed: parseFloat(fundingNeeded)||0,
+        quotation_value: parseFloat(suppliers[0].quotationValue)||0,
+        quotation_number: suppliers[0].quotationNumber,
+        supplier_name: suppliers[0].name,
+        supplier_phone: suppliers[0].phone,
+        supplier_email: suppliers[0].email,
         sector, description, issue_date: issueDate, expiry_date: expiryDate, status: 'reviewing'
       }).select().single()
       if (poError) { setError('Error saving PO: ' + poError.message); setLoading(false); return }
@@ -289,135 +293,56 @@ function addSupplier() {
 
           {/* STEP 2 */}
           {!submitted && step === 2 && (
-            <div>
-              <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>PO & Supplier Details</h2>
-              <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Fill in your purchase order and supplier quotation details.</p>
-
-              <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:'1px solid #e5e5e5'}}>
-                <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><ClipboardList size={16} /> Purchase Order Details</p>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
-                  <div>
-                    <label style={labelStyle}>PO Number <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="text" placeholder="e.g. PO-2025-00123" value={poNumber} onChange={e=>setPoNumber(e.target.value)} style={inputReq(poNumber)}/>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>PO Value (ZAR) <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="number" placeholder="e.g. 500000" value={poValue} onChange={e=>setPoValue(e.target.value)} style={inputReq(poValue)}/>
-                  </div>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
-                  <div>
-                    <label style={labelStyle}>Funding needed (ZAR) <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="number" placeholder="e.g. 400000" value={fundingNeeded} onChange={e=>setFundingNeeded(e.target.value)} style={inputReq(fundingNeeded)}/>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Industry / Sector <span style={{color:'#DC2626'}}>*</span></label>
-                    <select value={sector} onChange={e=>setSector(e.target.value)} style={inputReq(sector)}>
-                      <option value="">Select sector...</option>
-                      <option>Construction</option>
-                      <option>Mining</option>
-                      <option>Government / Public sector</option>
-                      <option>Retail</option>
-                      <option>Manufacturing</option>
-                      <option>Transport & Logistics</option>
-                      <option>Healthcare</option>
-                      <option>Technology</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
-                  <div>
-                    <label style={labelStyle}>PO Issue date</label>
-                    <input type="date" value={issueDate} onChange={e=>setIssueDate(e.target.value)} style={inputStyle}/>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>PO Expiry date</label>
-                    <input type="date" value={expiryDate} onChange={e=>setExpiryDate(e.target.value)} style={inputStyle}/>
-                  </div>
-                </div>
-                <div>
-                  <label style={labelStyle}>Description of goods / services</label>
-                  <textarea placeholder="e.g. Supply of electrical equipment..." value={description} onChange={e=>setDescription(e.target.value)}
-                    style={{...inputStyle,minHeight:'80px',resize:'vertical'}}/>
-                </div>
+            <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:'1px solid #e5e5e5'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
+                <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',display:'inline-flex',alignItems:'center',gap:'8px'}}><Factory size={16} /> Supplier Details</p>
+                <button type="button" onClick={addSupplier}
+                  style={{fontSize:'13px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                  + Add supplier
+                </button>
               </div>
-
-              <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:'1px solid #e5e5e5'}}>
-                <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',marginBottom:'1rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><Factory size={16} /> Supplier Details</p>
-                <div style={fieldStyle}>
-                  <label style={labelStyle}>Supplier / Vendor name <span style={{color:'#DC2626'}}>*</span></label>
-                  <input type="text" placeholder="e.g. ABC Electrical Supplies (Pty) Ltd" value={supplierName} onChange={e=>setSupplierName(e.target.value)} style={inputReq(supplierName)}/>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
-                  <div>
+              {suppliers.map((supplier, index) => (
+                <div key={index} style={{background:'#fff',borderRadius:'10px',padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'.75rem'}}>
+                    <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B'}}>Supplier {index + 1}</p>
+                    {suppliers.length > 1 && (
+                      <button type="button" onClick={() => removeSupplier(index)}
+                        style={{fontSize:'12px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'4px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
+                        Remove
+                      </button>
+                   )}
+                 </div>
+                 <div style={fieldStyle}>
+                   <label style={labelStyle}>Supplier / Vendor name <span style={{color:'#DC2626'}}>*</span></label>
+                   <input type="text" placeholder="e.g. ABC Electrical Supplies (Pty) Ltd" value={supplier.name}
+                     onChange={e => updateSupplier(index, 'name', e.target.value)} style={inputReq(supplier.name)}/>
+                 </div>
+                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'1rem'}}>
+                   <div>
                     <label style={labelStyle}>Supplier phone <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="tel" placeholder="+27 11 000 0000" value={supplierPhone} onChange={e=>setSupplierPhone(e.target.value)} style={inputReq(supplierPhone)}/>
-                  </div>
-                  <div>
+                    <input type="tel" placeholder="+27 11 000 0000" value={supplier.phone}
+                      onChange={e => updateSupplier(index, 'phone', e.target.value)} style={inputReq(supplier.phone)}/>
+                 </div>
+                 <div>
                     <label style={labelStyle}>Supplier email <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="email" placeholder="sales@supplier.co.za" value={supplierEmail} onChange={e=>setSupplierEmail(e.target.value)} style={inputReq(supplierEmail)}/>
+                    <input type="email" placeholder="sales@supplier.co.za" value={supplier.email}
+                      onChange={e => updateSupplier(index, 'email', e.target.value)} style={inputReq(supplier.email)}/>
                   </div>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-                  <div>
+                 </div>
+                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                   <div>
                     <label style={labelStyle}>Quotation number <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="text" placeholder="e.g. QT-2025-00456" value={quotationNumber} onChange={e=>setQuotationNumber(e.target.value)} style={inputReq(quotationNumber)}/>
+                    <input type="text" placeholder="e.g. QT-2025-00456" value={supplier.quotationNumber}
+                      onChange={e => updateSupplier(index, 'quotationNumber', e.target.value)} style={inputReq(supplier.quotationNumber)}/>
                   </div>
                   <div>
                     <label style={labelStyle}>Quotation value (ZAR) <span style={{color:'#DC2626'}}>*</span></label>
-                    <input type="number" placeholder="e.g. 350000" value={quotationValue} onChange={e=>setQuotationValue(e.target.value)} style={inputReq(quotationValue)}/>
+                    <input type="number" placeholder="e.g. 350000" value={supplier.quotationValue}
+                      onChange={e => updateSupplier(index, 'quotationValue', e.target.value)} style={inputReq(supplier.quotationValue)}/>
                   </div>
                 </div>
               </div>
-
-              {po > 0 && quote > 0 && (
-                <div style={{background:profit>0?'#E1F5EE':'#FEE2E2',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:`1px solid ${profit>0?'#5DCAA5':'#FCA5A5'}`}}>
-                  <p style={{fontSize:'13px',fontWeight:'700',color:profit>0?'#085041':'#DC2626',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><TrendingUp size={16} /> Profit Margin Calculator</p>
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'.75rem'}}>
-                    <div style={{textAlign:'center'}}>
-                      <p style={{fontSize:'18px',fontWeight:'700',color:'#0F6E56'}}>R {po.toLocaleString()}</p>
-                      <p style={{fontSize:'11px',color:'#666',marginTop:'2px'}}>PO Value</p>
-                    </div>
-                    <div style={{textAlign:'center'}}>
-                      <p style={{fontSize:'18px',fontWeight:'700',color:'#DC2626'}}>R {quote.toLocaleString()}</p>
-                      <p style={{fontSize:'11px',color:'#666',marginTop:'2px'}}>Supplier Cost</p>
-                    </div>
-                    <div style={{textAlign:'center'}}>
-                      <p style={{fontSize:'18px',fontWeight:'700',color:profit>0?'#085041':'#DC2626'}}>{margin}%</p>
-                      <p style={{fontSize:'11px',color:'#666',marginTop:'2px'}}>Profit Margin</p>
-                    </div>
-                  </div>
-                  <p style={{textAlign:'center',fontSize:'13px',color:profit>0?'#085041':'#DC2626',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'8px'}}>
-                    {profit>0 ? (
-                      <>
-                        Estimated profit: R {profit.toLocaleString()}
-                        <CheckCircle2 size={14} />
-                      </>
-                    ) : (
-                      <>
-                        Warning: Supplier cost exceeds PO value
-                        <AlertTriangle size={14} />
-                      </>
-                    )}
-                  </p>
-                </div>
-              )}
-
-              <div style={{display:'flex',gap:'12px'}}>
-                <button onClick={()=>{ setError(''); setStep(1) }}
-                  style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
-                  ← Back
-                </button>
-                <button onClick={()=>{
-                  if (!step2Valid()) { setError('Please fill in all required fields before continuing.'); window.scrollTo(0,0); return }
-                  setError(''); setStep(3)
-                }} style={{flex:2,padding:'12px',background:step2Valid()?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
-                  Continue to upload documents →
-                </button>
-              </div>
-            </div>
-          )}
+            ))}
 
           {/* STEP 3 */}
           {!submitted && step === 3 && (
