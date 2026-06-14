@@ -34,7 +34,7 @@ export default function UploadPage() {
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [poFile, setPoFile] = useState<File|null>(null)
-  const [quotationFile, setQuotationFile] = useState<File|null>(null)
+  const [quotationFiles, setQuotationFiles] = useState<(File|null)[]>([null])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -49,11 +49,16 @@ export default function UploadPage() {
   const [expiryDate, setExpiryDate] = useState('')
   const [sector, setSector] = useState('')
   const [description, setDescription] = useState('')
-  const [supplierName, setSupplierName] = useState('')
-  const [supplierPhone, setSupplierPhone] = useState('')
-  const [supplierEmail, setSupplierEmail] = useState('')
-  const [quotationValue, setQuotationValue] = useState('')
-  const [quotationNumber, setQuotationNumber] = useState('')
+  const [suppliers, setSuppliers] = useState([
+  function updateSupplier(index: number, field: string, value: string) {
+  setSuppliers(prev => prev.map((s, i) => i === index ? { ...s, [field]: value } : s))
+  }
+
+function addSupplier() {
+  setSuppliers(prev => [...prev, { name: '', phone: '', email: '', quotationNumber: '', quotationValue: '' }])
+  }  
+    { name: '', phone: '', email: '', quotationNumber: '', quotationValue: '' }
+  ])
 
   useEffect(()=>{},[])
 
@@ -81,10 +86,16 @@ export default function UploadPage() {
         const ext = poFile.name.split('.').pop()
         await supabase.storage.from('verification-docs').upload(`${user.id}/po-${po.id}.${ext}`, poFile, { upsert: true })
       }
-      if (quotationFile && po) {
-        const ext = quotationFile.name.split('.').pop()
-        await supabase.storage.from('verification-docs').upload(`${user.id}/quotation-${po.id}.${ext}`, quotationFile, { upsert: true })
+      for (let i = 0; i < quotationFiles.length; i++) {
+        const qFile = quotationFiles[i]
+        if (qFile && po) {
+          const ext = qFile.name.split('.').pop()
+          await supabase.storage.from('verification-docs').upload(
+            `${user.id}/quotation-${po.id}-${i+1}.${ext}`, qFile, { upsert: true }
+          )
+        }
       }
+      
       // Notify admin of new PO
       try {
         await fetch('/api/send-email', {
@@ -164,14 +175,15 @@ export default function UploadPage() {
   const labelStyle = {display:'block' as const,fontSize:'13px',color:'#555',marginBottom:'6px',fontWeight:'500'}
   const fieldStyle = {marginBottom:'1rem'}
   const po = parseFloat(poValue)||0
-  const quote = parseFloat(quotationValue)||0
+  const quote = suppliers.reduce((sum, s) => sum + (parseFloat(s.quotationValue)||0), 0)
   const profit = po - quote
   const margin = po > 0 ? ((profit/po)*100).toFixed(1) : '0'
 
   function step1Valid() { return !!(clientName && clientContact && clientPhone && clientEmail) }
-  function step2Valid() { return !!(poNumber && poValue && fundingNeeded && sector && supplierName && supplierPhone && supplierEmail && quotationNumber && quotationValue) }
-
-  
+ function step2Valid() {
+   return !!(poNumber && poValue && fundingNeeded && sector &&
+     suppliers.every(s => s.name && s.phone && s.email && s.quotationNumber && s.quotationValue))
+  }
 
   return (
     <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
@@ -420,7 +432,16 @@ export default function UploadPage() {
                 </div>
               </div>
               <UploadBox label="Purchase Order Document" file={poFile} onChange={setPoFile} hint="Upload the official PO from your client. Must include contact details and department."/>
-              <UploadBox label="Supplier Quotation" file={quotationFile} onChange={setQuotationFile} hint="Upload the quotation from your supplier. Must include contact details and pricing."/>
+              {suppliers.map((supplier, index) => (
+                <div key={index}>
+                  <UploadBox
+                    label={`Supplier ${index + 1} Quotation${supplier.name ? ` — ${supplier.name}` : ''}`}
+                    file={quotationFiles[index] || null}
+                    onChange={f => setQuotationFiles(prev => prev.map((qf, i) => i === index ? f : qf))}
+                    hint="Upload the quotation from your supplier. Must include contact details and pricing."
+                  />
+                </div>
+              ))}
               <div style={{background:'#FAEEDA',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
                 <AlertTriangle size={18} />
                 <div>
