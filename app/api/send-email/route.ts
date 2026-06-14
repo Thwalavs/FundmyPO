@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   try {
@@ -247,7 +247,6 @@ export async function POST(req: NextRequest) {
           <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
         </div>
       </div>`
-    }
 
     } else if (type === 'deal_pending_admin') {
       subject = `Deal Pending Approval: ${data.poNumber}`
@@ -307,6 +306,7 @@ export async function POST(req: NextRequest) {
           <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
         </div>
       </div>`
+    }
    
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
