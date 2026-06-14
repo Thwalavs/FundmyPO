@@ -249,6 +249,65 @@ export async function POST(req: NextRequest) {
       </div>`
     }
 
+    } else if (type === 'deal_pending_admin') {
+      subject = `Deal Pending Approval: ${data.poNumber}`
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">Deal Awaiting Your Approval</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">A supplier has accepted a funding offer and the deal is awaiting your approval.</p>
+          <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1.5rem 0">
+            <p style="margin:0 0 8px;color:#444"><strong>PO Number:</strong> ${data.poNumber}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Client:</strong> ${data.clientName}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Supplier:</strong> ${data.supplierName}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Amount:</strong> ${data.amount}</p>
+            <p style="margin:0 0 8px;color:#444"><strong>Rate:</strong> ${data.rate}</p>
+            <p style="margin:0;color:#444"><strong>Term:</strong> ${data.term}</p>
+          </div>
+          <a href="https://fundmypo.co.za/admin" style="display:inline-block;background:#1B2B4B;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">Review in Admin Panel</a>
+        </div>
+      </div>`
+
+    } else if (type === 'deal_approved_funder') {
+      subject = `Deal Approved — Please Disburse Funds for ${data.poNumber}`
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#0F6E56;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">Your Deal Has Been Approved!</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
+          <p style="color:#444;line-height:1.8">FundMyPO has approved the funding deal for <strong>${data.poNumber}</strong>. Please proceed with disbursement.</p>
+          <div style="background:#E1F5EE;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #0F6E56">
+            <p style="color:#085041;margin:0;font-weight:600;margin-bottom:8px">Deal Details</p>
+            <p style="margin:0 0 6px;color:#085041"><strong>PO Number:</strong> ${data.poNumber}</p>
+            <p style="margin:0 0 6px;color:#085041"><strong>Client:</strong> ${data.clientName}</p>
+            <p style="margin:0 0 6px;color:#085041"><strong>Amount:</strong> ${data.amount}</p>
+            <p style="margin:0 0 6px;color:#085041"><strong>Rate:</strong> ${data.rate}</p>
+            <p style="margin:0 0 6px;color:#085041"><strong>Term:</strong> ${data.term}</p>
+            <p style="margin:0;color:#DC2626"><strong>FundMyPO Commission (2%):</strong> ${data.commission}</p>
+          </div>
+          <p style="color:#444;font-size:14px;line-height:1.8">Please contact the supplier directly to arrange disbursement within 24 hours.</p>
+          <a href="https://fundmypo.co.za/funder" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">View in Funder Portal</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
+      </div>`
+
+    } else if (type === 'deal_declined_supplier') {
+      subject = `Update on Your Deal for ${data.poNumber}`
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">Deal Update</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
+          <p style="color:#444;line-height:1.8">Unfortunately the funding deal for <strong>${data.poNumber}</strong> was not approved at this time.</p>
+          <p style="color:#444;line-height:1.8">Your PO is still active and you can review other available offers on your dashboard.</p>
+          <a href="https://fundmypo.co.za/dashboard" style="display:inline-block;background:#1B2B4B;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">View Dashboard</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
+      </div>`
+   
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
