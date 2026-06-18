@@ -56,6 +56,7 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState('')
   const [businessName, setBusinessName] = useState('')
   const [phone, setPhone] = useState('')
+  const [confirmEmail, setConfirmEmail] = useState('')
   const [companyReg, setCompanyReg] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -231,7 +232,7 @@ export default function RegisterPage() {
 
   const isFunder = portalRole === 'funder'
   const canAdvanceStepOne = Boolean(
-    firstName && lastName && businessName && email && phone && password && confirmPassword && passwordValid && confirmPassword === password && (role === 'funder' || companyReg)
+    firstName && lastName && businessName && email && confirmEmail && email === confirmEmail && phone && password && confirmPassword && passwordValid && confirmPassword === password && (role === 'funder' || companyReg)
   )
 
   return (
@@ -448,6 +449,20 @@ export default function RegisterPage() {
                       </div>
 
                       <div>
+                        <label className="block text-sm font-medium text-slate-600 mb-2">Confirm email address <span className="text-rose-600">*</span></label>
+                        <input
+                          type="email"
+                          placeholder="you@company.co.za"
+                          value={confirmEmail}
+                          onChange={e => setConfirmEmail(e.target.value)}
+                          className={getInputClass(confirmEmail, confirmEmail === email)}
+                        />
+                        {confirmEmail && email !== confirmEmail && (
+                          <p className="mt-2 text-xs text-rose-600">Email addresses do not match</p>
+                        )}
+                      </div>
+
+                      <div>
                         <label className="block text-sm font-medium text-slate-600 mb-2">Phone number <span className="text-rose-600">*</span></label>
                         <input
                           type="tel"
@@ -551,6 +566,10 @@ export default function RegisterPage() {
                           }
                           if (!email.includes('@')) {
                             setError('Please enter a valid email address.')
+                            return
+                          }
+                          if (email !== confirmEmail) {
+                            setError('Email addresses do not match.')
                             return
                           }
                           setError('')
