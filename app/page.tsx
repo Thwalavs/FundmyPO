@@ -204,8 +204,8 @@ export default function LandingPage() {
               {[
                 { title:'Stability of Cover', desc:'Every PO is verified against CSD, CIPC and tax compliance before listing. You fund with confidence.' },
                 { title:'Full Document Access', desc:'View the full PO, supplier quotation and all business verification documents before making any offer.' },
-                { title:'Competitive Returns', desc:'Earn 3–8% per deal with short repayment terms. Set your own rates and compete for the best deals.' },
-                { title:'Simple Fee Structure', desc:'FundMyPO charges a transparent 2% commission on funded deals only. No hidden fees.' },
+                { title:'Competitive Returns', desc:'Earn competitive returns per deal with short repayment terms. Set your own rates and compete for the best deals.' },
+                { title:'Simple Fee Structure', desc:'FundMyPO charges a transparent commission on funded deals only. No hidden fees.' },
               ].map(({title,desc})=>(
                 <div key={title} className="pillar-card" style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'10px',padding:'1.25rem'}}>
                   <p style={{fontSize:'14px',fontWeight:'700',color:'#fff',marginBottom:'6px',fontFamily:'Arial,sans-serif'}}>{title}</p>
