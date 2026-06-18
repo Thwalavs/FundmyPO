@@ -133,11 +133,7 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem'}}>
-              <div style={{background:'rgba(77,191,176,0.12)',border:'1px solid rgba(77,191,176,0.25)',borderRadius:'10px',padding:'1.25rem',textAlign:'center'}}>
-                <p style={{fontSize:'22px',fontWeight:'700',color:'#4DBFB0',fontFamily:'Arial,sans-serif'}}>3–8%</p>
-                <p style={{fontSize:'11px',color:'rgba(255,255,255,0.6)',fontFamily:'Arial,sans-serif',marginTop:'4px'}}>Returns per deal</p>
-              </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr',gap:'1rem'}}>
               <div style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'10px',padding:'1.25rem',textAlign:'center'}}>
                 <p style={{fontSize:'22px',fontWeight:'700',color:'#fff',fontFamily:'Arial,sans-serif'}}>100%</p>
                 <p style={{fontSize:'11px',color:'rgba(255,255,255,0.6)',fontFamily:'Arial,sans-serif',marginTop:'4px'}}>Verified deals</p>
