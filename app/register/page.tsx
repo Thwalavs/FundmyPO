@@ -236,8 +236,9 @@ export default function RegisterPage() {
   )
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
-      <nav className="bg-slate-950 px-6 md:px-8 lg:px-10 h-[65px] flex items-center justify-between gap-3">
+    <main className="min-h-screen bg-[#FAFAF8] text-[#1F2937]">
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap'); body,input,select,textarea,button{font-family:'Inter',sans-serif}`}</style>
+      <nav className="bg-[#1F2937] px-6 md:px-8 lg:px-10 h-[65px] flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/logo.png" alt="FundMyPO" width={140} height={48} className="h-12 w-auto" />
         </Link>
@@ -265,13 +266,13 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => { setTab('login'); setStep(1); setError('') }}
-              className={`flex-1 py-3 text-sm font-semibold transition ${tab === 'login' ? 'bg-teal-600 text-white' : 'bg-transparent text-slate-600 hover:text-slate-900'}`}>
+              className={`flex-1 py-3 text-sm font-semibold transition ${tab === 'login' ? 'bg-[#0D7E7E] text-white' : 'bg-transparent text-slate-600 hover:text-slate-900'}`}>
               Sign in
             </button>
             <button
               type="button"
               onClick={() => { setTab('register'); setStep(1); setError('') }}
-              className={`flex-1 py-3 text-sm font-semibold transition ${tab === 'register' ? 'bg-teal-600 text-white' : 'bg-transparent text-slate-600 hover:text-slate-900'}`}>
+              className={`flex-1 py-3 text-sm font-semibold transition ${tab === 'register' ? 'bg-[#0D7E7E] text-white' : 'bg-transparent text-slate-600 hover:text-slate-900'}`}>
               Create account
             </button>
           </div>
@@ -317,7 +318,7 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => handleLogin(portalRole)}
                 disabled={loading}
-                className="w-full rounded-3xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70"
+                className="w-full rounded-3xl bg-[#0D7E7E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0B6B6B] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
@@ -355,7 +356,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => { setTab('login'); setSuccess(false) }}
-                    className="rounded-3xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-700"
+                    className="rounded-3xl bg-[#0D7E7E] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0B6B6B]"
                   >
                     Back to Sign in
                   </button>
@@ -370,14 +371,14 @@ export default function RegisterPage() {
                       return (
                         <div key={label} className="flex-1">
                           <div className="flex items-center gap-4">
-                            <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${done || active ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${done || active ? 'bg-[#0D7E7E] text-white' : 'bg-slate-200 text-slate-500'}`}>
                               {done ? '✓' : stepNumber}
                             </div>
                             <p className={`text-xs font-semibold ${active ? 'text-teal-700' : 'text-slate-500'}`}>
                               {label}
                             </p>
                           </div>
-                          {index === 0 && <div className={`mt-3 h-1 rounded-full ${done ? 'bg-teal-600' : 'bg-slate-200'}`}></div>}
+                          {index === 0 && <div className={`mt-3 h-1 rounded-full ${done ? 'bg-[#0D7E7E]' : 'bg-slate-200'}`}></div>}
                         </div>
                       )
                     })}
@@ -576,7 +577,7 @@ export default function RegisterPage() {
                           setStep(2)
                         }}
                         disabled={!canAdvanceStepOne}
-                        className={`w-full rounded-3xl px-5 py-3 text-sm font-semibold text-white transition ${canAdvanceStepOne ? 'bg-teal-600 hover:bg-teal-700' : 'bg-slate-400 cursor-not-allowed'}`}
+                        className={`w-full rounded-3xl px-5 py-3 text-sm font-semibold text-white transition ${canAdvanceStepOne ? 'bg-[#0D7E7E] hover:bg-[#0B6B6B]' : 'bg-slate-400 cursor-not-allowed'}`}
                       >
                         Continue to verification
                       </button>
@@ -659,7 +660,7 @@ export default function RegisterPage() {
                             handleRegister()
                           }}
                           disabled={loading}
-                          className="md:col-span-2 rounded-3xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70"
+                          className="md:col-span-2 rounded-3xl bg-[#0D7E7E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0B6B6B] disabled:cursor-not-allowed disabled:opacity-70"
                         >
                           {loading ? 'Creating account...' : 'Submit & Create account'}
                         </button>

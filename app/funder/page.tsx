@@ -35,7 +35,7 @@ async function getSupabase() {
 
 function RiskBadge({ value }: { value: number }) {
   const risk = value >= 200000 ? 'Low' : 'Medium'
-  const s = risk === 'Low' ? { bg: '#E1F5EE', color: '#085041' } : { bg: '#FAEEDA', color: '#633806' }
+  const s = risk === 'Low' ? { bg: '#E1F5EE', color: '#0D7E7E' } : { bg: '#FAEEDA', color: '#633806' }
   return <span style={{ background: s.bg, color: s.color, padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600' }}>{risk} risk</span>
 }
 
@@ -111,7 +111,7 @@ function RealOffers() {
 
   if (myOffers.length === 0) return (
     <div style={{ textAlign: 'center', padding: '3rem', background: '#fff', borderRadius: '12px', border: '1px solid #e5e5e5' }}>
-      <p style={{ fontSize: '16px', fontWeight: '600', color: '#1B2B4B', marginBottom: '.5rem' }}>No offers submitted yet</p>
+      <p style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginBottom: '.5rem' }}>No offers submitted yet</p>
       <p style={{ fontSize: '13px', color: '#888' }}>Go to the marketplace to find POs and submit offers.</p>
     </div>
   )
@@ -120,7 +120,7 @@ function RealOffers() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
         <button onClick={() => load()}
-          style={{ fontSize: '13px', color: '#0F6E56', background: '#E1F5EE', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
+          style={{ fontSize: '13px', color: '#0D7E7E', background: '#E1F5EE', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
           Refresh offers
         </button>
       </div>
@@ -133,8 +133,8 @@ function RealOffers() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '.75rem' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '15px', fontWeight: '700', color: '#1B2B4B' }}>{po?.po_number || 'PO'}</span>
-                    <span style={{ background: isAccepted ? '#E1F5EE' : '#FAEEDA', color: isAccepted ? '#085041' : '#633806', padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600' }}>
+                    <span style={{ fontSize: '15px', fontWeight: '700', color: '#1F2937' }}>{po?.po_number || 'PO'}</span>
+                    <span style={{ background: isAccepted ? '#E1F5EE' : '#FAEEDA', color: isAccepted ? '#0D7E7E' : '#633806', padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600' }}>
                       {isAccepted ? 'Accepted' : 'Pending'}
                     </span>
                   </div>
@@ -142,21 +142,21 @@ function RealOffers() {
                   <p style={{ fontSize: '12px', color: '#888' }}>{new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#0F6E56' }}>R {offer.amount.toLocaleString()}</p>
+                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#0D7E7E' }}>R {offer.amount.toLocaleString()}</p>
                   <p style={{ fontSize: '12px', color: '#888' }}>at {offer.interest_rate}% &bull; {offer.term_days} days</p>
                 </div>
               </div>
               {isAccepted && (
                 <div style={{ background: '#E1F5EE', borderRadius: '8px', padding: '1rem', marginTop: '.5rem' }}>
-                  <p style={{ fontSize: '13px', fontWeight: '700', color: '#085041', marginBottom: '.5rem' }}>Your offer was accepted!</p>
-                  <p style={{ fontSize: '12px', color: '#0F6E56', lineHeight: '1.6' }}>
+                  <p style={{ fontSize: '13px', fontWeight: '700', color: '#0D7E7E', marginBottom: '.5rem' }}>Your offer was accepted!</p>
+                  <p style={{ fontSize: '12px', color: '#0D7E7E', lineHeight: '1.6' }}>
                     Please proceed with the funding disbursement of <strong>R {offer.amount.toLocaleString()}</strong> to {po?.client_name}.
                     FundMyPO commission of <strong>R {(offer.amount * 0.02).toLocaleString()}</strong> (2%) will be deducted.
                   </p>
                 </div>
               )}
               {!isAccepted && (
-                <div style={{ background: '#f5f5f5', borderRadius: '8px', padding: '10px', marginTop: '.5rem', fontSize: '12px', color: '#666' }}>
+                <div style={{ background: '#FAFAF8', borderRadius: '8px', padding: '10px', marginTop: '.5rem', fontSize: '12px', color: '#666' }}>
                   Waiting for the business to review and accept your offer.
                 </div>
               )}
@@ -268,15 +268,16 @@ export default function FunderDashboard() {
   
 
   return (
-    <main style={{ fontFamily: 'sans-serif', minHeight: '100vh', background: '#f5f5f5' }}>
+    <main style={{ fontFamily: '"Inter", sans-serif', minHeight: '100vh', background: '#FAFAF8' }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap');`}</style>
 
       {/* NAV */}
-      <nav style={{ background: '#1B2B4B', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
+      <nav style={{ background: '#1F2937', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
         <Link href="/funder" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{ height: '48px', width: 'auto' }} />
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ fontSize: '13px', background: 'rgba(77,191,176,0.2)', color: '#4DBFB0', padding: '4px 12px', borderRadius: '99px', fontWeight: '600' }}>Funder Portal</span>
+          <span style={{ fontSize: '13px', background: 'rgba(13,126,126,0.2)', color: '#10B981', padding: '4px 12px', borderRadius: '99px', fontWeight: '600' }}>Funder Portal</span>
           <button onClick={async () => { const s = await getSupabase(); await s.auth.signOut(); window.location.href = '/' }}
             style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', padding: '7px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>
             Sign out
@@ -287,16 +288,16 @@ export default function FunderDashboard() {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem' }}>
 
         <div style={{ marginBottom: '1.5rem' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.25rem' }}>Welcome back, {funderName}</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', marginBottom: '.25rem' }}>Welcome back, {funderName}</h1>
           <p style={{ fontSize: '14px', color: '#666' }}>Browse available purchase orders and submit competitive funding offers.</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '1rem', marginBottom: '2rem' }}>
           {[
-            { label: 'Available POs', value: marketplace.length.toString(), color: '#0F6E56' },
+            { label: 'Available POs', value: marketplace.length.toString(), color: '#0D7E7E' },
             { label: 'My active offers', value: submittedOffers.length.toString(), color: '#633806' },
             { label: 'Total deployed', value: 'R 0', color: '#0C447C' },
-            { label: 'Accepted deals', value: '0', color: '#085041' },
+            { label: 'Accepted deals', value: '0', color: '#0D7E7E' },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '1.25rem' }}>
               <div style={{ fontSize: '22px', fontWeight: '700', color, marginBottom: '4px' }}>{value}</div>
@@ -308,7 +309,7 @@ export default function FunderDashboard() {
         <div style={{ display: 'flex', gap: '4px', background: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '4px', marginBottom: '1.5rem', width: 'fit-content' }}>
           {(['marketplace', 'offers', 'profile'] as const).map(t => (
             <button key={t} onClick={() => setActiveTab(t)}
-              style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600', background: activeTab === t ? '#0F6E56' : 'transparent', color: activeTab === t ? '#fff' : '#666' }}>
+              style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600', background: activeTab === t ? '#0D7E7E' : 'transparent', color: activeTab === t ? '#fff' : '#666' }}>
               {t === 'marketplace' ? 'Marketplace' : t === 'offers' ? 'My Offers' : 'Profile'}
             </button>
           ))}
@@ -318,7 +319,7 @@ export default function FunderDashboard() {
         {activeTab === 'marketplace' && (
           <div>
             <div style={{ marginBottom: '1rem' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.25rem' }}>Available Purchase Orders</h2>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1F2937', marginBottom: '.25rem' }}>Available Purchase Orders</h2>
               <p style={{ fontSize: '13px', color: '#666' }}>Preview a PO including all documents, then submit an offer when ready.</p>
             </div>
 
@@ -326,7 +327,7 @@ export default function FunderDashboard() {
 
             {!loadingPOs && marketplace.length === 0 && (
               <div style={{ textAlign: 'center', padding: '3rem', background: '#fff', borderRadius: '12px', border: '1px solid #e5e5e5' }}>
-                <p style={{ fontSize: '16px', fontWeight: '600', color: '#1B2B4B', marginBottom: '.5rem' }}>No purchase orders available yet</p>
+                <p style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginBottom: '.5rem' }}>No purchase orders available yet</p>
                 <p style={{ fontSize: '13px', color: '#888' }}>Check back soon — businesses are submitting POs daily.</p>
               </div>
             )}
@@ -346,7 +347,7 @@ export default function FunderDashboard() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '.75rem' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '15px', fontWeight: '700', color: '#1B2B4B' }}>{po.po_number || 'PO-' + po.id.slice(0, 8)}</span>
+                          <span style={{ fontSize: '15px', fontWeight: '700', color: '#1F2937' }}>{po.po_number || 'PO-' + po.id.slice(0, 8)}</span>
                           <RiskBadge value={po.funding_needed} />
                           {submittedOffers.includes(po.id) && <span style={{ background: '#E6F1FB', color: '#0C447C', padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600' }}>Offer submitted</span>}
                         </div>
@@ -354,9 +355,9 @@ export default function FunderDashboard() {
                         <p style={{ fontSize: '12px', color: '#888' }}>Dept: {po.client_department}</p>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontSize: '18px', fontWeight: '700', color: '#0F6E56' }}>R {po.funding_needed.toLocaleString()}</p>
+                        <p style={{ fontSize: '18px', fontWeight: '700', color: '#0D7E7E' }}>R {po.funding_needed.toLocaleString()}</p>
                         <p style={{ fontSize: '12px', color: '#888' }}>PO value: R {po.po_value.toLocaleString()}</p>
-                        <p style={{ fontSize: '12px', color: '#085041', fontWeight: '600' }}>Margin: {margin}%</p>
+                        <p style={{ fontSize: '12px', color: '#0D7E7E', fontWeight: '600' }}>Margin: {margin}%</p>
                       </div>
                     </div>
 
@@ -376,7 +377,7 @@ export default function FunderDashboard() {
                         )}
                         {!submittedOffers.includes(po.id) && (
                           <button onClick={() => setSelectedPO(selectedPO === po.id ? null : po.id)}
-                            style={{ fontSize: '13px', color: '#fff', background: '#0F6E56', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
+                            style={{ fontSize: '13px', color: '#fff', background: '#0D7E7E', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
                             {selectedPO === po.id ? 'Cancel' : 'Make an offer'}
                           </button>
                         )}
@@ -391,7 +392,7 @@ export default function FunderDashboard() {
                         {/* PO SUMMARY + PROFIT */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '1rem' }}>
                           <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e5e5' }}>
-                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.5rem' }}>PO Summary</p>
+                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.5rem' }}>PO Summary</p>
                             {[['Client', po.client_name], ['Department', po.client_department], ['Sector', po.sector], ['PO Value', `R ${po.po_value.toLocaleString()}`], ['Funding needed', `R ${po.funding_needed.toLocaleString()}`]].map(([l, v]) => (
                               <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #f0f0f0', fontSize: '12px' }}>
                                 <span style={{ color: '#888' }}>{l}</span><span style={{ fontWeight: '600' }}>{v}</span>
@@ -399,11 +400,11 @@ export default function FunderDashboard() {
                             ))}
                           </div>
                           <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e5e5' }}>
-                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.5rem' }}>Profit Analysis</p>
+                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.5rem' }}>Profit Analysis</p>
                             <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-                              <p style={{ fontSize: '28px', fontWeight: '700', color: '#085041' }}>{margin}%</p>
+                              <p style={{ fontSize: '28px', fontWeight: '700', color: '#0D7E7E' }}>{margin}%</p>
                               <p style={{ fontSize: '12px', color: '#666' }}>Profit margin</p>
-                              <p style={{ fontSize: '14px', fontWeight: '700', color: '#0F6E56', marginTop: '.5rem' }}>R {profit.toLocaleString()}</p>
+                              <p style={{ fontSize: '14px', fontWeight: '700', color: '#0D7E7E', marginTop: '.5rem' }}>R {profit.toLocaleString()}</p>
                               <p style={{ fontSize: '11px', color: '#666' }}>Estimated profit</p>
                             </div>
                           </div>
@@ -415,7 +416,7 @@ export default function FunderDashboard() {
                           { title: 'Supplier Contact Details', rows: [['Supplier', po.supplier_name], ['Phone', po.supplier_phone], ['Email', po.supplier_email], ['Quotation number', po.quotation_number], ['Quotation value', `R ${po.quotation_value.toLocaleString()}`]] },
                         ].map(({ title, rows }) => (
                           <div key={title} style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.5rem' }}>{title}</p>
+                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.5rem' }}>{title}</p>
                             {rows.map(([l, v]) => (
                               <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
                                 <span style={{ color: '#888' }}>{l}</span><span style={{ fontWeight: '600' }}>{v}</span>
@@ -426,15 +427,15 @@ export default function FunderDashboard() {
 
                         {/* PO & QUOTATION DOCS */}
                         <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.75rem' }}>PO & Quotation Documents</p>
+                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.75rem' }}>PO & Quotation Documents</p>
                           {[
                             { name: 'Purchase Order Document', path: `po-${po.id}` },
                             { name: 'Supplier Quotation', path: `quotation-${po.id}` },
                           ].map(doc => (
                             <div key={doc.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1B2B4B' }}>{doc.name}</p>
+                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1F2937' }}>{doc.name}</p>
                               <button onClick={() => downloadDoc(po.user_id, doc.path)}
-                                style={{ fontSize: '12px', color: '#fff', background: '#0F6E56', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                                style={{ fontSize: '12px', color: '#fff', background: '#0D7E7E', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
                                 View
                               </button>
                             </div>
@@ -443,7 +444,7 @@ export default function FunderDashboard() {
 
                         {/* VERIFICATION DOCS */}
                         <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.75rem' }}>Business Verification Documents</p>
+                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.75rem' }}>Business Verification Documents</p>
                           {[
                             { name: 'Company Registration Certificate', path: 'company-certificate' },
                             { name: 'ID Copy of Director', path: 'id-document' },
@@ -452,9 +453,9 @@ export default function FunderDashboard() {
                             { name: 'BBB-EE Certificate', path: 'bbbee-certificate' },
                           ].map(doc => (
                             <div key={doc.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1B2B4B' }}>{doc.name}</p>
+                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1F2937' }}>{doc.name}</p>
                               <button onClick={() => downloadDoc(po.user_id, doc.path)}
-                                style={{ fontSize: '12px', color: '#0F6E56', background: '#E1F5EE', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                                style={{ fontSize: '12px', color: '#0D7E7E', background: '#E1F5EE', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
                                 View
                               </button>
                             </div>
@@ -466,7 +467,7 @@ export default function FunderDashboard() {
                         </div>
 
                         <button onClick={() => { setSelectedPO(po.id); setPreviewPO(null) }}
-                          style={{ width: '100%', padding: '10px', background: '#0F6E56', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+                          style={{ width: '100%', padding: '10px', background: '#0D7E7E', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
                           Make an offer on this PO
                         </button>
                       </div>
@@ -475,7 +476,7 @@ export default function FunderDashboard() {
                     {/* OFFER FORM */}
                     {selectedPO === po.id && (
                       <div style={{ marginTop: '1rem', padding: '1.25rem', background: '#f9f9f9', borderRadius: '10px', border: '1px solid #e5e5e5' }}>
-                        <p style={{ fontSize: '14px', fontWeight: '700', color: '#1B2B4B', marginBottom: '1rem' }}>Submit your funding offer</p>
+                        <p style={{ fontSize: '14px', fontWeight: '700', color: '#1F2937', marginBottom: '1rem' }}>Submit your funding offer</p>
                         {offerError[po.id] && (
                           <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: '8px', padding: '10px', marginBottom: '1rem', fontSize: '13px', color: '#DC2626' }}>
                             {offerError[po.id]}
@@ -496,20 +497,20 @@ export default function FunderDashboard() {
                           </div>
                         </div>
                         <div style={{ background: '#E1F5EE', borderRadius: '8px', padding: '12px', marginBottom: '1rem', border: '1px solid #c8ead8' }}>
-                          <div style={{ fontSize: '13px', color: '#085041' }}>
+                          <div style={{ fontSize: '13px', color: '#0D7E7E' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #c8ead8' }}>
                               <span>Funding amount</span><span style={{ fontWeight: '700' }}>R {fundingAmount.toLocaleString()}</span>
                             </div>
                             {rate > 0 && (
                               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                                <span>Your interest ({rates[po.id]}%)</span><span style={{ fontWeight: '700', color: '#0F6E56' }}>+ R {interestEarned.toLocaleString()}</span>
+                                <span>Your interest ({rates[po.id]}%)</span><span style={{ fontWeight: '700', color: '#0D7E7E' }}>+ R {interestEarned.toLocaleString()}</span>
                               </div>
                             )}
                           </div>
-                          {!rates[po.id] && <p style={{ fontSize: '12px', color: '#0F6E56', marginTop: '.5rem' }}>Enter your interest rate above to see the breakdown.</p>}
+                          {!rates[po.id] && <p style={{ fontSize: '12px', color: '#0D7E7E', marginTop: '.5rem' }}>Enter your interest rate above to see the breakdown.</p>}
                         </div>
                         <button onClick={() => handleSubmitOffer(po.id)}
-                          style={{ width: '100%', padding: '12px', background: '#0F6E56', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                          style={{ width: '100%', padding: '12px', background: '#0D7E7E', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
                           Submit offer
                         </button>
                       </div>
@@ -524,7 +525,7 @@ export default function FunderDashboard() {
                           { title: 'Supplier Contact Details', rows: [['Supplier', po.supplier_name], ['Phone', po.supplier_phone], ['Email', po.supplier_email], ['Quotation number', po.quotation_number], ['Quotation value', `R ${po.quotation_value.toLocaleString()}`]] },
                         ].map(({ title, rows }) => (
                           <div key={title} style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.5rem' }}>{title}</p>
+                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.5rem' }}>{title}</p>
                             {rows.map(([l, v]) => (
                               <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
                                 <span style={{ color: '#888' }}>{l}</span><span style={{ fontWeight: '600' }}>{v}</span>
@@ -533,19 +534,19 @@ export default function FunderDashboard() {
                           </div>
                         ))}
                         <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.75rem' }}>PO & Quotation Documents</p>
+                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.75rem' }}>PO & Quotation Documents</p>
                           {[{ name: 'Purchase Order Document', path: `po-${po.id}` }, { name: 'Supplier Quotation', path: `quotation-${po.id}` }].map(doc => (
                             <div key={doc.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1B2B4B' }}>{doc.name}</p>
+                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1F2937' }}>{doc.name}</p>
                               <button onClick={() => downloadDoc(po.user_id, doc.path)}
-                                style={{ fontSize: '12px', color: '#fff', background: '#0F6E56', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                                style={{ fontSize: '12px', color: '#fff', background: '#0D7E7E', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
                                 Download
                               </button>
                             </div>
                           ))}
                         </div>
                         <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.75rem' }}>Business Verification Documents</p>
+                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.75rem' }}>Business Verification Documents</p>
                           {[
                             { name: 'Company Registration Certificate', path: 'company-certificate' },
                             { name: 'ID Copy of Director', path: 'id-document' },
@@ -554,9 +555,9 @@ export default function FunderDashboard() {
                             { name: 'BBB-EE Certificate', path: 'bbbee-certificate' },
                           ].map(doc => (
                             <div key={doc.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1B2B4B' }}>{doc.name}</p>
+                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1F2937' }}>{doc.name}</p>
                               <button onClick={() => downloadDoc(po.user_id, doc.path)}
-                                style={{ fontSize: '12px', color: '#0F6E56', background: '#E1F5EE', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                                style={{ fontSize: '12px', color: '#0D7E7E', background: '#E1F5EE', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
                                 Download
                               </button>
                             </div>
@@ -577,7 +578,7 @@ export default function FunderDashboard() {
         {/* MY OFFERS */}
         {activeTab === 'offers' && (
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1B2B4B', marginBottom: '1rem' }}>My Submitted Offers</h2>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1F2937', marginBottom: '1rem' }}>My Submitted Offers</h2>
             <RealOffers />
           </div>
         )}
@@ -585,7 +586,7 @@ export default function FunderDashboard() {
         {/* PROFILE */}
         {activeTab === 'profile' && (
           <div style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '1.5rem' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1B2B4B', marginBottom: '1.5rem' }}>Funder Profile</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1F2937', marginBottom: '1.5rem' }}>Funder Profile</h2>
             <p style={{ fontSize: '14px', color: '#666' }}>Profile details coming soon.</p>
           </div>
         )}

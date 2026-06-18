@@ -26,9 +26,9 @@ type Offer = {
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, { bg: string; color: string; label: string }> = {
     reviewing: { bg: '#FAEEDA', color: '#633806', label: 'Under review' },
-    active: { bg: '#E1F5EE', color: '#085041', label: 'Active' },
+    active: { bg: '#E1F5EE', color: '#0D7E7E', label: 'Active' },
     funded: { bg: '#E6F1FB', color: '#0C447C', label: 'Funded' },
-    accepted: { bg: '#E1F5EE', color: '#085041', label: 'Accepted' },
+    accepted: { bg: '#E1F5EE', color: '#0D7E7E', label: 'Accepted' },
     pending: { bg: '#f5f5f5', color: '#666', label: 'Pending' },
     pending_admin: { bg: '#FEF3C7', color: '#92400E', label: 'Awaiting admin approval' },
   }
@@ -174,16 +174,17 @@ export default function DashboardPage() {
   const fundedPos = pos.filter(p => p.status === 'funded').length
 
   return (
-    <main style={{ fontFamily: 'sans-serif', minHeight: '100vh', background: '#f5f5f5' }}>
+    <main style={{ fontFamily: '"Inter", sans-serif', minHeight: '100vh', background: '#FAFAF8' }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap');`}</style>
 
       {/* NAV */}
-      <nav style={{ background: '#1B2B4B', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
+      <nav style={{ background: '#1F2937', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
         <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <img src="/logo.png" alt="FundMyPO" style={{ height: '48px', width: 'auto' }} />
         </a>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <span style={{ fontSize: '13px', background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '4px 12px', borderRadius: '99px' }}>Supplier Portal</span>
-          <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#0F6E56', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '600', color: '#fff' }}>
+          <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#0D7E7E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '600', color: '#fff' }}>
             {userName.slice(0, 2).toUpperCase() || 'VS'}
           </div>
           <button onClick={handleSignOut}
@@ -196,7 +197,7 @@ export default function DashboardPage() {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem' }}>
 
         <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.25rem' }}>Welcome back, {userName}!</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', marginBottom: '.25rem' }}>Welcome back, {userName}!</h1>
           <p style={{ fontSize: '14px', color: '#666' }}>What would you like to do today?</p>
         </div>
 
@@ -204,7 +205,7 @@ export default function DashboardPage() {
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
               <a href="/upload" style={{ textDecoration: 'none' }}>
-                <div style={{ background: '#0F6E56', borderRadius: '16px', padding: '2rem', cursor: 'pointer', height: '100%' }}>
+                <div style={{ background: '#0D7E7E', borderRadius: '16px', padding: '2rem', cursor: 'pointer', height: '100%' }}>
                   <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#fff', marginBottom: '.5rem' }}>Apply for Funding</h2>
                   <p style={{ fontSize: '13px', color: '#a8dfc9', lineHeight: '1.6', marginBottom: '1.5rem' }}>
                     Upload your purchase order and supplier quotation to get competitive funding offers.
@@ -215,22 +216,22 @@ export default function DashboardPage() {
                 </div>
               </a>
               <div onClick={() => setActiveTab('status')} style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: '16px', padding: '2rem', cursor: 'pointer', height: '100%' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.5rem' }}>Check Status</h2>
+                <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1F2937', marginBottom: '.5rem' }}>Check Status</h2>
                 <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.6', marginBottom: '1.5rem' }}>
                   Track your applications, view funding offers and accept the best deal.
                 </p>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#E1F5EE', padding: '8px 16px', borderRadius: '8px' }}>
-                  <span style={{ fontSize: '13px', color: '#0F6E56', fontWeight: '600' }}>View applications</span>
+                  <span style={{ fontSize: '13px', color: '#0D7E7E', fontWeight: '600' }}>View applications</span>
                 </div>
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '1rem', marginBottom: '2rem' }}>
               {[
-                { label: 'My applications', value: pos.length.toString(), color: '#0F6E56' },
+                { label: 'My applications', value: pos.length.toString(), color: '#0D7E7E' },
                 { label: 'Offers received', value: totalOffers.toString(), color: '#633806' },
                 { label: 'Funded POs', value: fundedPos.toString(), color: '#0C447C' },
-                { label: 'Total funding sought', value: `R ${totalFunding.toLocaleString()}`, color: '#085041' },
+                { label: 'Total funding sought', value: `R ${totalFunding.toLocaleString()}`, color: '#0D7E7E' },
               ].map(({ label, value, color }) => (
                 <div key={label} style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '1.25rem' }}>
                   <div style={{ fontSize: '22px', fontWeight: '700', color, marginBottom: '4px' }}>{value}</div>
@@ -240,12 +241,12 @@ export default function DashboardPage() {
             </div>
 
             <div style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '1.5rem' }}>
-              <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1B2B4B', marginBottom: '1rem' }}>Recent applications</h2>
+              <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1F2937', marginBottom: '1rem' }}>Recent applications</h2>
               {loadingPos && <p style={{ fontSize: '14px', color: '#888' }}>Loading...</p>}
               {!loadingPos && pos.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '1.5rem' }}>
                   <p style={{ fontSize: '14px', color: '#888', marginBottom: '1rem' }}>No applications yet</p>
-                  <a href="/upload" style={{ background: '#0F6E56', color: '#fff', padding: '10px 20px', borderRadius: '8px', fontSize: '13px', textDecoration: 'none', fontWeight: '600' }}>
+                  <a href="/upload" style={{ background: '#0D7E7E', color: '#fff', padding: '10px 20px', borderRadius: '8px', fontSize: '13px', textDecoration: 'none', fontWeight: '600' }}>
                     Apply for funding
                   </a>
                 </div>
@@ -253,13 +254,13 @@ export default function DashboardPage() {
               {pos.slice(0, 3).map((po, i) => (
                 <div key={po.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: i < 2 ? '1px solid #f0f0f0' : 'none', flexWrap: 'wrap', gap: '8px' }}>
                   <div>
-                    <p style={{ fontSize: '14px', fontWeight: '600', color: '#1B2B4B' }}>{po.po_number || 'PO-' + po.id.slice(0, 8)}</p>
+                    <p style={{ fontSize: '14px', fontWeight: '600', color: '#1F2937' }}>{po.po_number || 'PO-' + po.id.slice(0, 8)}</p>
                     <p style={{ fontSize: '12px', color: '#666' }}>{po.client_name} — {po.sector}</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <StatusBadge status={po.status} />
                     {(offers[po.id] || []).length > 0 && (
-                      <span style={{ fontSize: '12px', color: '#0F6E56', fontWeight: '600' }}>{(offers[po.id] || []).length} offer{(offers[po.id] || []).length > 1 ? 's' : ''}</span>
+                      <span style={{ fontSize: '12px', color: '#0D7E7E', fontWeight: '600' }}>{(offers[po.id] || []).length} offer{(offers[po.id] || []).length > 1 ? 's' : ''}</span>
                     )}
                   </div>
                 </div>
@@ -272,7 +273,7 @@ export default function DashboardPage() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '8px' }}>
               <div>
-                <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.25rem' }}>My Funding Applications</h2>
+                <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1F2937', marginBottom: '.25rem' }}>My Funding Applications</h2>
                 <p style={{ fontSize: '13px', color: '#666' }}>View offers and accept the best funding deal</p>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -280,7 +281,7 @@ export default function DashboardPage() {
                   style={{ fontSize: '13px', color: '#666', background: '#fff', border: '1px solid #e5e5e5', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>
                   Back
                 </button>
-                <a href="/upload" style={{ fontSize: '13px', color: '#fff', background: '#0F6E56', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', textDecoration: 'none', fontWeight: '600' }}>
+                <a href="/upload" style={{ fontSize: '13px', color: '#fff', background: '#0D7E7E', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', textDecoration: 'none', fontWeight: '600' }}>
                   + New application
                 </a>
               </div>
@@ -290,7 +291,7 @@ export default function DashboardPage() {
             {!loadingPos && pos.length === 0 && (
               <div style={{ textAlign: 'center', padding: '3rem', background: '#fff', borderRadius: '12px', border: '1px solid #e5e5e5' }}>
                 <p style={{ fontSize: '16px', color: '#666', marginBottom: '.5rem' }}>No applications yet</p>
-                <a href="/upload" style={{ background: '#0F6E56', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontSize: '14px', textDecoration: 'none', fontWeight: '600' }}>
+                <a href="/upload" style={{ background: '#0D7E7E', color: '#fff', padding: '12px 24px', borderRadius: '8px', fontSize: '14px', textDecoration: 'none', fontWeight: '600' }}>
                   Apply for funding
                 </a>
               </div>
@@ -305,7 +306,7 @@ export default function DashboardPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '.75rem' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '15px', fontWeight: '700', color: '#1B2B4B' }}>{po.po_number || 'PO-' + po.id.slice(0, 8)}</span>
+                          <span style={{ fontSize: '15px', fontWeight: '700', color: '#1F2937' }}>{po.po_number || 'PO-' + po.id.slice(0, 8)}</span>
                           <StatusBadge status={po.status} />
                         </div>
                         <p style={{ fontSize: '13px', color: '#666' }}>{po.client_name}</p>
@@ -313,7 +314,7 @@ export default function DashboardPage() {
                         <p style={{ fontSize: '12px', color: '#888' }}>{new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontSize: '16px', fontWeight: '700', color: '#0F6E56' }}>R {po.po_value.toLocaleString()}</p>
+                        <p style={{ fontSize: '16px', fontWeight: '700', color: '#0D7E7E' }}>R {po.po_value.toLocaleString()}</p>
                         <p style={{ fontSize: '12px', color: '#888' }}>Funding: R {po.funding_needed.toLocaleString()}</p>
                       </div>
                     </div>
@@ -325,10 +326,10 @@ export default function DashboardPage() {
                         const current = (po.status === 'reviewing' && i === 1) || (po.status === 'active' && i === 2) || (po.status === 'funded' && i === 3)
                         return (
                           <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
-                            <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: done || current ? '#0F6E56' : '#e5e5e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', marginBottom: '4px', fontWeight: '600' }}>
+                            <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: done || current ? '#0D7E7E' : '#e5e5e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', marginBottom: '4px', fontWeight: '600' }}>
                               {done ? '✓' : i + 1}
                             </div>
-                            <span style={{ fontSize: '9px', color: current ? '#0F6E56' : '#888', textAlign: 'center', whiteSpace: 'nowrap', fontWeight: current ? '600' : '400' }}>{s}</span>
+                            <span style={{ fontSize: '9px', color: current ? '#0D7E7E' : '#888', textAlign: 'center', whiteSpace: 'nowrap', fontWeight: current ? '600' : '400' }}>{s}</span>
                           </div>
                         )
                       })}
@@ -337,12 +338,12 @@ export default function DashboardPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                       <div>
                         {poOffers.length > 0 && (
-                          <span style={{ fontSize: '12px', color: '#0F6E56', fontWeight: '600' }}>{poOffers.length} offer{poOffers.length > 1 ? 's' : ''} received</span>
+                          <span style={{ fontSize: '12px', color: '#0D7E7E', fontWeight: '600' }}>{poOffers.length} offer{poOffers.length > 1 ? 's' : ''} received</span>
                         )}
                       </div>
                       {poOffers.length > 0 && !acceptedOffer && (
                         <button onClick={() => setViewingOffers(viewingOffers === po.id ? null : po.id)}
-                          style={{ fontSize: '13px', color: '#fff', background: '#0F6E56', border: 'none', padding: '7px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
+                          style={{ fontSize: '13px', color: '#fff', background: '#0D7E7E', border: 'none', padding: '7px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
                           {viewingOffers === po.id ? 'Hide offers' : `View ${poOffers.length} offers`}
                         </button>
                       )}
@@ -369,30 +370,30 @@ export default function DashboardPage() {
 
                     {viewingOffers === po.id && poOffers.length > 0 && !acceptedOffer && (
                       <div style={{ marginTop: '1.25rem' }}>
-                        <p style={{ fontSize: '14px', fontWeight: '700', color: '#1B2B4B', marginBottom: '1rem' }}>Compare funding offers</p>
+                        <p style={{ fontSize: '14px', fontWeight: '700', color: '#1F2937', marginBottom: '1rem' }}>Compare funding offers</p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                           {poOffers.map((offer, i) => (
                             <div key={offer.id} style={{ background: '#f9f9f9', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '1.25rem' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '.75rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span style={{ fontSize: '15px', fontWeight: '700', color: '#1B2B4B' }}>Offer {i + 1}</span>
-                                  {i === 0 && <span style={{ background: '#E1F5EE', color: '#085041', fontSize: '11px', padding: '2px 8px', borderRadius: '99px', fontWeight: '600' }}>Best rate</span>}
+                                  <span style={{ fontSize: '15px', fontWeight: '700', color: '#1F2937' }}>Offer {i + 1}</span>
+                                  {i === 0 && <span style={{ background: '#E1F5EE', color: '#0D7E7E', fontSize: '11px', padding: '2px 8px', borderRadius: '99px', fontWeight: '600' }}>Best rate</span>}
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                  <p style={{ fontSize: '22px', fontWeight: '700', color: '#0F6E56' }}>{offer.interest_rate}%</p>
+                                  <p style={{ fontSize: '22px', fontWeight: '700', color: '#0D7E7E' }}>{offer.interest_rate}%</p>
                                   <p style={{ fontSize: '12px', color: '#888' }}>interest rate</p>
                                 </div>
                               </div>
                               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', background: '#fff', borderRadius: '8px', padding: '12px', marginBottom: '1rem' }}>
                                 {[['Amount', `R ${offer.amount.toLocaleString()}`], ['Term', `${offer.term_days} days`], ['Fee', `R ${(offer.amount * offer.interest_rate / 100).toLocaleString()}`]].map(([l, v]) => (
                                   <div key={l} style={{ textAlign: 'center' }}>
-                                    <p style={{ fontSize: '13px', fontWeight: '700', color: '#1B2B4B' }}>{v}</p>
+                                    <p style={{ fontSize: '13px', fontWeight: '700', color: '#1F2937' }}>{v}</p>
                                     <p style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{l}</p>
                                   </div>
                                 ))}
                               </div>
                               <button onClick={() => handleAcceptOffer(po.id, offer.id)}
-                                style={{ width: '100%', padding: '11px', background: '#0F6E56', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                                style={{ width: '100%', padding: '11px', background: '#0D7E7E', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
                                 Accept this offer
                               </button>
                             </div>
@@ -409,7 +410,7 @@ export default function DashboardPage() {
 
         {activeTab === 'profile' && (
           <div style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '1.5rem' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1B2B4B', marginBottom: '1.5rem' }}>Business Profile</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1F2937', marginBottom: '1.5rem' }}>Business Profile</h2>
             <p style={{ fontSize: '14px', color: '#666' }}>Profile details coming soon.</p>
           </div>
         )}
@@ -417,7 +418,7 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', gap: '4px', background: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '4px', marginTop: '2rem', width: 'fit-content' }}>
           {(['home', 'status', 'profile'] as const).map(t => (
             <button key={t} onClick={() => setActiveTab(t)}
-              style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600', background: activeTab === t ? '#0F6E56' : 'transparent', color: activeTab === t ? '#fff' : '#666' }}>
+              style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600', background: activeTab === t ? '#0D7E7E' : 'transparent', color: activeTab === t ? '#fff' : '#666' }}>
               {t === 'home' ? 'Home' : t === 'status' ? 'My Applications' : 'Profile'}
             </button>
           ))}

@@ -31,69 +31,62 @@ export default function ForgotPasswordPage() {
     }
   }
 
-  const inputStyle = {
-    width: '100%', padding: '10px 14px', border: '1px solid #e5e5e5',
-    borderRadius: '8px', fontSize: '14px', outline: 'none', background: '#fff'
-  }
-
   return (
-    <main style={{ fontFamily: 'sans-serif', minHeight: '100vh', background: '#f5f5f5' }}>
+    <main style={{ fontFamily: '"Inter", sans-serif', minHeight: '100vh', background: '#FAFAF8' }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap');`}</style>
 
-      {/* NAV */}
-      <nav style={{ background: '#1B2B4B', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
+      <nav style={{ background: '#1F2937', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{ height: '48px', width: 'auto' }} />
         </Link>
-        <Link href="/register" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>
+        <Link href="/register" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', fontWeight: '500' }}>
           Back to login
         </Link>
       </nav>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', minHeight: 'calc(100vh - 65px)' }}>
-        <div style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '440px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '20px', padding: '2.5rem', width: '100%', maxWidth: '440px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
 
-          {/* Icon */}
-          <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-            <div style={{ width: '52px', height: '52px', background: '#0F6E56', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ width: '56px', height: '56px', background: '#0D7E7E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
-            <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.25rem' }}>Forgot your password?</h1>
-            <p style={{ fontSize: '13px', color: '#888', lineHeight: '1.6' }}>
-              Enter your email address and we'll send you a link to reset your password.
+            <h1 style={{ fontFamily: '"Poppins", sans-serif', fontSize: '22px', fontWeight: '700', color: '#1F2937', marginBottom: '.5rem' }}>Forgot your password?</h1>
+            <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.6' }}>
+              Enter your email and we&apos;ll send you a link to reset your password.
             </p>
           </div>
 
-          {/* Success state */}
           {sent ? (
-            <div style={{ background: '#E1F5EE', border: '1px solid #5DCAA5', borderRadius: '12px', padding: '1.5rem', textAlign: 'center' }}>
-              <div style={{ width: '48px', height: '48px', background: '#0F6E56', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+            <div style={{ background: 'rgba(13,126,126,0.08)', border: '1px solid rgba(13,126,126,0.25)', borderRadius: '14px', padding: '1.5rem', textAlign: 'center' }}>
+              <div style={{ width: '48px', height: '48px', background: '#0D7E7E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
                 <span style={{ color: '#fff', fontSize: '22px' }}>✓</span>
               </div>
-              <p style={{ color: '#085041', fontSize: '15px', fontWeight: '600', marginBottom: '.5rem' }}>Email sent!</p>
-              <p style={{ color: '#0F6E56', fontSize: '13px', lineHeight: '1.6', marginBottom: '1.5rem' }}>
-                We've sent a password reset link to <strong>{email}</strong>. Check your inbox and click the link to reset your password.
+              <p style={{ fontFamily: '"Poppins", sans-serif', color: '#1F2937', fontSize: '15px', fontWeight: '700', marginBottom: '.5rem' }}>Email sent!</p>
+              <p style={{ color: '#0D7E7E', fontSize: '13px', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+                We&apos;ve sent a reset link to <strong>{email}</strong>. Check your inbox and click the link.
               </p>
-              <p style={{ color: '#888', fontSize: '12px', marginBottom: '1.5rem' }}>
-                Didn't receive it? Check your spam folder or try again.
+              <p style={{ color: '#9ca3af', fontSize: '12px', marginBottom: '1.5rem' }}>
+                Didn&apos;t receive it? Check your spam folder or try again.
               </p>
               <button onClick={() => setSent(false)}
-                style={{ padding: '10px 24px', background: '#0F6E56', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                style={{ padding: '10px 24px', background: '#0D7E7E', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
                 Try again
               </button>
             </div>
           ) : (
             <div>
               {error && (
-                <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: '8px', padding: '10px 14px', marginBottom: '1rem', fontSize: '13px', color: '#DC2626' }}>
+                <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: '10px', padding: '10px 14px', marginBottom: '1rem', fontSize: '13px', color: '#DC2626' }}>
                   {error}
                 </div>
               )}
 
               <div style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontSize: '13px', color: '#555', marginBottom: '6px', fontWeight: '500' }}>
+                <label style={{ display: 'block', fontSize: '13px', color: '#374151', marginBottom: '6px', fontWeight: '500' }}>
                   Email address <span style={{ color: '#DC2626' }}>*</span>
                 </label>
                 <input
@@ -102,7 +95,7 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                  style={{ ...inputStyle, borderColor: email ? '#0F6E56' : '#e5e5e5' }}
+                  style={{ width: '100%', padding: '11px 14px', border: `1px solid ${email ? '#0D7E7E' : '#d1d5db'}`, borderRadius: '10px', fontSize: '14px', outline: 'none', background: '#fff', boxSizing: 'border-box' }}
                 />
               </div>
 
@@ -110,17 +103,18 @@ export default function ForgotPasswordPage() {
                 onClick={handleSubmit}
                 disabled={loading}
                 style={{
-                  width: '100%', padding: '12px',
-                  background: loading ? '#9CA3AF' : '#0F6E56',
-                  color: '#fff', border: 'none', borderRadius: '8px',
-                  fontSize: '15px', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer'
+                  width: '100%', padding: '13px',
+                  background: loading ? '#9CA3AF' : '#0D7E7E',
+                  color: '#fff', border: 'none', borderRadius: '10px',
+                  fontSize: '15px', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer',
+                  fontFamily: '"Poppins", sans-serif'
                 }}>
                 {loading ? 'Sending...' : 'Send reset link'}
               </button>
 
-              <p style={{ textAlign: 'center', fontSize: '13px', color: '#888', marginTop: '1.25rem' }}>
+              <p style={{ textAlign: 'center', fontSize: '13px', color: '#9ca3af', marginTop: '1.25rem' }}>
                 Remembered your password?{' '}
-                <Link href="/register" style={{ color: '#0F6E56', fontWeight: '600', textDecoration: 'none' }}>
+                <Link href="/register" style={{ color: '#0D7E7E', fontWeight: '600', textDecoration: 'none' }}>
                   Sign in
                 </Link>
               </p>

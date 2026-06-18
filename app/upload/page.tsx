@@ -10,10 +10,10 @@ function UploadBox({ label, file, onChange, hint }: { label: string, file: File|
     <div style={fieldStyle}>
       <label style={{display:'block',fontSize:'13px',color:'#555',marginBottom:'6px',fontWeight:500}}>{label} <span style={{color:'#DC2626'}}>*</span></label>
       <p style={{fontSize:'12px',color:'#888',marginBottom:'8px'}}>{hint}</p>
-      <div style={{border:'2px dashed '+(file?'#0F6E56':'#e5e5e5'),borderRadius:'8px',padding:'1.25rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative',cursor:'pointer'}}>
+      <div style={{border:'2px dashed '+(file?'#0D7E7E':'#e5e5e5'),borderRadius:'8px',padding:'1.25rem',textAlign:'center',background:file?'#f0faf6':'#fafafa',position:'relative',cursor:'pointer'}}>
         {file ? (
           <div>
-            <p style={{fontSize:'13px',color:'#0F6E56',fontWeight:'600'}}>✓ {file.name}</p>
+            <p style={{fontSize:'13px',color:'#0D7E7E',fontWeight:'600'}}>✓ {file.name}</p>
             <p style={{fontSize:'12px',color:'#888',marginTop:'2px'}}>Click to change file</p>
           </div>
         ) : (
@@ -183,7 +183,7 @@ export default function UploadPage() {
 
 
   const inputStyle = {width:'100%',padding:'10px 14px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none',background:'#fff'}
-  const inputReq = (val: string) => ({...inputStyle, borderColor: val ? '#0F6E56' : '#e5e5e5'})
+  const inputReq = (val: string) => ({...inputStyle, borderColor: val ? '#0D7E7E' : '#e5e5e5'})
   const labelStyle = {display:'block' as const,fontSize:'13px',color:'#555',marginBottom:'6px',fontWeight:'500'}
   const fieldStyle = {marginBottom:'1rem'}
   const po = parseFloat(poValue)||0
@@ -221,10 +221,11 @@ export default function UploadPage() {
   }
 
   return (
-    <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
+    <main style={{fontFamily:'"Inter", sans-serif',minHeight:'100vh',background:'#FAFAF8'}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap');`}</style>
 
       {/* NAV */}
-      <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
+      <nav style={{background:'#1F2937',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
         <Link href="/dashboard" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
           <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{height:'48px',width:'auto'}} />
         </Link>
@@ -244,12 +245,12 @@ export default function UploadPage() {
             return (
               <div key={label} style={{display:'flex',alignItems:'center',flex:1}}>
                 <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px'}}>
-                  <div style={{width:'34px',height:'34px',borderRadius:'50%',background:done?'#0F6E56':active?'#0F6E56':'#e5e5e5',color:done||active?'#fff':'#888',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'700'}}>
+                  <div style={{width:'34px',height:'34px',borderRadius:'50%',background:done?'#0D7E7E':active?'#0D7E7E':'#e5e5e5',color:done||active?'#fff':'#888',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'700'}}>
                     {done ? '✓' : num}
                   </div>
-                  <span style={{fontSize:'10px',color:active?'#0F6E56':'#888',fontWeight:active?'700':'400',whiteSpace:'nowrap'}}>{label}</span>
+                  <span style={{fontSize:'10px',color:active?'#0D7E7E':'#888',fontWeight:active?'700':'400',whiteSpace:'nowrap'}}>{label}</span>
                 </div>
-                {i < 3 && <div style={{flex:1,height:'2px',background:done?'#0F6E56':'#e5e5e5',margin:'0 4px',marginBottom:'18px'}}></div>}
+                {i < 3 && <div style={{flex:1,height:'2px',background:done?'#0D7E7E':'#e5e5e5',margin:'0 4px',marginBottom:'18px'}}></div>}
               </div>
             )
           })}
@@ -268,19 +269,19 @@ export default function UploadPage() {
           {submitted && (
             <div style={{textAlign:'center',padding:'2rem 0'}}>
               <div style={{width:'70px',height:'70px',borderRadius:'50%',background:'#E1F5EE',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 1.5rem',fontSize:'32px'}}>✓</div>
-              <h2 style={{fontSize:'24px',fontWeight:'700',marginBottom:'.75rem',color:'#085041'}}>Application Submitted!</h2>
+              <h2 style={{fontSize:'24px',fontWeight:'700',marginBottom:'.75rem',color:'#0D7E7E'}}>Application Submitted!</h2>
               <p style={{fontSize:'15px',color:'#666',marginBottom:'2rem',lineHeight:'1.7',maxWidth:'480px',margin:'0 auto 2rem'}}>
                 Your purchase order has been submitted to the marketplace. Funders will review and make offers shortly.
               </p>
-              <div style={{background:'#f5f5f5',borderRadius:'12px',padding:'1.5rem',marginBottom:'2rem',textAlign:'left',maxWidth:'400px',margin:'0 auto 2rem'}}>
+              <div style={{background:'#FAFAF8',borderRadius:'12px',padding:'1.5rem',marginBottom:'2rem',textAlign:'left',maxWidth:'400px',margin:'0 auto 2rem'}}>
                 <p style={{fontSize:'13px',color:'#888',marginBottom:'.75rem',fontWeight:'600'}}>What happens next:</p>
                 {['Funders review your PO and supplier quotation','Funders verify the PO with your client','Funders verify the quote with your supplier','You receive competitive funding offers','You compare and accept the best offer'].map((item,i)=>(
                   <div key={i} style={{display:'flex',gap:'8px',padding:'5px 0',fontSize:'13px',color:'#444'}}>
-                    <span style={{color:'#0F6E56',fontWeight:'700'}}>{i+1}.</span>{item}
+                    <span style={{color:'#0D7E7E',fontWeight:'700'}}>{i+1}.</span>{item}
                   </div>
                 ))}
               </div>
-              <a href="/dashboard" style={{background:'#0F6E56',color:'#fff',padding:'12px 28px',borderRadius:'8px',fontSize:'14px',textDecoration:'none',fontWeight:'600'}}>
+              <a href="/dashboard" style={{background:'#0D7E7E',color:'#fff',padding:'12px 28px',borderRadius:'8px',fontSize:'14px',textDecoration:'none',fontWeight:'600'}}>
                 Check application status →
               </a>
             </div>
@@ -289,7 +290,7 @@ export default function UploadPage() {
           {/* STEP 1 */}
           {!submitted && step === 1 && (
             <div>
-              <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Client Information</h2>
+              <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1F2937',marginBottom:'.25rem'}}>Client Information</h2>
               <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Fill in the details of the client who issued the purchase order.</p>
               <div style={fieldStyle}>
                 <label style={labelStyle}>Client / Company name <span style={{color:'#DC2626'}}>*</span></label>
@@ -310,13 +311,13 @@ export default function UploadPage() {
                   <input type="email" placeholder="procurement@client.co.za" value={clientEmail} onChange={e=>setClientEmail(e.target.value)} style={inputReq(clientEmail)}/>
                 </div>
               </div>
-              <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1.25rem',fontSize:'12px',color:'#666'}}>
+              <div style={{background:'#FAFAF8',borderRadius:'8px',padding:'10px',marginBottom:'1.25rem',fontSize:'12px',color:'#666'}}>
                 <span style={{color:'#DC2626'}}>*</span> All fields are required
               </div>
               <button onClick={()=>{
                 if (!step1Valid()) { setError('Please fill in all client information before continuing.'); window.scrollTo(0,0); return }
                 setError(''); setStep(2)
-              }} style={{width:'100%',padding:'12px',background:step1Valid()?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+              }} style={{width:'100%',padding:'12px',background:step1Valid()?'#0D7E7E':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
                 Continue to PO & Supplier details →
               </button>
             </div>
@@ -325,7 +326,7 @@ export default function UploadPage() {
           {/* STEP 2 */}
           {!submitted && step === 2 && (
             <div>
-              <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Purchase Order & Supplier Details</h2>
+              <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1F2937',marginBottom:'.25rem'}}>Purchase Order & Supplier Details</h2>
               <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Enter the PO and supplier information.</p>
 
               <div style={fieldStyle}>
@@ -349,7 +350,7 @@ export default function UploadPage() {
               </div>
               <div style={fieldStyle}>
                 <label style={labelStyle}>Sector <span style={{color:'#DC2626'}}>*</span></label>
-                <select value={sector} onChange={e=>setSector(e.target.value)} style={{...inputStyle,borderColor:sector?'#0F6E56':'#e5e5e5'}}>
+                <select value={sector} onChange={e=>setSector(e.target.value)} style={{...inputStyle,borderColor:sector?'#0D7E7E':'#e5e5e5'}}>
                   <option value="">Select sector</option>
                   {['Logistics','Construction','ICT','Manufacturing','Healthcare','Agriculture','Mining','Retail','Other'].map(s=><option key={s} value={s}>{s}</option>)}
                 </select>
@@ -373,16 +374,16 @@ export default function UploadPage() {
               {/* SUPPLIERS */}
               <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:'1px solid #e5e5e5'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
-                  <p style={{fontSize:'14px',fontWeight:'700',color:'#1B2B4B',display:'inline-flex',alignItems:'center',gap:'8px'}}><Factory size={16} /> Supplier Details</p>
+                  <p style={{fontSize:'14px',fontWeight:'700',color:'#1F2937',display:'inline-flex',alignItems:'center',gap:'8px'}}><Factory size={16} /> Supplier Details</p>
                   <button type="button" onClick={addSupplier}
-                    style={{fontSize:'13px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                    style={{fontSize:'13px',color:'#0D7E7E',background:'#E1F5EE',border:'none',padding:'6px 14px',borderRadius:'8px',cursor:'pointer',fontWeight:'600',display:'inline-flex',alignItems:'center',gap:'6px'}}>
                     + Add supplier
                   </button>
                 </div>
                 {suppliers.map((supplier, index) => (
                   <div key={index} style={{background:'#fff',borderRadius:'10px',padding:'1rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'.75rem'}}>
-                      <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B'}}>Supplier {index + 1}</p>
+                      <p style={{fontSize:'13px',fontWeight:'700',color:'#1F2937'}}>Supplier {index + 1}</p>
                       {suppliers.length > 1 && (
                         <button type="button" onClick={() => removeSupplier(index)}
                           style={{fontSize:'12px',color:'#DC2626',background:'#FEE2E2',border:'none',padding:'4px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
@@ -435,7 +436,7 @@ export default function UploadPage() {
                   <p style={{
                     fontSize: '13px',
                     fontWeight: '700',
-                    color: profit > 0 ? '#085041' : '#DC2626',
+                    color: profit > 0 ? '#0D7E7E' : '#DC2626',
                     marginBottom: '.5rem',
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -443,7 +444,7 @@ export default function UploadPage() {
                   }}><TrendingUp size={16} /> Profit Margin</p>
                   <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}>
                     <span style={{color:'#666'}}>Estimated profit</span>
-                    <span style={{fontWeight:'700',color: profit > 0 ? '#085041' : '#DC2626'}}>R {profit.toLocaleString()} ({margin}%)</span>
+                    <span style={{fontWeight:'700',color: profit > 0 ? '#0D7E7E' : '#DC2626'}}>R {profit.toLocaleString()} ({margin}%)</span>
                   </div>
                   {profit <= 0 && (
                     <p style={{color:'#DC2626',fontSize:'12px',marginTop:'6px',fontWeight:'500'}}>
@@ -453,13 +454,13 @@ export default function UploadPage() {
                 </div>
               )}
 
-              <div style={{background:'#f5f5f5',borderRadius:'8px',padding:'10px',marginBottom:'1.25rem',fontSize:'12px',color:'#666'}}>
+              <div style={{background:'#FAFAF8',borderRadius:'8px',padding:'10px',marginBottom:'1.25rem',fontSize:'12px',color:'#666'}}>
                 <span style={{color:'#DC2626'}}>*</span> All fields are required
               </div>
 
               <div style={{display:'flex',gap:'12px'}}>
                 <button onClick={()=>{ setError(''); setStep(1) }}
-                  style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                  style={{flex:1,padding:'12px',background:'#FAFAF8',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
                   ← Back
                 </button>
                 <button onClick={()=>{
@@ -487,7 +488,7 @@ export default function UploadPage() {
                   }
 
                   setError(''); setStep(3)
-                }} style={{flex:2,padding:'12px',background:step2Valid()?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+                }} style={{flex:2,padding:'12px',background:step2Valid()?'#0D7E7E':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
                   Continue to documents →
                 </button>
               </div>
@@ -497,13 +498,13 @@ export default function UploadPage() {
           {/* STEP 3 */}
           {!submitted && step === 3 && (
             <div>
-              <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Upload Documents</h2>
+              <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1F2937',marginBottom:'.25rem'}}>Upload Documents</h2>
               <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Upload both your purchase order and supplier quotation.</p>
               <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
                 <ShieldCheck size={18} />
                 <div>
-                  <p style={{fontSize:'13px',color:'#085041',fontWeight:'600',marginBottom:'2px'}}>Document security</p>
-                  <p style={{fontSize:'12px',color:'#0F6E56',lineHeight:'1.6'}}>Both documents will only be shared with verified funders who submit an offer on your PO.</p>
+                  <p style={{fontSize:'13px',color:'#0D7E7E',fontWeight:'600',marginBottom:'2px'}}>Document security</p>
+                  <p style={{fontSize:'12px',color:'#0D7E7E',lineHeight:'1.6'}}>Both documents will only be shared with verified funders who submit an offer on your PO.</p>
                 </div>
               </div>
               <UploadBox label="Purchase Order Document" file={poFile} onChange={setPoFile} hint="Upload the official PO from your client. Must include contact details and department."/>
@@ -526,14 +527,14 @@ export default function UploadPage() {
               </div>
               <div style={{display:'flex',gap:'12px'}}>
                 <button onClick={()=>{ setError(''); setStep(2) }}
-                  style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                  style={{flex:1,padding:'12px',background:'#FAFAF8',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
                   ← Back
                 </button>
                 <button onClick={()=>{
                   const allQuotationsUploaded = quotationFiles.every(f => f !== null)
                   if (!poFile || !allQuotationsUploaded) { setError('Please upload the Purchase Order and all Supplier Quotations before continuing.'); window.scrollTo(0,0); return }
                   setError(''); setStep(4)
-                }} style={{flex:2,padding:'12px',background:(poFile&&quotationFiles.every(f=>f!==null))?'#0F6E56':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+                }} style={{flex:2,padding:'12px',background:(poFile&&quotationFiles.every(f=>f!==null))?'#0D7E7E':'#9CA3AF',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
                   Continue to review →
                 </button>
               </div>
@@ -543,7 +544,7 @@ export default function UploadPage() {
           {/* STEP 4 */}
           {!submitted && step === 4 && (
             <div>
-              <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Review & Submit</h2>
+              <h2 style={{fontSize:'20px',fontWeight:'700',color:'#1F2937',marginBottom:'.25rem'}}>Review & Submit</h2>
               <p style={{fontSize:'14px',color:'#666',marginBottom:'1.5rem'}}>Please review everything before submitting.</p>
 
               {[
@@ -551,11 +552,11 @@ export default function UploadPage() {
                 { icon: ClipboardList, title:'Purchase Order', rows:[['PO Number',poNumber],['PO Value',`R ${parseFloat(poValue||'0').toLocaleString()}`],['Funding needed',`R ${parseFloat(fundingNeeded||'0').toLocaleString()}`],['Sector',sector]] },
               ].map(({icon: Icon, title, rows})=>(
                 <div key={title} style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
-                  <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><Icon size={14} /> {title}</p>
+                  <p style={{fontSize:'13px',fontWeight:'700',color:'#1F2937',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><Icon size={14} /> {title}</p>
                   {rows.map(([l,v])=>(
                     <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
                       <span style={{color:'#888'}}>{l}</span>
-                      <span style={{color:'#1B2B4B',fontWeight:'600'}}>{v}</span>
+                      <span style={{color:'#1F2937',fontWeight:'600'}}>{v}</span>
                     </div>
                   ))}
                 </div>
@@ -564,11 +565,11 @@ export default function UploadPage() {
               {/* Suppliers review */}
               {suppliers.map((supplier, index) => (
                 <div key={index} style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem',border:'1px solid #e5e5e5'}}>
-                  <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><Factory size={14} /> Supplier {index + 1}</p>
+                  <p style={{fontSize:'13px',fontWeight:'700',color:'#1F2937',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><Factory size={14} /> Supplier {index + 1}</p>
                   {[['Supplier', supplier.name],['Phone', supplier.phone],['Email', supplier.email],['Quotation No.', supplier.quotationNumber],['Quotation Value', `R ${parseFloat(supplier.quotationValue||'0').toLocaleString()}`]].map(([l,v])=>(
                     <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
                       <span style={{color:'#888'}}>{l}</span>
-                      <span style={{color:'#1B2B4B',fontWeight:'600'}}>{v}</span>
+                      <span style={{color:'#1F2937',fontWeight:'600'}}>{v}</span>
                     </div>
                   ))}
                 </div>
@@ -576,42 +577,42 @@ export default function UploadPage() {
 
               {po > 0 && quote > 0 && (
                 <div style={{background:'#E1F5EE',borderRadius:'12px',padding:'1.25rem',marginBottom:'1rem',border:'1px solid #5DCAA5'}}>
-                  <p style={{fontSize:'13px',fontWeight:'700',color:'#085041',marginBottom:'.5rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><TrendingUp size={16} /> Profit Margin</p>
+                  <p style={{fontSize:'13px',fontWeight:'700',color:'#0D7E7E',marginBottom:'.5rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><TrendingUp size={16} /> Profit Margin</p>
                   <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}>
                     <span style={{color:'#666'}}>Estimated profit</span>
-                    <span style={{fontWeight:'700',color:'#085041'}}>R {profit.toLocaleString()} ({margin}%)</span>
+                    <span style={{fontWeight:'700',color:'#0D7E7E'}}>R {profit.toLocaleString()} ({margin}%)</span>
                   </div>
                 </div>
               )}
 
               <div style={{background:'#f9f9f9',borderRadius:'12px',padding:'1.25rem',marginBottom:'1.5rem',border:'1px solid #e5e5e5'}}>
-                <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><FileText size={16} /> Documents</p>
+                <p style={{fontSize:'13px',fontWeight:'700',color:'#1F2937',marginBottom:'.75rem',display:'inline-flex',alignItems:'center',gap:'8px'}}><FileText size={16} /> Documents</p>
                 <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid #e5e5e5',fontSize:'14px'}}>
                   <span style={{color:'#888'}}>Purchase Order</span>
-                  <span style={{color:poFile?'#0F6E56':'#DC2626',fontWeight:'600'}}>{poFile?'✓ '+poFile.name:'Not uploaded'}</span>
+                  <span style={{color:poFile?'#0D7E7E':'#DC2626',fontWeight:'600'}}>{poFile?'✓ '+poFile.name:'Not uploaded'}</span>
                 </div>
                 {quotationFiles.map((qf, i) => (
                   <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:i < quotationFiles.length - 1 ? '1px solid #e5e5e5' : 'none',fontSize:'14px'}}>
                     <span style={{color:'#888'}}>Supplier {i + 1} Quotation</span>
-                    <span style={{color:qf?'#0F6E56':'#DC2626',fontWeight:'600'}}>{qf?'✓ '+qf.name:'Not uploaded'}</span>
+                    <span style={{color:qf?'#0D7E7E':'#DC2626',fontWeight:'600'}}>{qf?'✓ '+qf.name:'Not uploaded'}</span>
                   </div>
                 ))}
               </div>
 
               <div style={{background:'#E1F5EE',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem',display:'flex',gap:'10px',alignItems:'flex-start'}}>
                 <Info size={18} />
-                <p style={{fontSize:'13px',color:'#085041',lineHeight:'1.6'}}>
+                <p style={{fontSize:'13px',color:'#0D7E7E',lineHeight:'1.6'}}>
                   By submitting, your PO will be listed on the FundMyPO marketplace for verified funders to review and submit offers.
                 </p>
               </div>
 
               <div style={{display:'flex',gap:'12px'}}>
                 <button onClick={()=>{ setError(''); setStep(3) }}
-                  style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                  style={{flex:1,padding:'12px',background:'#FAFAF8',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
                   ← Back
                 </button>
                 <button onClick={handleSubmit} disabled={loading}
-                  style={{flex:2,padding:'12px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
+                  style={{flex:2,padding:'12px',background:'#0D7E7E',color:'#fff',border:'none',borderRadius:'8px',fontSize:'15px',fontWeight:'600',cursor:'pointer'}}>
                   {loading ? 'Submitting...' : 'Submit to marketplace ✓'}
                 </button>
               </div>

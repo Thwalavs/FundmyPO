@@ -213,10 +213,11 @@ export default function AdminPage() {
   }
 
   return (
-    <main style={{fontFamily:'sans-serif',minHeight:'100vh',background:'#f5f5f5'}}>
+    <main style={{fontFamily:'"Inter", sans-serif',minHeight:'100vh',background:'#FAFAF8'}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap');`}</style>
 
       {/* NAV */}
-      <nav style={{background:'#1B2B4B',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
+      <nav style={{background:'#1F2937',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',height:'65px'}}>
         <a href="/admin" style={{display:'flex',alignItems:'center',textDecoration:'none'}}>
           <img src="/logo.png" alt="FundMyPO" style={{height:'48px',width:'auto'}}/>
         </a>
@@ -234,18 +235,18 @@ export default function AdminPage() {
       <div style={{maxWidth:'1100px',margin:'0 auto',padding:'2rem'}}>
 
         <div style={{marginBottom:'1.5rem'}}>
-          <h1 style={{fontSize:'24px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.25rem'}}>Admin Panel</h1>
+          <h1 style={{fontSize:'24px',fontWeight:'700',color:'#1F2937',marginBottom:'.25rem'}}>Admin Panel</h1>
           <p style={{fontSize:'14px',color:'#666'}}>Manage users and approve funding deals.</p>
         </div>
 
         {/* MAIN TABS */}
         <div style={{display:'flex',gap:'4px',background:'#fff',border:'1px solid #e5e5e5',borderRadius:'10px',padding:'4px',marginBottom:'2rem',width:'fit-content'}}>
           <button onClick={()=>setActiveTab('users')}
-            style={{padding:'8px 20px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'14px',fontWeight:'600',background:activeTab==='users'?'#1B2B4B':'transparent',color:activeTab==='users'?'#fff':'#666'}}>
+            style={{padding:'8px 20px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'14px',fontWeight:'600',background:activeTab==='users'?'#1F2937':'transparent',color:activeTab==='users'?'#fff':'#666'}}>
             Users ({profiles.length})
           </button>
           <button onClick={()=>setActiveTab('deals')}
-            style={{padding:'8px 20px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'14px',fontWeight:'600',background:activeTab==='deals'?'#1B2B4B':'transparent',color:activeTab==='deals'?'#fff':'#666',position:'relative'}}>
+            style={{padding:'8px 20px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'14px',fontWeight:'600',background:activeTab==='deals'?'#1F2937':'transparent',color:activeTab==='deals'?'#fff':'#666',position:'relative'}}>
             Deals ({deals.length})
             {pendingDeals > 0 && (
               <span style={{position:'absolute',top:'-4px',right:'-4px',background:'#DC2626',color:'#fff',borderRadius:'99px',fontSize:'10px',fontWeight:'700',padding:'2px 6px'}}>
@@ -263,7 +264,7 @@ export default function AdminPage() {
                 { label:'Pending Review', value:userCounts.pending, color:'#92400E', bg:'#FEF3C7' },
                 { label:'Approved', value:userCounts.approved, color:'#065F46', bg:'#D1FAE5' },
                 { label:'Declined', value:userCounts.declined, color:'#991B1B', bg:'#FEE2E2' },
-                { label:'Total Users', value:userCounts.all, color:'#1B2B4B', bg:'#EEF2FF' },
+                { label:'Total Users', value:userCounts.all, color:'#1F2937', bg:'#EEF2FF' },
               ].map(({label,value,color,bg})=>(
                 <div key={label} style={{background:'#fff',border:'1px solid #e5e5e5',borderRadius:'12px',padding:'1.25rem'}}>
                   <div style={{fontSize:'28px',fontWeight:'700',color,marginBottom:'4px'}}>{value}</div>
@@ -282,7 +283,7 @@ export default function AdminPage() {
               {(['pending','approved','declined','all'] as const).map(t=>(
                 <button key={t} onClick={()=>setUserTab(t)}
                   style={{padding:'8px 16px',borderRadius:'8px',border:'none',cursor:'pointer',fontSize:'13px',fontWeight:'600',
-                    background:userTab===t?'#1B2B4B':'transparent',color:userTab===t?'#fff':'#666'}}>
+                    background:userTab===t?'#1F2937':'transparent',color:userTab===t?'#fff':'#666'}}>
                   {t.charAt(0).toUpperCase()+t.slice(1)} ({userCounts[t]})
                 </button>
               ))}
@@ -306,14 +307,14 @@ export default function AdminPage() {
                     {filteredUsers.map((profile, i) => (
                       <tr key={profile.id} style={{borderBottom:'1px solid #f0f0f0',background:i%2===0?'#fff':'#fafafa'}}>
                         <td style={{padding:'14px 16px'}}>
-                          <p style={{fontSize:'14px',fontWeight:'600',color:'#1B2B4B',marginBottom:'2px'}}>
+                          <p style={{fontSize:'14px',fontWeight:'600',color:'#1F2937',marginBottom:'2px'}}>
                             {profile.first_name ? `${profile.first_name} ${profile.last_name}` : '—'}
                           </p>
                           <p style={{fontSize:'12px',color:'#888'}}>{profile.business_name || '—'}</p>
                         </td>
                         <td style={{padding:'14px 16px',fontSize:'13px',color:'#444'}}>{profile.email}</td>
                         <td style={{padding:'14px 16px'}}>
-                          <span style={{background:profile.role==='funder'?'#E6F1FB':'#E1F5EE',color:profile.role==='funder'?'#0C447C':'#085041',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'600'}}>
+                          <span style={{background:profile.role==='funder'?'#E6F1FB':'#E1F5EE',color:profile.role==='funder'?'#0C447C':'#0D7E7E',padding:'3px 10px',borderRadius:'99px',fontSize:'12px',fontWeight:'600'}}>
                             {profile.role === 'funder' ? 'Funder' : 'Supplier'}
                           </span>
                         </td>
@@ -381,14 +382,14 @@ export default function AdminPage() {
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'1rem',marginBottom:'1rem'}}>
                       <div>
                         <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
-                          <span style={{fontSize:'15px',fontWeight:'700',color:'#1B2B4B'}}>{po?.po_number || 'PO'}</span>
+                          <span style={{fontSize:'15px',fontWeight:'700',color:'#1F2937'}}>{po?.po_number || 'PO'}</span>
                           {statusBadge(deal.status)}
                         </div>
                         <p style={{fontSize:'13px',color:'#666',marginBottom:'2px'}}>Client: {po?.client_name}</p>
                         <p style={{fontSize:'12px',color:'#888'}}>{new Date(deal.created_at).toLocaleDateString('en-ZA')}</p>
                       </div>
                       <div style={{textAlign:'right'}}>
-                        <p style={{fontSize:'20px',fontWeight:'700',color:'#0F6E56'}}>R {deal.amount.toLocaleString()}</p>
+                        <p style={{fontSize:'20px',fontWeight:'700',color:'#0D7E7E'}}>R {deal.amount.toLocaleString()}</p>
                         <p style={{fontSize:'12px',color:'#888'}}>at {deal.interest_rate}% • {deal.term_days} days</p>
                         <p style={{fontSize:'12px',color:'#DC2626',fontWeight:'600'}}>Commission: R {(deal.amount * 0.02).toLocaleString()}</p>
                       </div>
@@ -405,7 +406,7 @@ export default function AdminPage() {
                       <div style={{display:'flex',gap:'10px'}}>
                         <button onClick={()=>updateDealStatus(deal, 'approved')}
                           disabled={actionLoading === deal.id}
-                          style={{flex:1,padding:'11px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                          style={{flex:1,padding:'11px',background:'#0D7E7E',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
                           {actionLoading === deal.id ? 'Processing...' : 'Approve & Notify Funder'}
                         </button>
                         <button onClick={()=>updateDealStatus(deal, 'declined')}
@@ -440,7 +441,7 @@ export default function AdminPage() {
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'1rem'}}>
           <div style={{background:'#fff',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'560px',maxHeight:'90vh',overflowY:'auto'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem'}}>
-              <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B'}}>Application Details</h2>
+              <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1F2937'}}>Application Details</h2>
               <button onClick={()=>setSelectedProfile(null)}
                 style={{background:'none',border:'none',fontSize:'20px',cursor:'pointer',color:'#888'}}>x</button>
             </div>
@@ -458,13 +459,13 @@ export default function AdminPage() {
               ].map(([label, value]) => (
                 <div key={label} style={{background:'#f9fafb',borderRadius:'8px',padding:'12px'}}>
                   <p style={{fontSize:'11px',color:'#888',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:'4px'}}>{label}</p>
-                  <p style={{fontSize:'13px',color:'#1B2B4B',fontWeight:'600'}}>{value}</p>
+                  <p style={{fontSize:'13px',color:'#1F2937',fontWeight:'600'}}>{value}</p>
                 </div>
               ))}
             </div>
 
             <div style={{marginBottom:'1.5rem'}}>
-              <p style={{fontSize:'13px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.75rem'}}>Verification Documents</p>
+              <p style={{fontSize:'13px',fontWeight:'700',color:'#1F2937',marginBottom:'.75rem'}}>Verification Documents</p>
               <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
                 {(selectedProfile.role === 'business' ? [
                   { name:'Company Registration Certificate', path:'company-certificate' },
@@ -478,9 +479,9 @@ export default function AdminPage() {
                   { name:'Proof of Funds', path:'proof-of-funds' },
                 ]).map(doc => (
                   <div key={doc.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:'#f9fafb',borderRadius:'8px',border:'1px solid #e5e5e5'}}>
-                    <p style={{fontSize:'13px',color:'#1B2B4B',fontWeight:'500'}}>{doc.name}</p>
+                    <p style={{fontSize:'13px',color:'#1F2937',fontWeight:'500'}}>{doc.name}</p>
                     <button onClick={()=>downloadDoc(selectedProfile.id, doc.path)}
-                      style={{fontSize:'12px',color:'#0F6E56',background:'#E1F5EE',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
+                      style={{fontSize:'12px',color:'#0D7E7E',background:'#E1F5EE',border:'none',padding:'5px 12px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
                       View
                     </button>
                   </div>
@@ -490,13 +491,13 @@ export default function AdminPage() {
 
             <div style={{display:'flex',gap:'10px'}}>
               <button onClick={()=>setSelectedProfile(null)}
-                style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                style={{flex:1,padding:'12px',background:'#FAFAF8',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
                 Close
               </button>
               {selectedProfile.status !== 'approved' && (
                 <button onClick={()=>updateUserStatus(selectedProfile.id, 'approved')}
                   disabled={actionLoading === selectedProfile.id}
-                  style={{flex:1,padding:'12px',background:'#0F6E56',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                  style={{flex:1,padding:'12px',background:'#0D7E7E',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
                   {actionLoading === selectedProfile.id ? 'Processing...' : 'Approve'}
                 </button>
               )}
