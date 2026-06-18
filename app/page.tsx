@@ -193,7 +193,7 @@ export default function LandingPage() {
                 Deploy your capital into verified, low-risk PO deals and earn competitive returns with full transparency before you commit.
               </p>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem',marginBottom:'2rem'}}>
-                {[['3–8%','Returns per deal'],['30–90','Day terms'],['100%','Verified deals'],['2%','Platform fee']].map(([val,label])=>(
+                {[['30–90','Day terms'],['100%','Verified deals']].map(([val,label])=>(
                   <div key={label} style={{background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:'8px',padding:'1rem',textAlign:'center'}}>
                     <p style={{fontSize:'22px',fontWeight:'700',color:'#4DBFB0',fontFamily:'Arial,sans-serif'}}>{val}</p>
                     <p style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',fontFamily:'Arial,sans-serif',marginTop:'4px'}}>{label}</p>
