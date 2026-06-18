@@ -14,14 +14,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FundMyPO",
-  description: "South Africa's leading purchase order funding platform.",
+  title: 'FundMyPO - PO Funding Platform',
+  description: "South Africa's leading purchase order funding marketplace",
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
     ],
      apple: '/apple-touch-icon.png',
+  },
+  verification: {
+    google: 'dNAj5dlW5Ns6pR2zyZ5_MDDH13GJN5tIFvQ4wwDXUXU',
   },
 };
 
