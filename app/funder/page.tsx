@@ -1,7 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 
 type PO = {
   id: string
@@ -35,36 +33,26 @@ async function getSupabase() {
 
 function RiskBadge({ value }: { value: number }) {
   const risk = value >= 200000 ? 'Low' : 'Medium'
-  const s = risk === 'Low' ? { bg: '#E1F5EE', color: '#0D7E7E' } : { bg: '#FAEEDA', color: '#633806' }
+  const s = risk === 'Low' ? { bg: '#E1F5EE', color: '#085041' } : { bg: '#FAEEDA', color: '#633806' }
   return <span style={{ background: s.bg, color: s.color, padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600' }}>{risk} risk</span>
 }
 
 async function downloadDoc(userId: string, docPath: string) {
   const supabase = await getSupabase()
-
-  // Try direct .pdf path first
-  const directPath = `${userId}/${docPath}.pdf`
-  const { data: directData } = await supabase.storage
-    .from('verification-docs')
-    .createSignedUrl(directPath, 3600)
-
-  if (directData?.signedUrl) {
-    window.open(directData.signedUrl, '_blank')
-    return
-  }
-
-  // Fallback: list and find by name
-  const { data: files, error: listError } = await supabase.storage
+  const { data: files, error } = await supabase.storage
     .from('verification-docs')
     .list(userId)
 
-  if (listError || !files || files.length === 0) {
+  if (error || !files || files.length === 0) {
     alert('No documents found for this business.')
     return
   }
 
   const matchedFile = files.find(f =>
     f.name === `${docPath}.pdf` ||
+    f.name === `${docPath}.jpg` ||
+    f.name === `${docPath}.jpeg` ||
+    f.name === `${docPath}.png` ||
     f.name.startsWith(docPath) ||
     f.name.includes(docPath)
   )
@@ -86,7 +74,7 @@ async function downloadDoc(userId: string, docPath: string) {
 }
 
 function RealOffers() {
-  const [myOffers, setMyOffers] = useState<Offer[]>([])
+  const [myOffers, setMyOffers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   async function load() {
@@ -100,18 +88,18 @@ function RealOffers() {
         .select('*, purchase_orders(*)')
         .eq('funder_id', user.id)
         .order('created_at', { ascending: false })
-      setMyOffers((offers || []) as Offer[])
+      setMyOffers(offers || [])
     } catch (e) { console.log(e) }
     finally { setLoading(false) }
   }
 
-  useEffect(() => { void (async () => { await load() })() }, [])
+  useEffect(() => { load() }, [])
 
   if (loading) return <p style={{ fontSize: '14px', color: '#888', padding: '1rem' }}>Loading your offers...</p>
 
   if (myOffers.length === 0) return (
     <div style={{ textAlign: 'center', padding: '3rem', background: '#fff', borderRadius: '12px', border: '1px solid #e5e5e5' }}>
-      <p style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginBottom: '.5rem' }}>No offers submitted yet</p>
+      <p style={{ fontSize: '16px', fontWeight: '600', color: '#1B2B4B', marginBottom: '.5rem' }}>No offers submitted yet</p>
       <p style={{ fontSize: '13px', color: '#888' }}>Go to the marketplace to find POs and submit offers.</p>
     </div>
   )
@@ -120,12 +108,12 @@ function RealOffers() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
         <button onClick={() => load()}
-          style={{ fontSize: '13px', color: '#0D7E7E', background: '#E1F5EE', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
+          style={{ fontSize: '13px', color: '#0F6E56', background: '#E1F5EE', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
           Refresh offers
         </button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {myOffers.map((offer) => {
+        {myOffers.map((offer: any) => {
           const po = offer.purchase_orders
           const isAccepted = offer.status === 'accepted'
           return (
@@ -133,8 +121,8 @@ function RealOffers() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '.75rem' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '15px', fontWeight: '700', color: '#1F2937' }}>{po?.po_number || 'PO'}</span>
-                    <span style={{ background: isAccepted ? '#E1F5EE' : '#FAEEDA', color: isAccepted ? '#0D7E7E' : '#633806', padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600' }}>
+                    <span style={{ fontSize: '15px', fontWeight: '700', color: '#1B2B4B' }}>{po?.po_number || 'PO'}</span>
+                    <span style={{ background: isAccepted ? '#E1F5EE' : '#FAEEDA', color: isAccepted ? '#085041' : '#633806', padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600' }}>
                       {isAccepted ? 'Accepted' : 'Pending'}
                     </span>
                   </div>
@@ -142,21 +130,20 @@ function RealOffers() {
                   <p style={{ fontSize: '12px', color: '#888' }}>{new Date(offer.created_at).toLocaleDateString('en-ZA')}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#0D7E7E' }}>R {offer.amount.toLocaleString()}</p>
+                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#0F6E56' }}>R {offer.amount.toLocaleString()}</p>
                   <p style={{ fontSize: '12px', color: '#888' }}>at {offer.interest_rate}% &bull; {offer.term_days} days</p>
                 </div>
               </div>
               {isAccepted && (
                 <div style={{ background: '#E1F5EE', borderRadius: '8px', padding: '1rem', marginTop: '.5rem' }}>
-                  <p style={{ fontSize: '13px', fontWeight: '700', color: '#0D7E7E', marginBottom: '.5rem' }}>Your offer was accepted!</p>
-                  <p style={{ fontSize: '12px', color: '#0D7E7E', lineHeight: '1.6' }}>
+                  <p style={{ fontSize: '13px', fontWeight: '700', color: '#085041', marginBottom: '.5rem' }}>Your offer was accepted!</p>
+                  <p style={{ fontSize: '12px', color: '#0F6E56', lineHeight: '1.6' }}>
                     Please proceed with the funding disbursement of <strong>R {offer.amount.toLocaleString()}</strong> to {po?.client_name}.
-                    FundMyPO commission of <strong>R {(offer.amount * 0.02).toLocaleString()}</strong> (2%) will be deducted.
                   </p>
                 </div>
               )}
               {!isAccepted && (
-                <div style={{ background: '#FAFAF8', borderRadius: '8px', padding: '10px', marginTop: '.5rem', fontSize: '12px', color: '#666' }}>
+                <div style={{ background: '#f5f5f5', borderRadius: '8px', padding: '10px', marginTop: '.5rem', fontSize: '12px', color: '#666' }}>
                   Waiting for the business to review and accept your offer.
                 </div>
               )}
@@ -179,9 +166,11 @@ export default function FunderDashboard() {
   const [rates, setRates] = useState<Record<string, string>>({})
   const [terms, setTerms] = useState<Record<string, string>>({})
   const [offerError, setOfferError] = useState<Record<string, string>>({})
+  const [mounted, setMounted] = useState(false)
   const [funderName, setFunderName] = useState('Funder')
 
-  // declare loader functions before useEffect
+  useEffect(() => { setMounted(true); loadPOs(); loadFunderName() }, [])
+
   async function loadFunderName() {
     try {
       const supabase = await getSupabase()
@@ -197,22 +186,18 @@ export default function FunderDashboard() {
       if (error) { console.log('Error loading POs:', error.message); return }
       setMarketplace(data || [])
 
-      // Load existing offers from DB
+      // Load already submitted offers for this funder
       const { data: { user } } = await supabase.auth.getUser()
-      if (user && data && data.length > 0) {
-        const { data: existingOffers } = await supabase
+      if (user) {
+        const { data: offers } = await supabase
           .from('funding_offers')
           .select('po_id')
           .eq('funder_id', user.id)
-        if (existingOffers && existingOffers.length > 0) {
-          setSubmittedOffers(existingOffers.map(o => o.po_id))
-        }
+        if (offers) setSubmittedOffers(offers.map(o => o.po_id))
       }
     } catch (e) { console.log(e) }
     finally { setLoadingPOs(false) }
   }
-
-  useEffect(() => { void (async () => { await loadPOs(); await loadFunderName() })() }, [])
 
   async function handleSubmitOffer(poId: string) {
     const po = marketplace.find(p => p.id === poId)
@@ -230,54 +215,24 @@ export default function FunderDashboard() {
         interest_rate: parseFloat(rates[poId] || '0'), term_days: parseInt(terms[poId] || '0'), status: 'pending'
       })
     } catch (e) { console.log(e) }
-    // Notify supplier that a funder made an offer
-    try {
-      const supabase2 = await getSupabase()
-      const { data: supplierProfile } = await supabase2
-        .from('profiles')
-        .select('email, first_name, business_name')
-        .eq('id', po.user_id)
-        .single()
-
-      if (supplierProfile) {
-        await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'new_offer',
-            to: supplierProfile.email,
-            data: {
-              name: supplierProfile.first_name || supplierProfile.business_name,
-              poNumber: po.po_number,
-              funderName: funderName,
-              amount: `R ${po.funding_needed.toLocaleString()}`,
-              rate: `${rates[poId]}%`,
-            }
-          })
-        })
-      }
-    } catch (e) { console.log('Supplier offer notification failed:', e) }
-
     setSubmittedOffers(prev => [...prev, poId])
-    setSelectedPO(null)
-    setPreviewPO(null)
+    setSelectedPO(null); setPreviewPO(null)
     setRates(prev => { const n = { ...prev }; delete n[poId]; return n })
     setTerms(prev => { const n = { ...prev }; delete n[poId]; return n })
   }
 
-  
+  if (!mounted) return null
 
   return (
-    <main style={{ fontFamily: '"Inter", sans-serif', minHeight: '100vh', background: '#FAFAF8' }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap');`}</style>
+    <main style={{ fontFamily: 'sans-serif', minHeight: '100vh', background: '#f5f5f5' }}>
 
       {/* NAV */}
-      <nav style={{ background: '#1F2937', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
-        <Link href="/funder" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          <Image src="/logo.png" alt="FundMyPO" width={140} height={48} style={{ height: '48px', width: 'auto' }} />
-        </Link>
+      <nav style={{ background: '#1B2B4B', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '65px' }}>
+        <a href="/funder" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <img src="/logo.png" alt="FundMyPO" style={{ height: '48px', width: 'auto' }} />
+        </a>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ fontSize: '13px', background: 'rgba(13,126,126,0.2)', color: '#10B981', padding: '4px 12px', borderRadius: '99px', fontWeight: '600' }}>Funder Portal</span>
+          <span style={{ fontSize: '13px', background: 'rgba(77,191,176,0.2)', color: '#4DBFB0', padding: '4px 12px', borderRadius: '99px', fontWeight: '600' }}>Funder Portal</span>
           <button onClick={async () => { const s = await getSupabase(); await s.auth.signOut(); window.location.href = '/' }}
             style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', padding: '7px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>
             Sign out
@@ -288,16 +243,16 @@ export default function FunderDashboard() {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem' }}>
 
         <div style={{ marginBottom: '1.5rem' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', marginBottom: '.25rem' }}>Welcome back, {funderName}</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.25rem' }}>Welcome back, {funderName}</h1>
           <p style={{ fontSize: '14px', color: '#666' }}>Browse available purchase orders and submit competitive funding offers.</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '1rem', marginBottom: '2rem' }}>
           {[
-            { label: 'Available POs', value: marketplace.length.toString(), color: '#0D7E7E' },
+            { label: 'Available POs', value: marketplace.length.toString(), color: '#0F6E56' },
             { label: 'My active offers', value: submittedOffers.length.toString(), color: '#633806' },
             { label: 'Total deployed', value: 'R 0', color: '#0C447C' },
-            { label: 'Accepted deals', value: '0', color: '#0D7E7E' },
+            { label: 'Accepted deals', value: '0', color: '#085041' },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '1.25rem' }}>
               <div style={{ fontSize: '22px', fontWeight: '700', color, marginBottom: '4px' }}>{value}</div>
@@ -309,7 +264,7 @@ export default function FunderDashboard() {
         <div style={{ display: 'flex', gap: '4px', background: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '4px', marginBottom: '1.5rem', width: 'fit-content' }}>
           {(['marketplace', 'offers', 'profile'] as const).map(t => (
             <button key={t} onClick={() => setActiveTab(t)}
-              style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600', background: activeTab === t ? '#0D7E7E' : 'transparent', color: activeTab === t ? '#fff' : '#666' }}>
+              style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600', background: activeTab === t ? '#0F6E56' : 'transparent', color: activeTab === t ? '#fff' : '#666' }}>
               {t === 'marketplace' ? 'Marketplace' : t === 'offers' ? 'My Offers' : 'Profile'}
             </button>
           ))}
@@ -319,15 +274,15 @@ export default function FunderDashboard() {
         {activeTab === 'marketplace' && (
           <div>
             <div style={{ marginBottom: '1rem' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1F2937', marginBottom: '.25rem' }}>Available Purchase Orders</h2>
-              <p style={{ fontSize: '13px', color: '#666' }}>Preview a PO including all documents, then submit an offer when ready.</p>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.25rem' }}>Available Purchase Orders</h2>
+              <p style={{ fontSize: '13px', color: '#666' }}>Preview PO details and documents, then submit an offer to unlock full contact information.</p>
             </div>
 
             {loadingPOs && <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}><p>Loading purchase orders...</p></div>}
 
             {!loadingPOs && marketplace.length === 0 && (
               <div style={{ textAlign: 'center', padding: '3rem', background: '#fff', borderRadius: '12px', border: '1px solid #e5e5e5' }}>
-                <p style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginBottom: '.5rem' }}>No purchase orders available yet</p>
+                <p style={{ fontSize: '16px', fontWeight: '600', color: '#1B2B4B', marginBottom: '.5rem' }}>No purchase orders available yet</p>
                 <p style={{ fontSize: '13px', color: '#888' }}>Check back soon — businesses are submitting POs daily.</p>
               </div>
             )}
@@ -339,6 +294,7 @@ export default function FunderDashboard() {
                 const interestEarned = (fundingAmount * rate) / 100
                 const profit = po.po_value - po.quotation_value
                 const margin = po.po_value > 0 ? ((profit / po.po_value) * 100).toFixed(1) : '0'
+                const hasOffer = submittedOffers.includes(po.id)
 
                 return (
                   <div key={po.id} style={{ background: '#fff', border: selectedPO === po.id ? '2px solid #0F6E56' : '1px solid #e5e5e5', borderRadius: '12px', padding: '1.25rem' }}>
@@ -347,136 +303,117 @@ export default function FunderDashboard() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '.75rem' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '15px', fontWeight: '700', color: '#1F2937' }}>{po.po_number || 'PO-' + po.id.slice(0, 8)}</span>
+                          <span style={{ fontSize: '15px', fontWeight: '700', color: '#1B2B4B' }}>{po.po_number || 'PO-' + po.id.slice(0, 8)}</span>
                           <RiskBadge value={po.funding_needed} />
-                          {submittedOffers.includes(po.id) && <span style={{ background: '#E6F1FB', color: '#0C447C', padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600' }}>Offer submitted</span>}
+                          {hasOffer && <span style={{ background: '#E6F1FB', color: '#0C447C', padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600' }}>Offer submitted</span>}
                         </div>
-                        <p style={{ fontSize: '13px', color: '#666' }}>{po.client_name} &bull; {po.sector}</p>
-                        <p style={{ fontSize: '12px', color: '#888' }}>Dept: {po.client_department}</p>
+                        <p style={{ fontSize: '13px', color: '#666' }}>{po.sector}</p>
+                        <p style={{ fontSize: '12px', color: '#888' }}>{new Date(po.created_at).toLocaleDateString('en-ZA')}</p>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontSize: '18px', fontWeight: '700', color: '#0D7E7E' }}>R {po.funding_needed.toLocaleString()}</p>
+                        <p style={{ fontSize: '18px', fontWeight: '700', color: '#0F6E56' }}>R {po.funding_needed.toLocaleString()}</p>
                         <p style={{ fontSize: '12px', color: '#888' }}>PO value: R {po.po_value.toLocaleString()}</p>
-                        <p style={{ fontSize: '12px', color: '#0D7E7E', fontWeight: '600' }}>Margin: {margin}%</p>
+                        <p style={{ fontSize: '12px', color: '#085041', fontWeight: '600' }}>Margin: {margin}%</p>
                       </div>
                     </div>
 
                     {/* ACTION BUTTONS */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                      <span style={{ fontSize: '12px', color: '#888' }}>{new Date(po.created_at).toLocaleDateString('en-ZA')}</span>
+                      <span style={{ fontSize: '12px', color: '#888' }}></span>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         <button onClick={() => setPreviewPO(previewPO === po.id ? null : po.id)}
                           style={{ fontSize: '13px', color: '#633806', background: '#FAEEDA', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
                           {previewPO === po.id ? 'Hide preview' : 'Preview & Documents'}
                         </button>
-                        {submittedOffers.includes(po.id) && (
+                        {hasOffer && (
                           <button onClick={() => setViewingPODocs(viewingPODocs === po.id ? null : po.id)}
                             style={{ fontSize: '13px', color: '#0C447C', background: '#E6F1FB', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-                            {viewingPODocs === po.id ? 'Hide docs' : 'View all documents'}
+                            {viewingPODocs === po.id ? 'Hide docs' : 'Full access'}
                           </button>
                         )}
-                        {!submittedOffers.includes(po.id) && (
+                        {!hasOffer && (
                           <button onClick={() => setSelectedPO(selectedPO === po.id ? null : po.id)}
-                            style={{ fontSize: '13px', color: '#fff', background: '#0D7E7E', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
+                            style={{ fontSize: '13px', color: '#fff', background: '#0F6E56', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
                             {selectedPO === po.id ? 'Cancel' : 'Make an offer'}
                           </button>
                         )}
                       </div>
                     </div>
 
-                    {/* FULL PREVIEW — unlocked docs visible before offer */}
-                    {previewPO === po.id && !submittedOffers.includes(po.id) && (
+                    {/* PREVIEW — PO & QUOTATION DOCS ONLY, contacts locked */}
+                    {previewPO === po.id && (
                       <div style={{ marginTop: '1rem', padding: '1.25rem', background: '#FFFBF0', borderRadius: '10px', border: '1px solid #F5D87A' }}>
-                        <p style={{ fontSize: '13px', fontWeight: '700', color: '#633806', marginBottom: '1rem' }}>Full Preview — Review all documents before making an offer</p>
+                        <p style={{ fontSize: '13px', fontWeight: '700', color: '#633806', marginBottom: '1rem' }}>
+                          {hasOffer ? 'PO Preview — Submit an offer to unlock full contact details' : 'Full Preview — Submit an offer to unlock contact details & verification documents'}
+                        </p>
 
-                        {/* PO SUMMARY + PROFIT */}
+                        {/* PO SUMMARY */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '1rem' }}>
                           <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e5e5' }}>
-                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.5rem' }}>PO Summary</p>
-                            {[['Client', po.client_name], ['Department', po.client_department], ['Sector', po.sector], ['PO Value', `R ${po.po_value.toLocaleString()}`], ['Funding needed', `R ${po.funding_needed.toLocaleString()}`]].map(([l, v]) => (
+                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.5rem' }}>PO Summary</p>
+                            {[['Sector', po.sector], ['PO Value', `R ${po.po_value.toLocaleString()}`], ['Funding needed', `R ${po.funding_needed.toLocaleString()}`], ['Quotation value', `R ${po.quotation_value.toLocaleString()}`]].map(([l, v]) => (
                               <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #f0f0f0', fontSize: '12px' }}>
                                 <span style={{ color: '#888' }}>{l}</span><span style={{ fontWeight: '600' }}>{v}</span>
                               </div>
                             ))}
                           </div>
                           <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e5e5' }}>
-                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.5rem' }}>Profit Analysis</p>
+                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.5rem' }}>Profit Analysis</p>
                             <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-                              <p style={{ fontSize: '28px', fontWeight: '700', color: '#0D7E7E' }}>{margin}%</p>
+                              <p style={{ fontSize: '28px', fontWeight: '700', color: '#085041' }}>{margin}%</p>
                               <p style={{ fontSize: '12px', color: '#666' }}>Profit margin</p>
-                              <p style={{ fontSize: '14px', fontWeight: '700', color: '#0D7E7E', marginTop: '.5rem' }}>R {profit.toLocaleString()}</p>
+                              <p style={{ fontSize: '14px', fontWeight: '700', color: '#0F6E56', marginTop: '.5rem' }}>R {profit.toLocaleString()}</p>
                               <p style={{ fontSize: '11px', color: '#666' }}>Estimated profit</p>
                             </div>
                           </div>
                         </div>
 
-                        {/* CLIENT & SUPPLIER CONTACTS */}
-                        {[
-                          { title: 'Client Contact Details', rows: [['Company', po.client_name], ['Contact person', po.client_contact], ['Department', po.client_department], ['Phone', po.client_phone], ['Email', po.client_email]] },
-                          { title: 'Supplier Contact Details', rows: [['Supplier', po.supplier_name], ['Phone', po.supplier_phone], ['Email', po.supplier_email], ['Quotation number', po.quotation_number], ['Quotation value', `R ${po.quotation_value.toLocaleString()}`]] },
-                        ].map(({ title, rows }) => (
-                          <div key={title} style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.5rem' }}>{title}</p>
-                            {rows.map(([l, v]) => (
-                              <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
-                                <span style={{ color: '#888' }}>{l}</span><span style={{ fontWeight: '600' }}>{v}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-
-                        {/* PO & QUOTATION DOCS */}
+                        {/* PO & QUOTATION DOCS — always visible in preview */}
                         <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.75rem' }}>PO & Quotation Documents</p>
+                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.75rem' }}>PO & Quotation Documents</p>
                           {[
                             { name: 'Purchase Order Document', path: `po-${po.id}` },
                             { name: 'Supplier Quotation', path: `quotation-${po.id}` },
                           ].map(doc => (
                             <div key={doc.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1F2937' }}>{doc.name}</p>
+                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1B2B4B' }}>{doc.name}</p>
                               <button onClick={() => downloadDoc(po.user_id, doc.path)}
-                                style={{ fontSize: '12px', color: '#fff', background: '#0D7E7E', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                                style={{ fontSize: '12px', color: '#fff', background: '#0F6E56', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
                                 View
                               </button>
                             </div>
                           ))}
                         </div>
 
-                        {/* VERIFICATION DOCS */}
-                        <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.75rem' }}>Business Verification Documents</p>
-                          {[
-                            { name: 'Company Registration Certificate', path: 'company-certificate' },
-                            { name: 'ID Copy of Director', path: 'id-document' },
-                            { name: 'CSD Full Registration Report', path: 'csd-report' },
-                            { name: 'Tax Clearance Certificate', path: 'tax-clearance' },
-                            { name: 'BBB-EE Certificate', path: 'bbbee-certificate' },
-                          ].map(doc => (
-                            <div key={doc.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1F2937' }}>{doc.name}</p>
-                              <button onClick={() => downloadDoc(po.user_id, doc.path)}
-                                style={{ fontSize: '12px', color: '#0D7E7E', background: '#E1F5EE', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
-                                View
-                              </button>
-                            </div>
-                          ))}
+                        {/* CONTACTS & VERIFICATION DOCS — locked until offer submitted */}
+                        <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', marginBottom: '1rem' }}>
+                          <div style={{ background: '#fff', padding: '1rem', filter: 'blur(4px)', userSelect: 'none', border: '1px solid #e5e5e5' }}>
+                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.5rem' }}>Client & Supplier Contact Details</p>
+                            {[['Client', '████████████'], ['Phone', '+27 ██ ███ ████'], ['Email', '████████@██████.co.za'], ['Supplier', '████████████'], ['Supplier Phone', '+27 ██ ███ ████']].map(([l, v]) => (
+                              <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px' }}>
+                                <span style={{ color: '#888' }}>{l}</span><span>{v}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.85)', borderRadius: '8px' }}>
+                            <p style={{ fontSize: '13px', fontWeight: '700', color: '#0F6E56', marginBottom: '.5rem' }}>Submit an offer to unlock</p>
+                            <p style={{ fontSize: '12px', color: '#666' }}>Contact details & verification documents</p>
+                          </div>
                         </div>
 
-                        <div style={{ background: '#FAEEDA', borderRadius: '8px', padding: '10px', marginBottom: '1rem', fontSize: '12px', color: '#633806', border: '1px solid #F5D87A' }}>
-                          These documents are confidential. Verify the PO and quotation directly with the client and supplier before making a funding decision.
-                        </div>
-
-                        <button onClick={() => { setSelectedPO(po.id); setPreviewPO(null) }}
-                          style={{ width: '100%', padding: '10px', background: '#0D7E7E', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
-                          Make an offer on this PO
-                        </button>
+                        {!hasOffer && (
+                          <button onClick={() => { setSelectedPO(po.id); setPreviewPO(null) }}
+                            style={{ width: '100%', padding: '10px', background: '#0F6E56', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+                            Make an offer to unlock full access
+                          </button>
+                        )}
                       </div>
                     )}
 
                     {/* OFFER FORM */}
                     {selectedPO === po.id && (
                       <div style={{ marginTop: '1rem', padding: '1.25rem', background: '#f9f9f9', borderRadius: '10px', border: '1px solid #e5e5e5' }}>
-                        <p style={{ fontSize: '14px', fontWeight: '700', color: '#1F2937', marginBottom: '1rem' }}>Submit your funding offer</p>
+                        <p style={{ fontSize: '14px', fontWeight: '700', color: '#1B2B4B', marginBottom: '1rem' }}>Submit your funding offer</p>
                         {offerError[po.id] && (
                           <div style={{ background: '#FEE2E2', border: '1px solid #FCA5A5', borderRadius: '8px', padding: '10px', marginBottom: '1rem', fontSize: '13px', color: '#DC2626' }}>
                             {offerError[po.id]}
@@ -497,35 +434,40 @@ export default function FunderDashboard() {
                           </div>
                         </div>
                         <div style={{ background: '#E1F5EE', borderRadius: '8px', padding: '12px', marginBottom: '1rem', border: '1px solid #c8ead8' }}>
-                          <div style={{ fontSize: '13px', color: '#0D7E7E' }}>
+                          <div style={{ fontSize: '13px', color: '#085041' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #c8ead8' }}>
                               <span>Funding amount</span><span style={{ fontWeight: '700' }}>R {fundingAmount.toLocaleString()}</span>
                             </div>
                             {rate > 0 && (
                               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                                <span>Your interest ({rates[po.id]}%)</span><span style={{ fontWeight: '700', color: '#0D7E7E' }}>+ R {interestEarned.toLocaleString()}</span>
+                                <span>Your interest ({rates[po.id]}%)</span><span style={{ fontWeight: '700', color: '#0F6E56' }}>+ R {interestEarned.toLocaleString()}</span>
                               </div>
                             )}
                           </div>
-                          {!rates[po.id] && <p style={{ fontSize: '12px', color: '#0D7E7E', marginTop: '.5rem' }}>Enter your interest rate above to see the breakdown.</p>}
+                          {!rates[po.id] && <p style={{ fontSize: '12px', color: '#0F6E56', marginTop: '.5rem' }}>Enter your interest rate above to see the breakdown.</p>}
+                        </div>
+                        <div style={{ background: '#FAEEDA', borderRadius: '8px', padding: '10px', marginBottom: '1rem', fontSize: '12px', color: '#633806', border: '1px solid #F5D87A' }}>
+                          Submitting this offer will unlock full contact details and all verification documents for this business.
                         </div>
                         <button onClick={() => handleSubmitOffer(po.id)}
-                          style={{ width: '100%', padding: '12px', background: '#0D7E7E', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
-                          Submit offer
+                          style={{ width: '100%', padding: '12px', background: '#0F6E56', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                          Submit offer & unlock full access
                         </button>
                       </div>
                     )}
 
-                    {/* POST-OFFER FULL DOCS */}
-                    {viewingPODocs === po.id && (
+                    {/* POST-OFFER FULL ACCESS — contacts + all docs */}
+                    {viewingPODocs === po.id && hasOffer && (
                       <div style={{ marginTop: '1rem', padding: '1.25rem', background: '#EEF4FB', borderRadius: '10px', border: '1px solid #B8D4F0' }}>
-                        <p style={{ fontSize: '13px', fontWeight: '700', color: '#0C447C', marginBottom: '1rem' }}>Full Documents & Contact Details</p>
+                        <p style={{ fontSize: '13px', fontWeight: '700', color: '#0C447C', marginBottom: '1rem' }}>Full Access — Contact Details & All Documents</p>
+
+                        {/* CONTACTS */}
                         {[
                           { title: 'Client Contact Details', rows: [['Company', po.client_name], ['Contact person', po.client_contact], ['Department', po.client_department], ['Phone', po.client_phone], ['Email', po.client_email]] },
                           { title: 'Supplier Contact Details', rows: [['Supplier', po.supplier_name], ['Phone', po.supplier_phone], ['Email', po.supplier_email], ['Quotation number', po.quotation_number], ['Quotation value', `R ${po.quotation_value.toLocaleString()}`]] },
                         ].map(({ title, rows }) => (
                           <div key={title} style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.5rem' }}>{title}</p>
+                            <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.5rem' }}>{title}</p>
                             {rows.map(([l, v]) => (
                               <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>
                                 <span style={{ color: '#888' }}>{l}</span><span style={{ fontWeight: '600' }}>{v}</span>
@@ -533,20 +475,34 @@ export default function FunderDashboard() {
                             ))}
                           </div>
                         ))}
+
+                        {/* PROFIT */}
+                        <div style={{ background: '#E1F5EE', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #c8ead8' }}>
+                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#085041', marginBottom: '.5rem' }}>Profit Margin Analysis</p>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', textAlign: 'center' }}>
+                            <div><p style={{ fontSize: '16px', fontWeight: '700', color: '#0F6E56' }}>R {po.po_value.toLocaleString()}</p><p style={{ fontSize: '11px', color: '#666' }}>PO Value</p></div>
+                            <div><p style={{ fontSize: '16px', fontWeight: '700', color: '#DC2626' }}>R {po.quotation_value.toLocaleString()}</p><p style={{ fontSize: '11px', color: '#666' }}>Supplier Cost</p></div>
+                            <div><p style={{ fontSize: '16px', fontWeight: '700', color: '#085041' }}>{margin}%</p><p style={{ fontSize: '11px', color: '#666' }}>Profit Margin</p></div>
+                          </div>
+                        </div>
+
+                        {/* PO & QUOTATION DOCS */}
                         <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.75rem' }}>PO & Quotation Documents</p>
+                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.75rem' }}>PO & Quotation Documents</p>
                           {[{ name: 'Purchase Order Document', path: `po-${po.id}` }, { name: 'Supplier Quotation', path: `quotation-${po.id}` }].map(doc => (
                             <div key={doc.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1F2937' }}>{doc.name}</p>
+                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1B2B4B' }}>{doc.name}</p>
                               <button onClick={() => downloadDoc(po.user_id, doc.path)}
-                                style={{ fontSize: '12px', color: '#fff', background: '#0D7E7E', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                                style={{ fontSize: '12px', color: '#fff', background: '#0F6E56', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
                                 Download
                               </button>
                             </div>
                           ))}
                         </div>
+
+                        {/* VERIFICATION DOCS */}
                         <div style={{ background: '#fff', borderRadius: '8px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e5e5' }}>
-                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1F2937', marginBottom: '.75rem' }}>Business Verification Documents</p>
+                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#1B2B4B', marginBottom: '.75rem' }}>Business Verification Documents</p>
                           {[
                             { name: 'Company Registration Certificate', path: 'company-certificate' },
                             { name: 'ID Copy of Director', path: 'id-document' },
@@ -555,14 +511,15 @@ export default function FunderDashboard() {
                             { name: 'BBB-EE Certificate', path: 'bbbee-certificate' },
                           ].map(doc => (
                             <div key={doc.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1F2937' }}>{doc.name}</p>
+                              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1B2B4B' }}>{doc.name}</p>
                               <button onClick={() => downloadDoc(po.user_id, doc.path)}
-                                style={{ fontSize: '12px', color: '#0D7E7E', background: '#E1F5EE', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                                style={{ fontSize: '12px', color: '#0F6E56', background: '#E1F5EE', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
                                 Download
                               </button>
                             </div>
                           ))}
                         </div>
+
                         <div style={{ background: '#FAEEDA', borderRadius: '8px', padding: '10px', fontSize: '12px', color: '#633806', border: '1px solid #F5D87A' }}>
                           These documents are confidential. Verify the PO and quotation directly with the client and supplier before making a funding decision.
                         </div>
@@ -578,7 +535,7 @@ export default function FunderDashboard() {
         {/* MY OFFERS */}
         {activeTab === 'offers' && (
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1F2937', marginBottom: '1rem' }}>My Submitted Offers</h2>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1B2B4B', marginBottom: '1rem' }}>My Submitted Offers</h2>
             <RealOffers />
           </div>
         )}
@@ -586,7 +543,7 @@ export default function FunderDashboard() {
         {/* PROFILE */}
         {activeTab === 'profile' && (
           <div style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '1.5rem' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1F2937', marginBottom: '1.5rem' }}>Funder Profile</h2>
+            <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1B2B4B', marginBottom: '1.5rem' }}>Funder Profile</h2>
             <p style={{ fontSize: '14px', color: '#666' }}>Profile details coming soon.</p>
           </div>
         )}
@@ -594,14 +551,4 @@ export default function FunderDashboard() {
       </div>
     </main>
   )
-}
-
-type Offer = {
-  id: string
-  amount: number
-  interest_rate: number
-  term_days: number
-  status: string
-  created_at: string
-  purchase_orders?: PO
 }
