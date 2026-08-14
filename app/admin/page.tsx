@@ -210,6 +210,18 @@ export default function AdminPage() {
     finally { setActionLoading(null) }
   }
 
+  async function deleteUser(profileId: string) {
+    if (!confirm('Are you sure you want to permanently delete this user? This cannot be undone.')) return
+    setActionLoading(profileId)
+    try {
+      const supabase = await getSupabase()
+      await supabase.from('profiles').delete().eq('id', profileId)
+      setProfiles(prev => prev.filter(p => p.id !== profileId))
+      setSelectedProfile(null)
+    } catch(e) { console.error(e) }
+    finally { setActionLoading(null) }
+  }
+
   async function handleSignOut() {
     const supabase = await getSupabase()
     await supabase.auth.signOut()
@@ -465,6 +477,13 @@ export default function AdminPage() {
                                 {actionLoading === profile.id ? '...' : 'Decline'}
                               </button>
                             )}
+                            {profile.status === 'declined' && (
+                              <button onClick={()=>deleteUser(profile.id)}
+                                disabled={actionLoading === profile.id}
+                                style={{fontSize:'12px',color:'#fff',background:'#DC2626',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
+                                {actionLoading === profile.id ? '...' : 'Delete'}
+                              </button>
+                            )}
                             {profile.status !== 'pending' && (
                               <button onClick={()=>updateUserStatus(profile.id, 'pending')}
                                 disabled={actionLoading === profile.id}
@@ -701,6 +720,13 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {selectedProfile.status === 'declined' && (
+              <button onClick={()=>deleteUser(selectedProfile.id)}
+                disabled={actionLoading === selectedProfile.id}
+                style={{width:'100%',padding:'12px',background:'#DC2626',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer',marginBottom:'8px'}}>
+                {actionLoading === selectedProfile.id ? 'Deleting...' : 'Delete user permanently'}
+              </button>
+            )}
             <button onClick={()=>{ setSelectedProfile(null); setEditingStatus(null) }}
               style={{width:'100%',padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
               Close
