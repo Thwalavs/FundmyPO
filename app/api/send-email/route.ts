@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
           <p style="color:#444;line-height:1.8">Thank you for registering on FundMyPO. We have received your application and documents for <strong>${data.businessName}</strong>.</p>
           <div style="background:#FEF3C7;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #F59E0B">
             <p style="color:#92400E;margin:0;font-weight:600;margin-bottom:4px">Account Pending Approval</p>
-            <p style="color:#92400E;margin:0;font-size:14px">Our team will review your documents within 24hours. You will receive another email once your account has been approved.</p>
+            <p style="color:#92400E;margin:0;font-size:14px">Our team will review your documents within 24 hours. You will receive another email once your account has been approved.</p>
           </div>
           <p style="color:#444;line-height:1.8;font-size:14px">While you wait, if you have any questions feel free to reach out to us.</p>
           <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
@@ -63,16 +63,12 @@ export async function POST(req: NextRequest) {
         <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
           <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
           <p style="color:#444;line-height:1.8">Great news! Your FundMyPO account has been reviewed and <strong style="color:#0F6E56">approved</strong>.</p>
-          <p style="color:#444;line-height:1.8">
-            ${data.role === 'funder'
-              ? 'You can now log in and start browsing available purchase orders and submitting funding offers.'
-              : 'You can now log in and start submitting purchase orders to receive competitive funding offers from our verified funders.'}
-          </p>
+          <p style="color:#444;line-height:1.8">${data.role === 'funder' ? 'You can now log in and start browsing available purchase orders and submitting funding offers.' : 'You can now log in and start submitting purchase orders to receive competitive funding offers from our verified funders.'}</p>
           <div style="background:#E1F5EE;padding:1rem;border-radius:8px;margin:1.5rem 0">
             <p style="color:#085041;margin:0;font-size:14px">Your business <strong>${data.businessName}</strong> is now active on the platform.</p>
           </div>
           <a href="https://fundmypo.co.za/register" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">Log in to FundMyPO</a>
-          <p style="color:#888;font-size:12px;margin-top:2rem">If you have any questions contact us at info@fundmypo.co.za or WhatsApp 067 316 2771</p>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
         </div>
       </div>`
 
@@ -86,7 +82,6 @@ export async function POST(req: NextRequest) {
           <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
           <p style="color:#444;line-height:1.8">Thank you for applying to join FundMyPO. After reviewing your application and documents, we are unable to approve your account at this time.</p>
           <div style="background:#FEE2E2;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #DC2626">
-            <p style="color:#991B1B;margin:0;font-weight:600;margin-bottom:4px">Reason:</p>
             <p style="color:#991B1B;margin:0;font-size:14px">${data.reason || 'Please ensure all documents are valid and up to date.'}</p>
           </div>
           <p style="color:#444;line-height:1.8">If you believe this is an error or would like to reapply with updated documents, please contact us directly.</p>
@@ -120,49 +115,29 @@ export async function POST(req: NextRequest) {
             <p style="margin:0 0 6px;color:#085041"><strong>Term:</strong> ${data.term}</p>
             <p style="margin:0;color:#085041"><strong>Commission:</strong> ${data.commission}</p>
           </div>
-          <p style="color:#444;font-size:14px;line-height:1.8">Please proceed with the funding disbursement. The FundMyPO team will be in touch to facilitate the process.</p>
           <a href="https://fundmypo.co.za/funder" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">View in Funder Portal</a>
           <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
         </div>
       </div>`
 
-    } else if (type === 'admin_offer_accepted') {
-      subject = `Offer Accepted: ${data.poNumber} — Action Required`
+    } else if (type === 'offer_accepted_supplier') {
+      subject = `Your PO ${data.poNumber} Offer Has Been Accepted — Pending Admin Approval`
       html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
         <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
-          <h1 style="color:#fff;margin:0;font-size:22px">Offer Accepted — Action Required</h1>
-        </div>
-        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
-          <p style="color:#444;line-height:1.8">A supplier has accepted a funding offer on FundMyPO.</p>
-          <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1.5rem 0">
-            <p style="margin:0 0 8px;color:#444"><strong>PO Number:</strong> ${data.poNumber}</p>
-            <p style="margin:0 0 8px;color:#444"><strong>Supplier:</strong> ${data.businessName}</p>
-            <p style="margin:0 0 8px;color:#444"><strong>Funder:</strong> ${data.funderName}</p>
-            <p style="margin:0 0 8px;color:#444"><strong>Amount:</strong> ${data.amount}</p>
-            <p style="margin:0 0 8px;color:#444"><strong>Rate:</strong> ${data.rate}</p>
-            <p style="margin:0 0 8px;color:#444"><strong>Term:</strong> ${data.term}</p>
-          </div>
-          <p style="color:#444;font-size:14px">Please contact the funder to facilitate the disbursement.</p>
-          <a href="https://fundmypo.co.za/admin" style="display:inline-block;background:#1B2B4B;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">View in Admin Panel</a>
-        </div>
-      </div>`
-
-    } else if (type === 'offer_accepted_supplier') {
-      subject = `Congratulations! Your PO ${data.poNumber} Has Been Funded!`
-      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
-        <div style="background:#0F6E56;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
-          <h1 style="color:#fff;margin:0;font-size:22px">Your PO Has Been Funded!</h1>
+          <h1 style="color:#fff;margin:0;font-size:22px">Offer Accepted!</h1>
         </div>
         <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
           <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
-          <p style="color:#444;line-height:1.8">Great news! You have accepted a funding offer for your purchase order <strong>${data.poNumber}</strong>.</p>
-          <div style="background:#E1F5EE;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #0F6E56">
-            <p style="color:#085041;margin:0;font-weight:600;margin-bottom:8px">Funding Details</p>
-            <p style="margin:0 0 6px;color:#085041"><strong>Amount:</strong> ${data.amount}</p>
-            <p style="margin:0 0 6px;color:#085041"><strong>Interest rate:</strong> ${data.rate}</p>
-            <p style="margin:0;color:#085041"><strong>Term:</strong> ${data.term}</p>
+          <p style="color:#444;line-height:1.8">You have accepted a funding offer for <strong>${data.poNumber}</strong>. The deal is now pending FundMyPO admin approval before disbursement.</p>
+          <div style="background:#FEF3C7;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #F59E0B">
+            <p style="color:#92400E;margin:0;font-weight:600;margin-bottom:4px">Pending Admin Approval</p>
+            <p style="color:#92400E;margin:0;font-size:14px">Our team will review and approve the deal within 24 hours. You will be notified once the funder is ready to disburse.</p>
           </div>
-          <p style="color:#444;font-size:14px;line-height:1.8">The funder will process the disbursement within 24 hours. You will be contacted directly once funds are released.</p>
+          <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1.5rem 0">
+            <p style="margin:0 0 6px;color:#444"><strong>Amount:</strong> ${data.amount}</p>
+            <p style="margin:0 0 6px;color:#444"><strong>Interest rate:</strong> ${data.rate}</p>
+            <p style="margin:0;color:#444"><strong>Term:</strong> ${data.term}</p>
+          </div>
           <a href="https://fundmypo.co.za/dashboard" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">View Dashboard</a>
           <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
         </div>
@@ -176,7 +151,7 @@ export async function POST(req: NextRequest) {
         </div>
         <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
           <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
-          <p style="color:#444;line-height:1.8">Your purchase order <strong>${data.poNumber}</strong> has been successfully submitted to the FundMyPO marketplace.</p>
+          <p style="color:#444;line-height:1.8">Your purchase order <strong>${data.poNumber}</strong> has been submitted to the FundMyPO marketplace.</p>
           <div style="background:#FEF3C7;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #F59E0B">
             <p style="color:#92400E;margin:0;font-weight:600;margin-bottom:4px">Status: Under Review</p>
             <p style="color:#92400E;margin:0;font-size:14px">Verified funders are now reviewing your PO and will submit competitive funding offers shortly.</p>
@@ -187,7 +162,6 @@ export async function POST(req: NextRequest) {
             <p style="margin:0 0 8px;color:#444"><strong>PO Value:</strong> ${data.poValue}</p>
             <p style="margin:0;color:#444"><strong>Funding needed:</strong> ${data.fundingNeeded}</p>
           </div>
-          <p style="color:#444;font-size:14px;line-height:1.8">Log in to your dashboard to track your application and view offers as they come in.</p>
           <a href="https://fundmypo.co.za/dashboard" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">Track My Application</a>
           <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
         </div>
@@ -201,7 +175,7 @@ export async function POST(req: NextRequest) {
         </div>
         <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
           <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
-          <p style="color:#444;line-height:1.8">A new purchase order has been listed on the FundMyPO marketplace and is available for funding.</p>
+          <p style="color:#444;line-height:1.8">A new purchase order has been listed on the FundMyPO marketplace.</p>
           <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1.5rem 0">
             <p style="margin:0 0 8px;color:#444"><strong>PO Number:</strong> ${data.poNumber}</p>
             <p style="margin:0 0 8px;color:#444"><strong>Client:</strong> ${data.clientName}</p>
@@ -209,8 +183,7 @@ export async function POST(req: NextRequest) {
             <p style="margin:0 0 8px;color:#444"><strong>PO Value:</strong> ${data.poValue}</p>
             <p style="margin:0;color:#444"><strong>Funding needed:</strong> ${data.fundingNeeded}</p>
           </div>
-          <p style="color:#444;font-size:14px;line-height:1.8">Log in to the funder portal to view full details and submit a funding offer.</p>
-          <a href="https://fundmypo.co.za/register?role=funder" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">View PO & Make an Offer</a>
+          <a href="https://fundmypo.co.za/funder" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">View PO & Make an Offer</a>
           <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
         </div>
       </div>`
@@ -222,30 +195,6 @@ export async function POST(req: NextRequest) {
         <p style="color:#444">A new PO has been submitted by <strong>${data.businessName}</strong></p>
         <p style="color:#444">PO Number: ${data.poNumber}<br>Client: ${data.clientName}<br>Value: ${data.poValue}</p>
         <a href="https://fundmypo.co.za/admin" style="display:inline-block;background:#085041;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Review in admin</a>
-      </div>`
-
-    } else if (type === 'offer_declined') {
-      subject = `Your Funding Offer for ${data.poNumber} Was Declined`
-      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
-        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
-          <h1 style="color:#fff;margin:0;font-size:22px">Offer Update</h1>
-        </div>
-        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
-          <p style="color:#444;line-height:1.8">Hi <strong>${data.funderName}</strong>,</p>
-          <p style="color:#444;line-height:1.8">Unfortunately your funding offer for <strong>${data.poNumber}</strong> has been declined.</p>
-          <div style="background:#FEE2E2;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #DC2626">
-            <p style="color:#991B1B;margin:0;font-weight:600;margin-bottom:4px">Reason provided:</p>
-            <p style="color:#991B1B;margin:0;font-size:14px">${data.reason}</p>
-          </div>
-          <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1.5rem 0">
-            <p style="margin:0 0 8px;color:#444"><strong>PO Number:</strong> ${data.poNumber}</p>
-            <p style="margin:0 0 8px;color:#444"><strong>Offer Amount:</strong> ${data.amount}</p>
-            <p style="margin:0;color:#444"><strong>Rate:</strong> ${data.rate}</p>
-          </div>
-          <p style="color:#444;font-size:14px">Other purchase orders are available on the marketplace.</p>
-          <a href="https://fundmypo.co.za/register?role=funder" style="display:inline-block;background:#1B2B4B;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">Browse Marketplace</a>
-          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
-        </div>
       </div>`
 
     } else if (type === 'deal_pending_admin') {
@@ -292,6 +241,52 @@ export async function POST(req: NextRequest) {
         </div>
       </div>`
 
+    } else if (type === 'still_under_review') {
+      subject = 'Your FundMyPO Application Update'
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">Application Update</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
+          <p style="color:#444;line-height:1.8">We wanted to give you a quick update on your FundMyPO application for <strong>${data.businessName}</strong>.</p>
+          <div style="background:#FEF3C7;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #F59E0B">
+            <p style="color:#92400E;margin:0;font-weight:600;margin-bottom:4px">Still Under Review</p>
+            <p style="color:#92400E;margin:0;font-size:14px">Your application is still being reviewed by our team. We appreciate your patience and will notify you as soon as a decision has been made.</p>
+          </div>
+          <p style="color:#444;line-height:1.8;font-size:14px">If you have any questions or would like to follow up, please do not hesitate to contact us.</p>
+          <a href="mailto:info@fundmypo.co.za" style="display:inline-block;background:#1B2B4B;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">Contact Us</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
+      </div>`
+
+    } else if (type === 'welcome_funder') {
+      subject = 'Welcome to FundMyPO — Your Funder Account is Being Reviewed'
+      html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
+        <div style="background:#1B2B4B;padding:1.5rem 2rem;border-radius:8px 8px 0 0;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:22px">Welcome to FundMyPO!</h1>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e5e5;border-top:none;padding:2rem;border-radius:0 0 8px 8px">
+          <p style="color:#444;line-height:1.8">Hi <strong>${data.name}</strong>,</p>
+          <p style="color:#444;line-height:1.8">Thank you for registering as a funder on FundMyPO — South Africa's leading purchase order funding marketplace.</p>
+          <div style="background:#E1F5EE;padding:1rem;border-radius:8px;margin:1.5rem 0;border-left:4px solid #0F6E56">
+            <p style="color:#085041;margin:0;font-weight:600;margin-bottom:8px">How it works for funders:</p>
+            <p style="margin:0 0 6px;color:#085041;font-size:14px">1. Your account is reviewed and approved by our team</p>
+            <p style="margin:0 0 6px;color:#085041;font-size:14px">2. Browse verified purchase orders on the marketplace</p>
+            <p style="margin:0 0 6px;color:#085041;font-size:14px">3. View full documents before making any offer</p>
+            <p style="margin:0 0 6px;color:#085041;font-size:14px">4. Submit competitive funding offers on deals you like</p>
+            <p style="margin:0;color:#085041;font-size:14px">5. Get notified when your offer is accepted and approved</p>
+          </div>
+          <div style="background:#f5f5f5;padding:1rem;border-radius:8px;margin:1.5rem 0">
+            <p style="color:#444;margin:0;font-size:14px;font-weight:600;margin-bottom:4px">Your account status: Pending Review</p>
+            <p style="color:#666;margin:0;font-size:13px">Our team will review your documents within 24-48 hours and notify you once approved.</p>
+          </div>
+          <p style="color:#444;line-height:1.8;font-size:14px">If you have any questions while you wait, feel free to reach out to us directly.</p>
+          <a href="mailto:info@fundmypo.co.za" style="display:inline-block;background:#0F6E56;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;margin-top:1rem">Contact Us</a>
+          <p style="color:#888;font-size:12px;margin-top:2rem">Email: info@fundmypo.co.za | WhatsApp: 067 316 2771</p>
+        </div>
+      </div>`
+
     } else if (type === 'deal_declined_supplier') {
       subject = `Update on Your Deal for ${data.poNumber}`
       html = `<div style="font-family:sans-serif;padding:2rem;max-width:600px">
@@ -307,7 +302,7 @@ export async function POST(req: NextRequest) {
         </div>
       </div>`
     }
-   
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
