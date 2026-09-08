@@ -40,6 +40,11 @@ type PO = {
   sector: string
   status: string
   created_at: string
+  profiles?: {
+    first_name: string
+    last_name: string
+    business_name: string
+  }
 }
 
 const SUPABASE_URL = 'https://efzszombcfxyyobqehyp.supabase.co'
@@ -131,7 +136,7 @@ export default function AdminPage() {
       const supabase = await getSupabase()
       const { data } = await supabase
         .from('purchase_orders')
-        .select('id, user_id, po_number, client_name, client_department, po_value, funding_needed, sector, status, created_at')
+        .select('id, user_id, po_number, client_name, client_department, po_value, funding_needed, sector, status, created_at, profiles(first_name, last_name, business_name)')
         .order('created_at', { ascending: false })
       setPos(data || [])
     } catch(e) { console.error(e) }
@@ -554,6 +559,9 @@ export default function AdminPage() {
                         <td style={{padding:'14px 16px'}}>
                           <p style={{fontSize:'13px',fontWeight:'600',color:'#1B2B4B'}}>{po.client_name}</p>
                           <p style={{fontSize:'11px',color:'#888'}}>{po.client_department}</p>
+                          <p style={{fontSize:'11px',color:'#4DBFB0',fontWeight:'600'}}>
+                            By: {(po.profiles as any)?.business_name || (po.profiles as any)?.first_name || 'Unknown'}
+                          </p>
                         </td>
                         <td style={{padding:'14px 16px',fontSize:'13px',color:'#444'}}>{po.sector}</td>
                         <td style={{padding:'14px 16px',fontSize:'13px',fontWeight:'600',color:'#0F6E56'}}>R {po.po_value.toLocaleString()}</td>
