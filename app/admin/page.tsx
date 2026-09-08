@@ -96,6 +96,8 @@ export default function AdminPage() {
   const [mounted, setMounted] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [editingStatus, setEditingStatus] = useState<string | null>(null)
+  const [decliningUser, setDecliningUser] = useState<Profile | null>(null)
+  const [declineReason, setDeclineReason] = useState('')
 
   useEffect(() => { setMounted(true); loadAll() }, [])
 
@@ -160,7 +162,7 @@ export default function AdminPage() {
     finally { setPosLoading(false) }
   }
 
-  async function updateUserStatus(profileId: string, status: 'approved' | 'declined' | 'pending') {
+  async function updateUserStatus(profileId: string, status: 'approved' | 'declined' | 'pending', reason?: string) {
     setActionLoading(profileId)
     try {
       const supabase = await getSupabase()
@@ -173,7 +175,7 @@ export default function AdminPage() {
             body: JSON.stringify({
               type: status === 'approved' ? 'account_approved' : 'account_declined',
               to: profile.email,
-              data: { name: profile.first_name || profile.business_name, businessName: profile.business_name, role: profile.role }
+              data: { name: profile.first_name || profile.business_name, businessName: profile.business_name, role: profile.role, reason: reason || 'Please ensure all documents are valid and up to date.' }
             })
           })
         } catch(e) { console.log('Email failed:', e) }
@@ -493,10 +495,9 @@ export default function AdminPage() {
                               </button>
                             )}
                             {profile.status !== 'declined' && (
-                              <button onClick={()=>updateUserStatus(profile.id, 'declined')}
-                                disabled={actionLoading === profile.id}
+                              <button onClick={()=>{ setDecliningUser(profile); setDeclineReason('') }}
                                 style={{fontSize:'12px',color:'#991B1B',background:'#FEE2E2',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
-                                {actionLoading === profile.id ? '...' : 'Decline'}
+                                Decline
                               </button>
                             )}
                             {profile.status === 'pending' && (
@@ -819,6 +820,41 @@ export default function AdminPage() {
               style={{width:'100%',padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+
+      {/* DECLINE REASON MODAL */}
+      {decliningUser && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:300,padding:'1rem'}}>
+          <div style={{background:'#fff',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'480px'}}>
+            <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.5rem'}}>Decline Application</h2>
+            <p style={{fontSize:'13px',color:'#666',marginBottom:'1.5rem'}}>
+              You are declining <strong>{decliningUser.business_name || decliningUser.first_name}</strong>. Please provide a reason — this will be included in the email sent to the applicant.
+            </p>
+            <textarea
+              placeholder="e.g. Your CSD registration report is expired. Please renew and reapply with updated documents."
+              value={declineReason}
+              onChange={e=>setDeclineReason(e.target.value)}
+              style={{width:'100%',padding:'12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none',minHeight:'120px',resize:'vertical' as const,marginBottom:'1.5rem'}}
+            />
+            <div style={{display:'flex',gap:'10px'}}>
+              <button onClick={()=>{ setDecliningUser(null); setDeclineReason('') }}
+                style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                Cancel
+              </button>
+              <button onClick={()=>{
+                if (!declineReason.trim()) { alert('Please enter a reason for declining.'); return }
+                updateUserStatus(decliningUser.id, 'declined', declineReason)
+                setDecliningUser(null)
+                setDeclineReason('')
+              }}
+                disabled={actionLoading === decliningUser.id}
+                style={{flex:2,padding:'12px',background:'#DC2626',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                {actionLoading === decliningUser.id ? 'Processing...' : 'Decline & Send Email'}
+              </button>
+            </div>
           </div>
         </div>
       )}
