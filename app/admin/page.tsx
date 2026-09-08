@@ -97,12 +97,43 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [editingStatus, setEditingStatus] = useState<string | null>(null)
   const [decliningUser, setDecliningUser] = useState<Profile | null>(null)
+  const [decliningFromPO, setDecliningFromPO] = useState<PO | null>(null)
   const [declineReason, setDeclineReason] = useState('')
 
   useEffect(() => { setMounted(true); loadAll() }, [])
 
   async function loadAll() {
     await Promise.all([loadProfiles(), loadDeals(), loadPOs()])
+  }
+
+  async function declineFromPO(po: PO, reason: string) {
+    try {
+      const supabase = await getSupabase()
+      // Decline the user
+      await supabase.from('profiles').update({ status: 'declined' }).eq('id', po.user_id)
+      // Delete all their POs
+      await supabase.from('purchase_orders').delete().eq('user_id', po.user_id)
+      // Get profile for email
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', po.user_id).single()
+      if (profile) {
+        try {
+          await fetch('/api/send-email', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'account_declined',
+              to: profile.email,
+              data: { name: profile.first_name || profile.business_name, businessName: profile.business_name, role: profile.role, reason }
+            })
+          })
+        } catch(e) { console.log('Email failed:', e) }
+      }
+      // Update local state
+      setProfiles(prev => prev.map(p => p.id === po.user_id ? { ...p, status: 'declined' } : p))
+      setPos(prev => prev.filter(p => p.user_id !== po.user_id))
+      setDecliningUser(null)
+      setDeclineReason('')
+      alert('User declined and all their POs removed successfully.')
+    } catch(e) { console.error(e) }
   }
 
   async function loadProfiles() {
@@ -593,10 +624,18 @@ export default function AdminPage() {
                         <td style={{padding:'14px 16px'}}>{statusBadge(po.status)}</td>
                         <td style={{padding:'14px 16px',fontSize:'12px',color:'#888'}}>{new Date(po.created_at).toLocaleDateString('en-ZA')}</td>
                         <td style={{padding:'14px 16px'}}>
-                          <button onClick={()=>setSelectedPO(po)}
-                            style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
-                            View docs
-                          </button>
+                          <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                            <button onClick={()=>setSelectedPO(po)}
+                              style={{fontSize:'12px',color:'#0C447C',background:'#E6F1FB',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
+                              View docs
+                            </button>
+                            {po.status !== 'funded' && (
+                              <button onClick={()=>{ setDecliningFromPO(po); setDeclineReason('') }}
+                                style={{fontSize:'12px',color:'#991B1B',background:'#FEE2E2',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
+                                Decline user
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -830,6 +869,45 @@ export default function AdminPage() {
         </div>
       )}
 
+
+      {/* DECLINE FROM PO MODAL */}
+      {decliningFromPO && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:300,padding:'1rem'}}>
+          <div style={{background:'#fff',borderRadius:'16px',padding:'2rem',width:'100%',maxWidth:'480px'}}>
+            <h2 style={{fontSize:'18px',fontWeight:'700',color:'#1B2B4B',marginBottom:'.5rem'}}>Decline Supplier</h2>
+            <div style={{background:'#FEE2E2',borderRadius:'8px',padding:'1rem',marginBottom:'1.5rem',border:'1px solid #FCA5A5'}}>
+              <p style={{fontSize:'13px',color:'#991B1B',fontWeight:'600',marginBottom:'4px'}}>
+                PO: {decliningFromPO.po_number}
+              </p>
+              <p style={{fontSize:'12px',color:'#991B1B'}}>
+                Declining this supplier will remove all their POs from the marketplace and notify them by email.
+              </p>
+            </div>
+            <p style={{fontSize:'13px',color:'#666',marginBottom:'1rem'}}>
+              Please provide a reason for declining:
+            </p>
+            <textarea
+              placeholder="e.g. Your profit margin does not meet our minimum 30% requirement. Please review your supplier quotation and reapply."
+              value={declineReason}
+              onChange={e=>setDeclineReason(e.target.value)}
+              style={{width:'100%',padding:'12px',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',outline:'none',minHeight:'120px',resize:'vertical' as const,marginBottom:'1.5rem'}}
+            />
+            <div style={{display:'flex',gap:'10px'}}>
+              <button onClick={()=>{ setDecliningFromPO(null); setDeclineReason('') }}
+                style={{flex:1,padding:'12px',background:'#f5f5f5',color:'#666',border:'1px solid #e5e5e5',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                Cancel
+              </button>
+              <button onClick={()=>{
+                if (!declineReason.trim()) { alert('Please enter a reason for declining.'); return }
+                declineFromPO(decliningFromPO, declineReason)
+              }}
+                style={{flex:2,padding:'12px',background:'#DC2626',color:'#fff',border:'none',borderRadius:'8px',fontSize:'14px',fontWeight:'600',cursor:'pointer'}}>
+                Decline & Remove POs
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DECLINE REASON MODAL */}
       {decliningUser && (
