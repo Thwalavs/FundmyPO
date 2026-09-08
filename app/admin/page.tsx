@@ -130,11 +130,32 @@ export default function AdminPage() {
     setPosLoading(true)
     try {
       const supabase = await getSupabase()
-      const { data } = await supabase
+      const { data: poData } = await supabase
         .from('purchase_orders')
-        .select('id, user_id, po_number, client_name, client_department, po_value, funding_needed, sector, status, created_at, profiles(first_name, last_name, business_name)')
+        .select('id, user_id, po_number, client_name, client_department, po_value, funding_needed, sector, status, created_at')
         .order('created_at', { ascending: false })
-      setPos(data || [])
+
+      if (poData && poData.length > 0) {
+        // Fetch supplier profiles separately
+        const userIds = [...new Set(poData.map(p => p.user_id))]
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, business_name')
+          .in('id', userIds)
+
+        const profileMap: Record<string, any> = {}
+        if (profileData) {
+          profileData.forEach(p => { profileMap[p.id] = p })
+        }
+
+        const enriched = poData.map(po => ({
+          ...po,
+          profiles: profileMap[po.user_id] || null
+        }))
+        setPos(enriched)
+      } else {
+        setPos([])
+      }
     } catch(e) { console.error(e) }
     finally { setPosLoading(false) }
   }
