@@ -131,7 +131,7 @@ export default function AdminPage() {
       const supabase = await getSupabase()
       const { data } = await supabase
         .from('purchase_orders')
-        .select('*')
+        .select('id, user_id, po_number, client_name, client_department, po_value, funding_needed, sector, status, created_at')
         .order('created_at', { ascending: false })
       setPos(data || [])
     } catch(e) { console.error(e) }
@@ -477,6 +477,20 @@ export default function AdminPage() {
                                 {actionLoading === profile.id ? '...' : 'Decline'}
                               </button>
                             )}
+                            {profile.status === 'pending' && (
+                              <button onClick={async()=>{
+                                try {
+                                  await fetch('/api/send-email', {
+                                    method:'POST', headers:{'Content-Type':'application/json'},
+                                    body: JSON.stringify({ type:'still_under_review', to:profile.email, data:{ name:profile.first_name||profile.business_name, businessName:profile.business_name } })
+                                  })
+                                  alert('Update email sent to ' + profile.email)
+                                } catch(e) { alert('Failed to send email') }
+                              }}
+                                style={{fontSize:'12px',color:'#633806',background:'#FAEEDA',border:'none',padding:'5px 10px',borderRadius:'6px',cursor:'pointer',fontWeight:'600'}}>
+                                Send update
+                              </button>
+                            )}
                             {profile.status === 'declined' && (
                               <button onClick={()=>deleteUser(profile.id)}
                                 disabled={actionLoading === profile.id}
@@ -720,6 +734,20 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {selectedProfile.status === 'pending' && (
+              <button onClick={async()=>{
+                try {
+                  await fetch('/api/send-email', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ type:'still_under_review', to:selectedProfile.email, data:{ name:selectedProfile.first_name||selectedProfile.business_name, businessName:selectedProfile.business_name } })
+                  })
+                  alert('Update email sent!')
+                } catch(e) { alert('Failed to send email') }
+              }}
+                style={{width:'100%',padding:'10px',background:'#FAEEDA',color:'#633806',border:'none',borderRadius:'8px',fontSize:'13px',fontWeight:'600',cursor:'pointer',marginBottom:'8px'}}>
+                Send "still under review" email
+              </button>
+            )}
             {selectedProfile.status === 'declined' && (
               <button onClick={()=>deleteUser(selectedProfile.id)}
                 disabled={actionLoading === selectedProfile.id}
