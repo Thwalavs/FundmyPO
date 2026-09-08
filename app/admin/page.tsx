@@ -40,11 +40,7 @@ type PO = {
   sector: string
   status: string
   created_at: string
-  profiles?: {
-    first_name: string
-    last_name: string
-    business_name: string
-  }
+  profiles?: any
 }
 
 const SUPABASE_URL = 'https://efzszombcfxyyobqehyp.supabase.co'
