@@ -167,6 +167,12 @@ export default function AdminPage() {
     try {
       const supabase = await getSupabase()
       await supabase.from('profiles').update({ status }).eq('id', profileId)
+
+      // If declining, remove all their POs from marketplace
+      if (status === 'declined') {
+        await supabase.from('purchase_orders').delete().eq('user_id', profileId)
+        setPos(prev => prev.filter(p => p.user_id !== profileId))
+      }
       const profile = profiles.find(p => p.id === profileId)
       if (profile && status !== 'pending') {
         try {
